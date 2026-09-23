@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPsec VPN Security & Protocol Assessment Report</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #22c55e;
+            --accent-yellow: #eab308;
+            --accent-red: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 30px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+            color: var(--accent-blue);
+        }
+
+        .header p {
+            margin: 5px 0 0 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .badge-secure { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
+        .badge-medium { background: rgba(234, 179, 8, 0.2); color: #fde047; border: 1px solid #eab308; }
+        .badge-high { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 26px;
+            font-weight: bold;
+            color: var(--accent-blue);
+            margin-top: 5px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .section-title {
+            font-size: 18px;
+            border-left: 4px solid var(--accent-blue);
+            padding-left: 12px;
+            margin: 30px 0 15px 0;
+            color: var(--text-primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #1e293b;
+            color: var(--text-secondary);
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        /* Threat Matrix Styles */
+        .matrix-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(3, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .matrix-cell {
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .matrix-low { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .matrix-med { background: rgba(234, 179, 8, 0.15); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.3); }
+        .matrix-high { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .finding-card {
+            background: var(--card-bg);
+            border-left: 5px solid var(--accent-yellow);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-top: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .finding-card.HIGH { border-left-color: var(--accent-red); }
+        .finding-card.MEDIUM { border-left-color: var(--accent-yellow); }
+        .finding-card.LOW { border-left-color: var(--accent-green); }
+
+        .finding-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .finding-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        @media print {
+            body { background-color: #fff; color: #000; }
+            .metric-card, table, .matrix-container, .finding-card { background: #fff; border-color: #ccc; color: #000; }
+            th, td { border-color: #ccc; color: #000; }
+            .header h1, .section-title { color: #000; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🛡 IPsec VPN Executive Security Report</h1>
+                <p>Generated for: <strong>ikev2_s2s_ipsec_vpn_aes_gcm.pcapng</strong> | Packets: 12</p>
+            </div>
+            <div>
+                <span class="badge badge-secure">
+                    Risk Level: SECURE
+                </span>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Risk Score</div>
+                <div class="metric-value">0/100</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">AI Traffic Prediction</div>
+                <div class="metric-value" style="font-size: 20px;">CHAT</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">AI Confidence</div>
+                <div class="metric-value">47.7%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Encryption Suite</div>
+                <div class="metric-value" style="font-size: 18px;">AES-256-GCM</div>
+            </div>
+        </div>
+
+        <div class="section-title">📊 3x3 Threat Matrix (Severity vs Likelihood)</div>
+        <div class="matrix-container">
+            <div class="matrix-grid">
+                <div></div>
+                <div style="font-size: 12px; color: var(--text-secondary);">Low Impact</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">Med Impact</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">High Impact</div>
+
+                <div style="font-size: 12px; color: var(--text-secondary); margin-auto 0;">High Likelihood</div>
+                <div class="matrix-cell matrix-med">Medium</div>
+                <div class="matrix-cell matrix-high">High</div>
+                <div class="matrix-cell matrix-high">Critical</div>
+
+                <div style="font-size: 12px; color: var(--text-secondary);">Med Likelihood</div>
+                <div class="matrix-cell matrix-low">Low</div>
+                <div class="matrix-cell matrix-med">Medium</div>
+                <div class="matrix-cell matrix-high">High</div>
+
+                <div style="font-size: 12px; color: var(--text-secondary);">Low Likelihood</div>
+                <div class="matrix-cell matrix-low">Low</div>
+                <div class="matrix-cell matrix-low">Low</div>
+                <div class="matrix-cell matrix-med">Medium</div>
+            </div>
+        </div>
+
+        <div class="section-title">🔑 Cryptographic & Protocol Parameters</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Observed Value</th>
+                    <th>Compliance Baseline</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>IPsec Protocol / IKE Version</td>
+                    <td>IKEv2 (IKE_AUTH)</td>
+                    <td>IKEv2</td>
+                </tr>
+                <tr>
+                    <td>Encryption Cipher</td>
+                    <td>AES-256-GCM (256-bit)</td>
+                    <td>AES-256-GCM / AES-256-CBC</td>
+                </tr>
+                <tr>
+                    <td>Integrity / Authentication</td>
+                    <td>AEAD</td>
+                    <td>AEAD / HMAC-SHA2-256</td>
+                </tr>
+                <tr>
+                    <td>Key Exchange (Diffie-Hellman)</td>
+                    <td>Group 19</td>
+                    <td>Group 14, 19, 20, 21, 28</td>
+                </tr>
+                <tr>
+                    <td>Security Associations (SPIs)</td>
+                    <td>Init: 62f94c9887715a34 | Resp: f05534eef373dc1b</td>
+                    <td>Valid 64-bit SPI Pair</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="section-title">🚨 Security Assessment & Actionable Recommendations</div>
+        
+            <div class="finding-card LOW">
+                <div class="finding-header">
+                    <span class="finding-title">✓ No Policy Violations Detected</span>
+                    <span class="badge badge-secure">COMPLIANT</span>
+                </div>
+                <p>The IPsec configuration meets all corporate security baselines. No weak ciphers or deprecated DH groups observed.</p>
+            </div>
+        
+    </div>
+</body>
+</html>

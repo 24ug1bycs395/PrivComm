@@ -1,0 +1,59 @@
+{
+    "capture": {
+        "filename": "ikev2_s2s_ipsec_vpn_aes_gcm.pcapng",
+        "filepath": "C:\\Users\\VIVEK\\OneDrive\\Desktop\\ipsec\\ikev2_s2s_ipsec_vpn_aes_gcm.pcapng",
+        "packet_count": 12
+    },
+    "ipsec": {
+        "detected": true,
+        "ike_detected": true,
+        "ike_version": "IKEv2",
+        "esp_detected": true,
+        "ah_detected": false,
+        "exchange_type": "IKE_AUTH",
+        "encryption": "AES-256-GCM",
+        "key_length": 256,
+        "integrity": "AEAD",
+        "prf": "HMAC-SHA2-384",
+        "dh_group": 19,
+        "mode": "Tunnel",
+        "pfs": "unknown",
+        "replay_protection": "unknown",
+        "sa_lifetime": null,
+        "initiator_spi": "62f94c9887715a34",
+        "responder_spi": "f05534eef373dc1b",
+        "esp_spis": [
+            "0x5fbd60dc",
+            "0xa70bbb39"
+        ]
+    },
+    "traffic_classification": {
+        "status": "success",
+        "traffic_type": "CHAT",
+        "confidence": 0.4767000079154968,
+        "probabilities": {
+            "BROWSING": 0.08579999953508377,
+            "CHAT": 0.4767000079154968,
+            "FT": 0.0828000009059906,
+            "MAIL": 0.00139999995008111,
+            "P2P": 0.25850000977516174,
+            "STREAMING": 0.0006000000284984708,
+            "VOIP": 0.00279999990016222,
+            "VPN-BROWSING": 0.025499999523162842,
+            "VPN-CHAT": 0.02419999986886978,
+            "VPN-FT": 0.034299999475479126,
+            "VPN-MAIL": 0.0005000000237487257,
+            "VPN-P2P": 0.003800000064074993,
+            "VPN-STREAMING": 9.999999747378752e-05,
+            "VPN-VOIP": 0.002899999963119626
+        }
+    },
+    "security_assessment": {
+        "risk_score": 0,
+        "risk_level": "SECURE",
+        "methodology": "deterministic_policy_weighting",
+        "findings_count": 0,
+        "findings": [],
+        "recommendations": []
+    }
+}

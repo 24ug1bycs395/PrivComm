@@ -1,0 +1,2 @@
+capture,ipsec_detected,ike_version,encryption,dh_group,traffic_type,traffic_confidence,risk_level,finding_count
+ikev2_s2s_ipsec_vpn_aes_gcm.pcapng,True,IKEv2,AES-256-GCM,19,CHAT,0.4767000079154968,SECURE,0

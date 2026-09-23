@@ -1,0 +1,220 @@
+{
+    "model_name": "XGBoost Encrypted Traffic Classifier",
+    "num_test_samples": 6149,
+    "metrics": {
+        "accuracy": 0.9112,
+        "macro_precision": 0.8844,
+        "macro_recall": 0.8859,
+        "macro_f1": 0.8847,
+        "weighted_f1": 0.9113,
+        "log_loss": 0.2738
+    },
+    "best_performing_class": {
+        "class": "VOIP",
+        "f1_score": 0.9785
+    },
+    "worst_performing_class": {
+        "class": "VPN-MAIL",
+        "f1_score": 0.7545
+    },
+    "per_class_results": {
+        "BROWSING": {
+            "precision": 0.9064,
+            "recall": 0.9092,
+            "f1_score": 0.9078,
+            "support": 969
+        },
+        "CHAT": {
+            "precision": 0.8497,
+            "recall": 0.9216,
+            "f1_score": 0.8842,
+            "support": 319
+        },
+        "FT": {
+            "precision": 0.8861,
+            "recall": 0.8696,
+            "f1_score": 0.8777,
+            "support": 322
+        },
+        "MAIL": {
+            "precision": 0.8102,
+            "recall": 0.8952,
+            "f1_score": 0.8506,
+            "support": 124
+        },
+        "P2P": {
+            "precision": 0.9718,
+            "recall": 0.9452,
+            "f1_score": 0.9583,
+            "support": 292
+        },
+        "STREAMING": {
+            "precision": 0.8727,
+            "recall": 0.8571,
+            "f1_score": 0.8649,
+            "support": 112
+        },
+        "VOIP": {
+            "precision": 0.979,
+            "recall": 0.9779,
+            "f1_score": 0.9785,
+            "support": 952
+        },
+        "VPN-BROWSING": {
+            "precision": 0.9015,
+            "recall": 0.8998,
+            "f1_score": 0.9006,
+            "support": 1098
+        },
+        "VPN-CHAT": {
+            "precision": 0.8511,
+            "recall": 0.8563,
+            "f1_score": 0.8537,
+            "support": 327
+        },
+        "VPN-FT": {
+            "precision": 0.8546,
+            "recall": 0.8563,
+            "f1_score": 0.8554,
+            "support": 501
+        },
+        "VPN-MAIL": {
+            "precision": 0.7975,
+            "recall": 0.7159,
+            "f1_score": 0.7545,
+            "support": 88
+        },
+        "VPN-P2P": {
+            "precision": 0.812,
+            "recall": 0.7983,
+            "f1_score": 0.8051,
+            "support": 119
+        },
+        "VPN-STREAMING": {
+            "precision": 0.9154,
+            "recall": 0.952,
+            "f1_score": 0.9333,
+            "support": 125
+        },
+        "VPN-VOIP": {
+            "precision": 0.9744,
+            "recall": 0.9488,
+            "f1_score": 0.9614,
+            "support": 801
+        }
+    },
+    "feature_importance_rankings": [
+        {
+            "feature": "bytes_per_pkt",
+            "importance": 0.08488882333040237
+        },
+        {
+            "feature": "log_duration",
+            "importance": 0.08111856877803802
+        },
+        {
+            "feature": "mean_biat",
+            "importance": 0.05710732564330101
+        },
+        {
+            "feature": "std_flowiat",
+            "importance": 0.05615757778286934
+        },
+        {
+            "feature": "min_biat",
+            "importance": 0.0471799261868
+        },
+        {
+            "feature": "fiat_biat_ratio",
+            "importance": 0.042770739644765854
+        },
+        {
+            "feature": "max_flowiat",
+            "importance": 0.04140467569231987
+        },
+        {
+            "feature": "min_flowiat",
+            "importance": 0.03894396871328354
+        },
+        {
+            "feature": "mean_active",
+            "importance": 0.03805084154009819
+        },
+        {
+            "feature": "std_idle",
+            "importance": 0.03676557168364525
+        },
+        {
+            "feature": "max_biat",
+            "importance": 0.0348205603659153
+        },
+        {
+            "feature": "mean_fiat",
+            "importance": 0.032139912247657776
+        },
+        {
+            "feature": "log_pkts_sec",
+            "importance": 0.03163934871554375
+        },
+        {
+            "feature": "total_fiat",
+            "importance": 0.03161996975541115
+        },
+        {
+            "feature": "min_fiat",
+            "importance": 0.029837921261787415
+        },
+        {
+            "feature": "duration",
+            "importance": 0.029748903587460518
+        },
+        {
+            "feature": "max_idle",
+            "importance": 0.029666533693671227
+        },
+        {
+            "feature": "mean_flowiat",
+            "importance": 0.029583605006337166
+        },
+        {
+            "feature": "total_biat",
+            "importance": 0.0295405350625515
+        },
+        {
+            "feature": "max_fiat",
+            "importance": 0.026488468050956726
+        },
+        {
+            "feature": "flowPktsPerSecond",
+            "importance": 0.025442255660891533
+        },
+        {
+            "feature": "mean_idle",
+            "importance": 0.02527082897722721
+        },
+        {
+            "feature": "flowBytesPerSecond",
+            "importance": 0.022912703454494476
+        },
+        {
+            "feature": "log_bytes_sec",
+            "importance": 0.022383585572242737
+        },
+        {
+            "feature": "min_idle",
+            "importance": 0.021482504904270172
+        },
+        {
+            "feature": "max_active",
+            "importance": 0.02094351314008236
+        },
+        {
+            "feature": "std_active",
+            "importance": 0.017753854393959045
+        },
+        {
+            "feature": "min_active",
+            "importance": 0.014336940832436085
+        }
+    ]
+}
