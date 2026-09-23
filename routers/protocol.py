@@ -66,7 +66,7 @@ async def analyze_protocol(
 
 @router.get("/analyze/sample", response_model=ProtocolAnalysisResult)
 async def analyze_sample_capture():
-    """GET /analyze/sample: Analyzes built-in sample PCAP file."""
+    """GET /analyze/sample: Analyzes built-in IKEv2 AES-GCM sample PCAP file."""
     sample_path = os.path.join("samples", "ikev2_s2s_ipsec_vpn_aes_gcm.pcapng")
     if not os.path.exists(sample_path):
         sample_path = "ikev2_s2s_ipsec_vpn_aes_gcm.pcapng"
@@ -77,6 +77,68 @@ async def analyze_sample_capture():
     return engine.analyze_pcap(sample_path)
 
 
+@router.get("/analyze/sample-weak", response_model=ProtocolAnalysisResult)
+async def analyze_sample_weak_capture():
+    """GET /analyze/sample-weak: Simulated analysis of a legacy weak IKEv1/3DES capture."""
+    sample_path = os.path.join("samples", "ikev2_s2s_ipsec_vpn_aes_gcm.pcapng")
+    if not os.path.exists(sample_path):
+        sample_path = "ikev2_s2s_ipsec_vpn_aes_gcm.pcapng"
+
+    result = engine.analyze_pcap(sample_path)
+    # Return simulated weak configuration findings for policy violation demo
+    result.ike_version = "IKEv1 (Aggressive Mode)"
+    result.encryption = "3DES-CBC"
+    result.integrity = "MD5"
+    result.dh_group = "2"
+    result.pfs = False
+    result.security_assessment = {
+        "risk_score": 60,
+        "risk_level": "HIGH",
+        "findings_count": 3,
+        "findings": [
+            {
+                "finding_id": "IPSEC-VER-001",
+                "category": "Protocol Version",
+                "severity": "HIGH",
+                "title": "Deprecated IKEv1 Aggressive Mode detected",
+                "observed": "IKEv1 (Aggressive)",
+                "expected": "IKEv2",
+                "recommendation": "Upgrade tunnel policy to IKEv2 to prevent pre-shared key hash exposure."
+            },
+            {
+                "finding_id": "IPSEC-ENC-001",
+                "category": "Encryption",
+                "severity": "HIGH",
+                "title": "Deprecated 3DES-CBC encryption detected",
+                "observed": "3DES-CBC",
+                "expected": "Approved encryption (AES-256-GCM, AES-256-CBC)",
+                "recommendation": "Reconfigure IPsec proposals to use AES-256-GCM encryption."
+            },
+            {
+                "finding_id": "IPSEC-DH-001",
+                "category": "Key Exchange",
+                "severity": "HIGH",
+                "title": "Insecure Diffie-Hellman Group 2 (1024-bit MODP)",
+                "observed": "Group 2",
+                "expected": "Approved DH Group (Group 14, 19, 20, 21, 28)",
+                "recommendation": "Disable DH Group 2 and migrate to Group 14 (2048-bit MODP) or Group 19 (ECP-256)."
+            }
+        ],
+        "recommendations": [
+            {
+                "finding_id": "IPSEC-VER-001",
+                "category": "Protocol Version",
+                "severity": "HIGH",
+                "current_configuration": "IKEv1 Aggressive Mode",
+                "expected_configuration": "IKEv2",
+                "reason": "IKEv1 Aggressive Mode transmits hashes in plaintext",
+                "recommended_action": "Upgrade to IKEv2 with AES-256-GCM."
+            }
+        ]
+    }
+    return result
+
+
 @router.get("/reports/download-html")
 async def download_html_report(filename: str = Query(..., description="PCAP filename")):
     """GET /reports/download-html: Downloads the generated Executive HTML Security Report."""
@@ -84,6 +146,12 @@ async def download_html_report(filename: str = Query(..., description="PCAP file
     html_path = os.path.join("results", f"{base_name}_executive_report.html")
     if not os.path.exists(html_path):
         html_path = os.path.join("results", "executive_report.html")
+
+    if not os.path.exists(html_path):
+        # Generate on-the-fly if not found
+        sample_path = os.path.join("samples", "ikev2_s2s_ipsec_vpn_aes_gcm.pcapng")
+        if os.path.exists(sample_path):
+            engine.analyze_pcap(sample_path)
 
     if not os.path.exists(html_path):
         raise HTTPException(status_code=404, detail=f"Executive HTML report for '{filename}' not found. Run analysis first.")

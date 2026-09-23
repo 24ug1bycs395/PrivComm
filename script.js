@@ -232,18 +232,24 @@ async function loadSampleScenario(scenarioType) {
   if (!resultBox || !resConsole) return;
   resultBox.style.display = 'block';
 
-  resTitle.textContent = 'Analyzing Sample Capture: ikev2_s2s_ipsec_vpn_aes_gcm.pcapng...';
+  resTitle.textContent = scenarioType === 'ikev2-strong'
+    ? 'Analyzing Sample Capture: IKEv2_SuiteB_GCM256.pcap...'
+    : 'Analyzing Sample Capture: IKEv1_Aggressive_DES_MD5.pcap...';
+
   resBadge.textContent = 'RUNNING PROTOCOL & AI ENGINES';
   resBadge.style.background = 'rgba(56, 189, 248, 0.15)';
   resBadge.style.color = '#38bdf8';
 
+  const endpoint = scenarioType === 'ikev2-strong' ? '/analyze/sample' : '/analyze/sample-weak';
+  const targetFilename = scenarioType === 'ikev2-strong' ? 'IKEv2_SuiteB_GCM256.pcap' : 'IKEv1_Aggressive_DES_MD5.pcap';
+
   try {
-    const response = await fetch('/analyze/sample');
+    const response = await fetch(endpoint);
     if (!response.ok) {
       throw new Error(`Server returned HTTP ${response.status}`);
     }
     const data = await response.json();
-    renderAnalysisResults(data, "ikev2_s2s_ipsec_vpn_aes_gcm.pcapng");
+    renderAnalysisResults(data, targetFilename);
   } catch (err) {
     resBadge.textContent = 'SAMPLE ANALYSIS';
     renderSampleFallback(scenarioType);
