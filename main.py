@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import sys
 import os
 import argparse
@@ -9,6 +8,11 @@ warnings.filterwarnings("ignore", message=".*libpcap.*")
 import json
 import subprocess
 from typing import List, Dict, Any
+
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from analyzer.tshark import check_tshark_version, find_tshark_path
 from analyzer.pcap_ingestion import ingest_and_parse_pcap
@@ -23,9 +27,44 @@ from reports.report_generator import (
     generate_batch_summary_csv
 )
 from reports.html_report_generator import generate_html_report
+from routers.protocol import router as protocol_router
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 logger = logging.getLogger("main")
+
+# FastAPI App Instance for Cyber Sentinel Web Platform
+app = FastAPI(
+    title="Cyber Sentinel — AI-Assisted IPsec VPN Security Intelligence Platform",
+    description="Full IPsec VPN protocol dissection, XGBoost traffic classification, and compliance audit engine.",
+    version="2.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(protocol_router)
+
+# Serve homepage (index.html, style.css, script.js)
+@app.get("/", include_in_schema=False)
+async def serve_homepage():
+    return FileResponse("index.html")
+
+# Serve static assets if present
+if os.path.exists("style.css"):
+    @app.get("/style.css", include_in_schema=False)
+    async def serve_css():
+        return FileResponse("style.css", media_type="text/css")
+
+if os.path.exists("script.js"):
+    @app.get("/script.js", include_in_schema=False)
+    async def serve_js():
+        return FileResponse("script.js", media_type="application/javascript")
+
 
 def run_check_dependencies():
     """Execute startup dependency check per PRD Section 2."""
@@ -137,12 +176,18 @@ def run_dashboard():
         logger.error(f"Dashboard script not found at {dash_app}")
         sys.exit(1)
 
-    logger.info("Launching Interactive Dashboard UI...")
+    logger.info("Launching Interactive Streamlit Dashboard UI...")
     cmd = [sys.executable, "-m", "streamlit", "run", dash_app]
     try:
         subprocess.run(cmd)
     except KeyboardInterrupt:
         logger.info("Dashboard stopped.")
+
+def run_server():
+    """Launch Cyber Sentinel FastAPI Server serving Web App and APIs."""
+    import uvicorn
+    logger.info("Launching Cyber Sentinel Platform Server at http://localhost:8000...")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -162,7 +207,8 @@ def main():
     batch_parser.add_argument("--input", type=str, required=True, help="Path to directory containing PCAP files")
     batch_parser.add_argument("--output", type=str, default="results", help="Output directory for reports and summary CSV")
 
-    subparsers.add_parser("dashboard", help="Launch interactive Web Dashboard UI")
+    subparsers.add_parser("dashboard", help="Launch Streamlit Web Dashboard UI")
+    subparsers.add_parser("server", help="Launch Cyber Sentinel FastAPI Platform Server (Web UI + APIs)")
 
     args = parser.parse_args()
 
@@ -181,45 +227,11 @@ def main():
     elif args.command == "dashboard":
         run_dashboard()
 
+    elif args.command == "server":
+        run_server()
+
     else:
         parser.print_help()
 
 if __name__ == "__main__":
     main()
-=======
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from routers.protocol import router as protocol_router
-
-app = FastAPI(
-    title="Cyber Sentinel — Protocol Identification Service",
-    description="Core Feature 1: AI-Assisted IPsec VPN Protocol Identification & Deep Dissection Engine",
-    version="1.0.0",
-)
-
-# Enable CORS for frontend integration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Register routers
-app.include_router(protocol_router)
-
-
-@app.get("/health", tags=["Health Check"])
-def health_check():
-    return {
-        "status": "operational",
-        "service": "Cyber Sentinel Protocol Identification Engine",
-        "version": "1.0.0"
-    }
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
->>>>>>> 378daef7b72a00c38ac58a8c5fac3e26d3977501

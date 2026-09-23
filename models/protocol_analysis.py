@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Dict, Any, List
 
 
 class ProtocolAnalysisResult(BaseModel):
@@ -16,3 +16,8 @@ class ProtocolAnalysisResult(BaseModel):
     ip_version: Optional[str] = Field(default=None, description="IP version of the IPsec traffic ('IPv4' or 'IPv6')")
     source_ip: Optional[str] = Field(default=None, description="Source IP address of the IPsec tunnel endpoint")
     destination_ip: Optional[str] = Field(default=None, description="Destination IP address of the IPsec tunnel endpoint")
+    
+    # Extended AI Traffic & Security Assessment Fields
+    traffic_classification: Optional[Dict[str, Any]] = Field(default=None, description="XGBoost AI encrypted traffic classification result")
+    security_assessment: Optional[Dict[str, Any]] = Field(default=None, description="Security policy audit findings and risk evaluation")
+    report_html: Optional[str] = Field(default=None, description="Generated Executive HTML report path or download link")

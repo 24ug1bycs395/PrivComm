@@ -54,16 +54,20 @@ pyrightconfig.json
 *.local
 !*.env.example
 
-# ─── PCAP / Capture Files ────────────────────────────────────────────────────
-# Never commit raw packet captures — they may contain sensitive traffic
+# Never commit raw packet captures — except sample reference capture
 *.pcap
 *.pcapng
 *.cap
 *.dmp
+!ikev2_s2s_ipsec_vpn_aes_gcm.pcapng
+!samples/ikev2_s2s_ipsec_vpn_aes_gcm.pcapng
 
-# Upload staging directories
+# Upload staging directories & generated results
 uploads/
 upload_temp/
+results/*.json
+results/*.html
+results/*.csv
 
 # ─── Logs ────────────────────────────────────────────────────────────────────
 *.log
