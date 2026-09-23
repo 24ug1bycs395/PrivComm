@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 xgboost>=1.7.0
 joblib>=1.2.0
 pandas>=1.5.0
@@ -7,3 +8,30 @@ pyyaml>=6.0
 streamlit>=1.25.0
 plotly>=5.15.0
 jinja2>=3.1.0
+=======
+# Cyber Sentinel — Core Python Dependencies
+# AI-Assisted IPsec VPN Security Intelligence Platform
+
+# Web Framework
+fastapi==0.141.1
+starlette==1.6.0
+uvicorn==0.52.4
+
+# File Upload Support (multipart/form-data)
+python-multipart==0.0.32
+
+# Data Validation & Serialization
+pydantic==2.13.5
+pydantic_core==2.46.5
+
+# PCAP / Protocol Dissection (requires TShark/Wireshark installed for full PyShark support)
+pyshark==0.6
+scapy==2.7.0
+
+# Environment & Config
+python-dotenv==1.2.3
+
+# Testing
+pytest==9.0.3
+httpx==0.28.1
+>>>>>>> 378daef7b72a00c38ac58a8c5fac3e26d3977501

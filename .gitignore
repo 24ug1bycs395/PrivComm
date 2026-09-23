@@ -1,0 +1,113 @@
+# =============================================================================
+# Cyber Sentinel — .gitignore
+# AI-Assisted IPsec VPN Security Intelligence Platform
+# =============================================================================
+
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+
+# Virtual Environments
+.venv/
+venv/
+env/
+.env/
+ENV/
+
+# Distribution / Packaging
+dist/
+build/
+*.egg-info/
+*.egg
+.eggs/
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / Coverage
+.tox/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.pytest_cache/
+htmlcov/
+nosetests.xml
+.hypothesis/
+
+# mypy / type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyright
+pyrightconfig.json
+
+# ─── Environment & Secrets ───────────────────────────────────────────────────
+.env
+.env.*
+*.local
+!*.env.example
+
+# ─── PCAP / Capture Files ────────────────────────────────────────────────────
+# Never commit raw packet captures — they may contain sensitive traffic
+*.pcap
+*.pcapng
+*.cap
+*.dmp
+
+# Upload staging directories
+uploads/
+upload_temp/
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── OS Generated ────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ─── IDE / Editor ────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.iml
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+*.swo
+*~
+
+# ─── Node / Frontend (if applicable later) ───────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+
+# ─── Reports & Generated Outputs ─────────────────────────────────────────────
+reports/
+exports/
+*.pdf
+*.json.bak
+
+# ─── Temporary Files ─────────────────────────────────────────────────────────
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
