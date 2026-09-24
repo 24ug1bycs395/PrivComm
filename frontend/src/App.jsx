@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import AnalyzerWorkspace from './components/AnalyzerWorkspace';
+import TestbedTab from './components/TestbedTab';
+import HistoryVaultTab from './components/HistoryVaultTab';
 import Overview from './components/Overview';
 import ThreatMatrixTab from './components/ThreatMatrixTab';
 import ComplianceTab from './components/ComplianceTab';
@@ -8,6 +10,12 @@ import { Shield } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('analyzer');
+  const [inspectedAnalysis, setInspectedAnalysis] = useState(null);
+
+  const handleNavigateToAnalysis = (analysisData) => {
+    setInspectedAnalysis(analysisData);
+    setActiveTab('analyzer');
+  };
 
   return (
     <div className="app-container">
@@ -21,7 +29,9 @@ export default function App() {
 
       {/* Main Tab Content */}
       <main className="main-content">
-        {activeTab === 'analyzer' && <AnalyzerWorkspace />}
+        {activeTab === 'analyzer' && <AnalyzerWorkspace externalAnalysis={inspectedAnalysis} />}
+        {activeTab === 'testbed' && <TestbedTab onNavigateToAnalysis={handleNavigateToAnalysis} />}
+        {activeTab === 'vault' && <HistoryVaultTab onSelectAnalysis={handleNavigateToAnalysis} />}
         {activeTab === 'overview' && <Overview onStartAnalysis={() => setActiveTab('analyzer')} />}
         {activeTab === 'threat-matrix' && <ThreatMatrixTab />}
         {activeTab === 'compliance' && <ComplianceTab />}

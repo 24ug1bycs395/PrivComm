@@ -9,7 +9,8 @@ import json
 import subprocess
 from typing import List, Dict, Any
 
-from fastapi import FastAPI
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,13 +22,10 @@ from ml.xgboost_adapter import predict_traffic_class
 from security.policy_engine import evaluate_ipsec_security
 from security.recommendations import generate_recommendations
 from security.risk import calculate_security_risk
-from reports.report_generator import (
-    build_unified_analysis_report,
-    save_json_report,
-    generate_batch_summary_csv
-)
-from reports.html_report_generator import generate_html_report
 from routers.protocol import router as protocol_router
+from routers.testbed import router as testbed_router
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 logger = logging.getLogger("main")
@@ -52,7 +50,12 @@ app.include_router(protocol_router)
 # Serve homepage (index.html), dashboard (dashboard.html), and executive report (report.html)
 @app.get("/", include_in_schema=False)
 async def serve_homepage():
-    return FileResponse("index.html")
+    react_index = os.path.join(react_dist, "index.html")
+    if os.path.exists(react_index):
+        return FileResponse(react_index)
+    if os.path.exists("index.html"):
+        return FileResponse("index.html")
+    return {"status": "operational", "frontend": "not built"}
 
 @app.get("/dashboard.html", include_in_schema=False)
 async def serve_dashboard_page():
@@ -72,6 +75,18 @@ if os.path.exists("script.js"):
     @app.get("/script.js", include_in_schema=False)
     async def serve_js():
         return FileResponse("script.js", media_type="application/javascript")
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+async def serve_spa(full_path: str):
+    """SPA fallback so client-side routes resolve after a static build."""
+    dist_file = os.path.join(react_dist, full_path)
+    if os.path.isfile(dist_file):
+        return FileResponse(dist_file)
+    react_index = os.path.join(react_dist, "index.html")
+    if os.path.exists(react_index):
+        return FileResponse(react_index)
+    raise HTTPException(status_code=404, detail="Not found")
 
 
 def run_check_dependencies():
@@ -121,6 +136,8 @@ def run_analyze_pcap(pcap_path: str, output_path: str = None, export_html_path: 
     flow_feats = ingest_res.get("flow_features", {})
     traffic_res = predict_traffic_class(flow_feats)
 
+    from reports.report_generator import build_unified_analysis_report
+
     logger.info("Running deterministic security assessment...")
     ipsec_config = ingest_res.get("ipsec", {})
     predicted_type = traffic_res.get("traffic_type") if traffic_res.get("status") == "success" else None
@@ -136,9 +153,11 @@ def run_analyze_pcap(pcap_path: str, output_path: str = None, export_html_path: 
     logger.info("Analysis completed successfully.")
 
     if output_path:
+        from reports.report_generator import save_json_report
         save_json_report(report, output_path)
 
     if export_html_path:
+        from reports.html_report_generator import generate_html_report
         generate_html_report(report, export_html_path)
 
     return report
@@ -161,6 +180,8 @@ def run_batch_analysis(input_dir: str, output_dir: str = "results"):
         return
 
     logger.info(f"Found {len(pcap_files)} PCAP files in '{input_dir}'. Starting batch processing...")
+
+    from reports.report_generator import generate_batch_summary_csv
 
     reports = []
     for pcap in pcap_files:

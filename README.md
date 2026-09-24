@@ -1,119 +1,184 @@
 # Cyber Sentinel — AI-Assisted IPsec VPN Security Intelligence Platform
 
-An end-to-end Python framework for analyzing network capture files (`.pcap`, `.pcapng`), extracting IPsec / IKEv1 / IKEv2 / ESP security parameters, classifying network traffic using a pre-trained **XGBoost Encrypted Traffic Classifier**, and evaluating security configurations against a deterministic, context-aware security policy.
+An end-to-end cybersecurity framework for analyzing network capture files (`.pcap`, `.pcapng`), extracting IPsec / IKEv1 / IKEv2 / ESP cryptographic parameters, classifying network traffic using a pre-trained **XGBoost Encrypted Traffic Classifier**, evaluating security configurations against context-aware NIST SP 800-77 / FIPS 140-3 policies, and orchestrating a multi-node **strongSwan IPsec VPN Testbed**.
 
 ---
 
 ## 🏗 System Architecture
 
 ```text
-               .pcap / .pcapng Capture
-                         │
-                         ▼
-        ┌─────────────────────────────────┐
-        │     TShark / PCAP Ingestion     │
-        └────────────────┬────────────────┘
-                         │
-           ┌─────────────┴─────────────┐
-           ▼                           ▼
-┌────────────────────┐      ┌────────────────────┐
-│ IPsec/IKE Analyzer │      │   Flow Extractor   │
-└──────────┬─────────┘      └──────────┬─────────┘
-           │                           │
-           ▼                           ▼
-┌────────────────────┐      ┌────────────────────┐
-│ Configuration Data │      │   XGBoost Model    │
-└──────────┬─────────┘      └──────────┬─────────┘
-           │                           │
-           ▼                           ▼
-┌────────────────────┐      ┌────────────────────┐
-│Security Assessment │      │Traffic Class + Conf│
-└──────────┬─────────┘      └──────────┬─────────┘
-           └─────────────┬─────────────┘
-                         │
-                         ▼
-┌────────────────────────────────────────────────┐
-│            Unified Analysis Report             │
-│   (Cyber Sentinel Web UI, JSON & HTML Export)  │
-└────────────────────────────────────────────────┘
+               .pcap / .pcapng Capture OR strongSwan Testbed
+                                     │
+                                     ▼
+                    ┌─────────────────────────────────┐
+                    │     TShark / PCAP Ingestion     │
+                    └────────────────┬────────────────┘
+                                     │
+                       ┌─────────────┴─────────────┐
+                       ▼                           ▼
+            ┌────────────────────┐      ┌────────────────────┐
+            │ IPsec/IKE Analyzer │      │   Flow Extractor   │
+            └──────────┬─────────┘      └──────────┬─────────┘
+                       │                           │
+                       ▼                           ▼
+            ┌────────────────────┐      ┌────────────────────┐
+            │ Configuration Data │      │   XGBoost Model    │
+            └──────────┬─────────┘      └──────────┬─────────┘
+                       │                           │
+                       ▼                           ▼
+            ┌────────────────────┐      ┌────────────────────┐
+            │Security Assessment │      │Traffic Class + Conf│
+            └──────────┬─────────┘      └──────────┬─────────┘
+                       └─────────────┬─────────────┘
+                                     │
+                                     ▼
+            ┌────────────────────────────────────────────────┐
+            │            Unified Analysis Report             │
+            │   (React Web UI, Cloud DB, JSON & HTML Export) │
+            └────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🛠 Prerequisites & Environment Setup
+## ⚡ Quick Start with Docker (Recommended)
 
-### 1. Python Environment
-Requires **Python 3.10+**. Install required dependencies:
+Run the entire platform (Vite React Frontend + FastAPI Backend + TShark Sniffer + ML Models) inside an optimized multi-stage Docker container.
 
+### 1. Build and Run with Docker Compose
 ```bash
+# Build the images and start containers in the background
+docker compose up --build -d
+
+# View live application logs
+docker compose logs -f
+
+# Check container health and status
+docker compose ps
+
+# Stop the running containers
+docker compose down
+```
+
+### 2. Manual Docker Build & Run (Single Image)
+```bash
+# Build the Docker image
+docker build -t ipsec-analyzer:latest .
+
+# Run the container mapping port 8000
+docker run --rm -p 8000:8000 \
+  --name ipsec-analyzer-app \
+  -v ./results:/app/results \
+  -v ./captures:/app/captures \
+  ipsec-analyzer:latest
+```
+
+* **Web UI**: Open [http://localhost:8000](http://localhost:8000) in your browser.
+* **Interactive OpenAPI Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+* **Health Check**: [http://localhost:8000/health](http://localhost:8000/health)
+
+---
+
+## 🛠️ Local Development & Manual Build
+
+### 1. Prerequisites
+- **Python**: 3.10+
+- **Node.js**: 18+ (for building the React frontend)
+- **Wireshark / TShark** (optional; built-in Scapy engine activates as fallback)
+
+### 2. Backend Setup
+```bash
+# Install Python dependencies
 pip install -r requirements.txt
-```
 
-### 2. Wireshark / TShark (Recommended)
-Installing Wireshark on Windows automatically includes `tshark.exe` (typically at `C:\Program Files\Wireshark\tshark.exe`).
-
-* **If TShark is in PATH**: The analyzer will automatically detect and use it.
-* **If TShark is in a custom path**: Set the `TSHARK_PATH` environment variable:
-  ```powershell
-  $env:TSHARK_PATH="C:\Program Files\Wireshark\tshark.exe"
-  ```
-* **Fallback**: If TShark is not installed, the framework seamlessly falls back to the built-in Scapy packet parsing engine.
-
----
-
-## 🚦 Startup & Dependency Check
-
-Run the dependency check command to verify Python, TShark/Wireshark, and trained ML model status:
-
-```bash
+# Run dependency & model check
 python main.py check-dependencies
 ```
 
----
-
-## 🌐 Running the Web Applications
-
-### 1. Launch Cyber Sentinel Web Platform (Web UI + APIs)
-Launch the primary Cyber Sentinel Web Platform:
-
+### 3. Frontend Build (React + Vite)
 ```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install Node dependencies
+npm install
+
+# Run frontend in Vite hot-reloading dev mode (port 5173)
+npm run dev
+
+# Build production bundle into frontend/dist/ (served by FastAPI)
+npm run build
+
+# Return to root directory
+cd ..
+```
+
+### 4. Run the Backend Server
+```bash
+# Launch FastAPI server with built React UI
 python main.py server
+# OR
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
-* **Web UI URL**: Open [http://localhost:8000](http://localhost:8000) in your browser.
-* **Features**: Drag-and-drop `.pcap` / `.pcapng` upload, reference scenario loading, AI traffic classification display, risk scoring, security audit findings, and one-click download buttons for **Executive HTML** and **Technical JSON** reports!
-
-### 2. Launch Streamlit Analytics Dashboard
-Launch the alternative Streamlit analytics dashboard:
-
-```bash
-python main.py dashboard
-```
-* **Dashboard URL**: Open [http://localhost:8501](http://localhost:8501) in your browser.
 
 ---
 
-## 💻 CLI Commands
+## 🧪 strongSwan IPsec VPN Testbed (VirtualBox / Vagrant)
+
+The platform includes an automated 3-node strongSwan validation environment for generating live IKEv1/IKEv2/ESP traffic and security policy violations:
+- **VM 1 (Initiator)**: `192.168.56.10` (strongSwan 5.x)
+- **VM 2 (Responder)**: `192.168.56.20` (strongSwan 5.x + Nginx)
+- **VM 3 (Observer)**: `192.168.56.30` (TShark / tcpdump wire sniffer)
+
+### Launch Testbed VMs:
+```bash
+# Start all 3 virtual machines in VirtualBox
+vagrant up
+
+# Check status of VMs
+vagrant status
+
+# SSH into a specific VM if needed
+vagrant ssh vm1-initiator
+
+# Destroy / Reset testbed VMs when done
+vagrant destroy -f
+```
+
+*Once VMs are booted, open [http://localhost:8000](http://localhost:8000), click the **strongSwan Testbed** tab, select a scenario, and hit **"Deploy & Run Testbed Scenario"**!*
+
+---
+
+## 💻 CLI & Batch Analysis Commands
 
 ### Analyze a Single Capture File
 Analyze a `.pcap` or `.pcapng` file and export both JSON and Executive HTML reports:
-
 ```bash
-python main.py analyze --pcap samples/ikev2_s2s_ipsec_vpn_aes_gcm.pcapng --output results/report.json --export-html results/executive_report.html
+python main.py analyze \
+  --pcap samples/ikev2_s2s_ipsec_vpn_aes_gcm.pcapng \
+  --output results/report.json \
+  --export-html results/executive_report.html
 ```
 
 ### Batch Process a Directory of Captures
 Process all `.pcap` / `.pcapng` files in a directory and generate individual reports plus a batch `summary.csv`:
-
 ```bash
 python main.py batch --input samples/ --output results/
 ```
 
+### Launch Streamlit Analytics Dashboard
+```bash
+python main.py dashboard
+```
+* **Streamlit Dashboard URL**: [http://localhost:8501](http://localhost:8501)
+
 ---
 
-## 🧪 Unit Testing
-
-Run the full test suite:
+## 🔬 Testing & Validation
 
 ```bash
-python -m unittest discover tests
+# Run integration verification tests (Health, Testbed, Analysis, Vault)
+python tests/test_integration.py
+
+# Run unit tests
+pytest
 ```

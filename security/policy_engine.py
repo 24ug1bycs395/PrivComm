@@ -7,7 +7,10 @@ from security.findings import SecurityFinding
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_POLICY_PATH = os.path.join("config", "security_policy.yaml")
+DEFAULT_POLICY_PATH = os.getenv(
+    "SECURITY_POLICY_PATH",
+    os.path.join("config", "security_policy.yaml"),
+)
 
 def load_security_policy(policy_path: str = DEFAULT_POLICY_PATH) -> Dict[str, Any]:
     """Load security policy baseline from YAML file."""
