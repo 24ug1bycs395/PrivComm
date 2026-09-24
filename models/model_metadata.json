@@ -1,0 +1,82 @@
+{
+    "model_name": "XGBoost Encrypted Traffic Classifier",
+    "dataset": "consolidated_traffic_data.csv",
+    "target_column": "traffic_type",
+    "num_features": 28,
+    "feature_columns": [
+        "duration",
+        "total_fiat",
+        "total_biat",
+        "min_fiat",
+        "min_biat",
+        "max_fiat",
+        "max_biat",
+        "mean_fiat",
+        "mean_biat",
+        "flowPktsPerSecond",
+        "flowBytesPerSecond",
+        "min_flowiat",
+        "max_flowiat",
+        "mean_flowiat",
+        "std_flowiat",
+        "min_active",
+        "mean_active",
+        "max_active",
+        "std_active",
+        "min_idle",
+        "mean_idle",
+        "max_idle",
+        "std_idle",
+        "bytes_per_pkt",
+        "fiat_biat_ratio",
+        "log_duration",
+        "log_bytes_sec",
+        "log_pkts_sec"
+    ],
+    "classes": [
+        "BROWSING",
+        "CHAT",
+        "FT",
+        "MAIL",
+        "P2P",
+        "STREAMING",
+        "VOIP",
+        "VPN-BROWSING",
+        "VPN-CHAT",
+        "VPN-FT",
+        "VPN-MAIL",
+        "VPN-P2P",
+        "VPN-STREAMING",
+        "VPN-VOIP"
+    ],
+    "num_classes": 14,
+    "random_seed": 42,
+    "training_timestamp": "2026-09-24T02:05:41.310087",
+    "xgboost_parameters": {
+        "n_estimators": 400,
+        "max_depth": 8,
+        "learning_rate": 0.08,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "objective": "multi:softprob",
+        "num_class": 14,
+        "eval_metric": "mlogloss",
+        "random_state": 42,
+        "tree_method": "hist",
+        "early_stopping_rounds": 20
+    },
+    "best_iteration": 276,
+    "dataset_split": {
+        "train": 0.7,
+        "validation": 0.15,
+        "test": 0.15
+    },
+    "comparison_models": {
+        "random_forest": {
+            "val_accuracy": 0.8968770331815225
+        },
+        "logistic_regression": {
+            "val_accuracy": 0.4840598568640208
+        }
+    }
+}

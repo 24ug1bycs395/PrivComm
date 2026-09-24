@@ -214,11 +214,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
             <div class="metric-card">
                 <div class="metric-label">AI Traffic Prediction</div>
-                <div class="metric-value" style="font-size: 20px;">{{ report.traffic_classification.traffic_type }}</div>
+                <div class="metric-value" style="font-size: 20px;">{{ report.traffic_classification.get('traffic_type', 'N/A') }}</div>
             </div>
             <div class="metric-card">
                 <div class="metric-label">AI Confidence</div>
-                <div class="metric-value">{{ (report.traffic_classification.confidence * 100)|round(1) }}%</div>
+                <div class="metric-value">
+                {% if report.traffic_classification.get('confidence') is not none %}
+                    {{ (report.traffic_classification.confidence * 100)|round(1) }}%
+                {% else %}
+                    N/A
+                {% endif %}
+                </div>
             </div>
             <div class="metric-card">
                 <div class="metric-label">Encryption Suite</div>

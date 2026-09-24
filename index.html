@@ -35,6 +35,7 @@
       </a>
 
       <nav class="nav-menu" id="nav-menu" aria-label="Main Navigation">
+        <a href="#analyzer-workspace" class="nav-item nav-item-highlight">Live PCAP Analyzer</a>
         <a href="#workflow" class="nav-item">Platform Workflow</a>
         <a href="#capabilities" class="nav-item">Capabilities</a>
         <a href="#philosophy" class="nav-item">Transformation Engine</a>
@@ -44,7 +45,7 @@
 
       <div class="header-actions">
         <a href="#demo-modal" class="btn btn-secondary-sm" id="nav-explore-btn">System Specs</a>
-        <a href="#analyze-section" class="btn btn-primary-sm" id="nav-analyze-btn">Analyze PCAP</a>
+        <a href="#analyzer-workspace" class="btn btn-primary-sm" id="nav-analyze-btn">Analyze PCAP</a>
       </div>
     </div>
   </header>
@@ -73,7 +74,7 @@
         </p>
 
         <div class="hero-actions">
-          <button type="button" class="btn btn-primary" id="hero-analyze-btn" onclick="openPcapModal()">
+          <button type="button" class="btn btn-primary" id="hero-analyze-btn" onclick="scrollToAnalyzer()">
             <span class="btn-text">Analyze PCAP</span>
             <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -757,24 +758,287 @@
       </div>
     </section>
 
-    <!-- INTERACTION TARGET: PCAP INGESTION WORKSPACE (Modal/Drawer style) -->
-    <section class="analyze-callout-section" id="analyze-section">
-      <div class="analyze-callout-card">
-        <div class="acc-text">
-          <div class="acc-badge">SECURE INGESTION</div>
-          <h2>Ready to Evaluate Your IPsec Infrastructure?</h2>
-          <p>
-            Submit an existing packet capture (.pcap, .pcapng) or inspect sample protocol handshakes in an isolated sandbox.
-          </p>
+    <!-- DEDICATED LIVE PCAP ANALYZER & SECURITY INTELLIGENCE WORKSPACE -->
+    <section class="section-container analyzer-workspace-section" id="analyzer-workspace">
+      <div class="section-header">
+        <div class="section-pretitle">LIVE SECURITY INTELLIGENCE & AUDIT ENGINE</div>
+        <h2 class="section-title">Protocol & Traffic Security Intelligence</h2>
+        <p class="section-description">
+          Ingest raw network packet captures, execute deterministic cryptographic compliance audits, run XGBoost encrypted traffic classification, and generate actionable remediation directives.
+        </p>
+      </div>
+
+      <div class="analyzer-workspace-card">
+        <!-- Ingestion Toolbar -->
+        <div class="analyzer-ingestion-grid">
+          <!-- Upload Drag and Drop Zone -->
+          <div class="upload-dropzone" id="dropZone">
+            <div class="upload-icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <p class="dropzone-primary">Drag & drop IPsec PCAP captures here</p>
+            <p class="dropzone-secondary">Supports .pcap, .pcapng &bull; Local parsing in memory</p>
+            <input type="file" id="pcapFileInput" accept=".pcap,.pcapng,.cap" style="display: none;" onchange="handleFileSelected(event)">
+            <button type="button" class="btn btn-secondary-sm" onclick="document.getElementById('pcapFileInput').click()">Browse Local PCAP File</button>
+          </div>
+
+          <!-- Reference Protocol Handshakes Selection -->
+          <div class="sample-pcaps-panel">
+            <div class="sample-panel-title">
+              <span class="sample-tag">OR INSPECT REFERENCE CAPTURES</span>
+              <h4>Built-in Protocol Scenarios</h4>
+            </div>
+            <div class="sample-cards-list">
+              <div class="sample-action-card" onclick="loadSampleScenario('ikev2-strong')">
+                <div class="sample-icon-badge compliant-badge">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <path d="M9 12l2 2 4-4"/>
+                  </svg>
+                </div>
+                <div class="sample-card-info">
+                  <strong>IKEv2_SuiteB_GCM256.pcap</strong>
+                  <span>Compliant IKEv2 &bull; AES-256-GCM &bull; DH Group 19 &bull; Clean Policy</span>
+                </div>
+                <button type="button" class="btn btn-primary-sm btn-load">Run Audit</button>
+              </div>
+
+              <div class="sample-action-card" onclick="loadSampleScenario('ikev1-weak')">
+                <div class="sample-icon-badge warning-badge">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 2 22 22 22 12 2"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </div>
+                <div class="sample-card-info">
+                  <strong>IKEv1_Aggressive_DES_MD5.pcap</strong>
+                  <span>Vulnerable Handshake &bull; 3DES-CBC &bull; DH Group 2 &bull; Deprecated MD5</span>
+                </div>
+                <button type="button" class="btn btn-secondary-sm btn-load">Run Audit</button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="acc-actions">
-          <button type="button" class="btn btn-primary" onclick="openPcapModal()">
-            <span>Analyze PCAP Now</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"/>
-              <polyline points="12 5 19 12 12 19"/>
-            </svg>
-          </button>
+
+        <!-- Live Pipeline Execution Console -->
+        <div class="pipeline-execution-container" id="executionConsoleContainer" style="display: none;">
+          <div class="pipeline-console-header">
+            <div class="console-title-group">
+              <span class="pulse-indicator"></span>
+              <span class="pipeline-title" id="pipelineStatusTitle">Processing Capture Ingestion...</span>
+            </div>
+            <span class="pipeline-badge" id="pipelineStatusBadge">RUNNING PROTOCOL ENGINES</span>
+          </div>
+          <div class="pipeline-console-body" id="pipelineConsoleOutput">
+            <!-- Populated via script -->
+          </div>
+        </div>
+
+        <!-- NATIVE RESULTS DASHBOARD -->
+        <div class="dashboard-results-container" id="dashboardResultsContainer" style="display: none;">
+          <!-- Top Results Summary Banner -->
+          <div class="results-top-banner">
+            <div class="banner-file-details">
+              <div class="file-icon-wrap">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="analyzed-filename" id="analyzedFilename">ikev2_s2s_ipsec_vpn_aes_gcm.pcapng</h3>
+                <span class="analyzed-meta" id="analyzedMeta">Deterministic Audit &bull; Engine Status: Validated</span>
+              </div>
+            </div>
+
+            <div class="banner-risk-pill" id="dashboardRiskBadge">
+              <span class="risk-dot"></span>
+              <span id="dashboardRiskText">SECURE (0/100)</span>
+            </div>
+          </div>
+
+          <!-- Executive 4-Metric Grid -->
+          <div class="dashboard-metrics-grid">
+            <div class="cyber-metric-card">
+              <div class="metric-top">
+                <span class="metric-label">SECURITY RISK SCORE</span>
+                <span class="metric-icon">🛡</span>
+              </div>
+              <div class="metric-main">
+                <span class="metric-number" id="dashRiskScore">0</span>
+                <span class="metric-sub">/ 100</span>
+              </div>
+              <div class="metric-footer-badge" id="dashRiskLevelBadge">SECURE</div>
+            </div>
+
+            <div class="cyber-metric-card">
+              <div class="metric-top">
+                <span class="metric-label">AI TRAFFIC CLASSIFICATION</span>
+                <span class="metric-icon">🤖</span>
+              </div>
+              <div class="metric-main">
+                <span class="metric-text" id="dashTrafficType">BROWSING</span>
+              </div>
+              <div class="metric-progress-wrapper">
+                <div class="metric-progress-label">
+                  <span>Confidence</span>
+                  <span id="dashConfidenceLabel">95.4%</span>
+                </div>
+                <div class="metric-progress-bar">
+                  <div class="metric-progress-fill" id="dashConfidenceFill" style="width: 95%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cyber-metric-card">
+              <div class="metric-top">
+                <span class="metric-label">CIPHER & INTEGRITY SUITE</span>
+                <span class="metric-icon">🔐</span>
+              </div>
+              <div class="metric-main">
+                <span class="metric-text" id="dashEncryption">AES-256-GCM</span>
+              </div>
+              <div class="metric-detail-row">
+                <span>Integrity / PRF:</span>
+                <strong id="dashIntegrity">AEAD</strong>
+              </div>
+            </div>
+
+            <div class="cyber-metric-card">
+              <div class="metric-top">
+                <span class="metric-label">KEY EXCHANGE & MODE</span>
+                <span class="metric-icon">⚡</span>
+              </div>
+              <div class="metric-main">
+                <span class="metric-text" id="dashDhGroup">DH Group 19</span>
+              </div>
+              <div class="metric-detail-row">
+                <span>Protocol / Mode:</span>
+                <strong id="dashProtocolMode">IKEv2 (Tunnel)</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visual Dual-Column: 3x3 Threat Matrix & Cryptographic Parameters -->
+          <div class="dashboard-details-grid">
+            <!-- 3x3 Threat Matrix -->
+            <div class="cyber-panel">
+              <div class="cyber-panel-header">
+                <div class="panel-title-group">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="3" y1="15" x2="21" y2="15"/>
+                    <line x1="9" y1="3" x2="9" y2="21"/>
+                    <line x1="15" y1="3" x2="15" y2="21"/>
+                  </svg>
+                  <h4>3x3 Threat Matrix (Severity vs Likelihood)</h4>
+                </div>
+              </div>
+              <div class="threat-matrix-wrapper">
+                <div class="threat-matrix-grid" id="threatMatrixGrid">
+                  <div class="tm-header-corner"></div>
+                  <div class="tm-axis-col">Low Impact</div>
+                  <div class="tm-axis-col">Med Impact</div>
+                  <div class="tm-axis-col">High Impact</div>
+
+                  <div class="tm-axis-row">High L-hood</div>
+                  <div class="tm-cell tm-med" id="tm-c-med1">Medium</div>
+                  <div class="tm-cell tm-high" id="tm-c-high1">High</div>
+                  <div class="tm-cell tm-crit" id="tm-c-crit">Critical</div>
+
+                  <div class="tm-axis-row">Med L-hood</div>
+                  <div class="tm-cell tm-low" id="tm-c-low1">Low</div>
+                  <div class="tm-cell tm-med" id="tm-c-med2">Medium</div>
+                  <div class="tm-cell tm-high" id="tm-c-high2">High</div>
+
+                  <div class="tm-axis-row">Low L-hood</div>
+                  <div class="tm-cell tm-low" id="tm-c-low2">Low</div>
+                  <div class="tm-cell tm-low" id="tm-c-low3">Low</div>
+                  <div class="tm-cell tm-med" id="tm-c-med3">Medium</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cryptographic & Protocol Parameters Table -->
+            <div class="cyber-panel">
+              <div class="cyber-panel-header">
+                <div class="panel-title-group">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                  <h4>Cryptographic & Protocol Baseline Evaluation</h4>
+                </div>
+              </div>
+              <div class="cyber-table-container">
+                <table class="cyber-table">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Observed Value</th>
+                      <th>Baseline Requirement</th>
+                      <th>Compliance</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cryptoParametersBody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security Findings & Actionable Remediation Directives -->
+          <div class="cyber-panel findings-panel">
+            <div class="cyber-panel-header">
+              <div class="panel-title-group">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <h4>Security Findings & Explainable Remediation Directives</h4>
+              </div>
+            </div>
+            <div class="findings-list-container" id="findingsListContainer">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Report Export & Download Action Bar -->
+          <div class="reports-export-banner">
+            <div class="export-banner-info">
+              <h4>Export Formal Compliance & Technical Reports</h4>
+              <p>Download comprehensive standalone executive reports or machine-readable JSON telemetry for enterprise SIEM ingestion.</p>
+            </div>
+            <div class="export-banner-buttons">
+              <a href="#" id="downloadHtmlReportBtn" target="_blank" class="btn btn-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Download Executive HTML Report</span>
+              </a>
+              <a href="#" id="downloadJsonReportBtn" target="_blank" class="btn btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+                <span>Download Technical JSON</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -832,71 +1096,6 @@
       </div>
     </div>
   </footer>
-
-  <!-- PCAP ANALYSIS MODAL (Enterprise Modal UI) -->
-  <div class="modal-overlay" id="pcapModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display: none;">
-    <div class="modal-window">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-badge">PCAP INGESTION</div>
-          <h3 id="modalTitle">Analyze IPsec Capture File</h3>
-        </div>
-        <button type="button" class="modal-close" onclick="closePcapModal()" aria-label="Close modal">&times;</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="upload-dropzone" id="dropZone">
-          <div class="upload-icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-          </div>
-          <p class="dropzone-primary">Select or drag & drop capture files (.pcap, .pcapng)</p>
-          <p class="dropzone-secondary">Maximum single capture size: 2 GB &bull; Local parsing in memory</p>
-          <input type="file" id="pcapFileInput" accept=".pcap,.pcapng,.cap" style="display: none;" onchange="handleFileSelected(event)">
-          <button type="button" class="btn btn-secondary-sm" onclick="document.getElementById('pcapFileInput').click()">Browse Local Storage</button>
-        </div>
-
-        <div class="sample-pcaps">
-          <div class="sample-title">Or Inspect Reference Protocol Handshakes:</div>
-          <div class="sample-list">
-            <div class="sample-item" onclick="loadSampleScenario('ikev2-strong')">
-              <div class="sample-meta">
-                <strong>IKEv2_SuiteB_GCM256.pcap</strong>
-                <span>Compliant IKEv2 Init/Auth &bull; AES-256-GCM &bull; DH Group 19 (ECP-256)</span>
-              </div>
-              <span class="sample-btn">Load</span>
-            </div>
-            <div class="sample-item" onclick="loadSampleScenario('ikev1-weak')">
-              <div class="sample-meta">
-                <strong>IKEv1_Aggressive_DES_MD5.pcap</strong>
-                <span>Vulnerable Handshake &bull; 3DES-CBC &bull; DH Group 2 (1024-bit) &bull; PSK Hash Exposure</span>
-              </div>
-              <span class="sample-btn">Load</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Processing Feedback Container -->
-        <div class="modal-inspection-result" id="inspectionResult" style="display: none;">
-          <div class="result-header">
-            <span class="res-title" id="resTitle">Analysis Initialized</span>
-            <span class="res-badge" id="resBadge">STANDARDS VERIFIED</span>
-          </div>
-          <div class="result-console" id="resConsole">
-            <!-- Populated via script -->
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <span class="modal-notice">Files parsed strictly in local execution context. No network exfiltration.</span>
-        <button type="button" class="btn btn-secondary-sm" onclick="closePcapModal()">Close</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Interactive JavaScript Logic -->
   <script src="script.js"></script>

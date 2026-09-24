@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 xgboost>=1.7.0
 joblib>=1.2.0
 pandas>=1.5.0
@@ -8,7 +7,6 @@ pyyaml>=6.0
 streamlit>=1.25.0
 plotly>=5.15.0
 jinja2>=3.1.0
-=======
 # Cyber Sentinel — Core Python Dependencies
 # AI-Assisted IPsec VPN Security Intelligence Platform
 
@@ -34,4 +32,3 @@ python-dotenv==1.2.3
 # Testing
 pytest==9.0.3
 httpx==0.28.1
->>>>>>> 378daef7b72a00c38ac58a8c5fac3e26d3977501
