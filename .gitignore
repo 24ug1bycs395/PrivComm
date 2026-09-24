@@ -115,3 +115,8 @@ temp/
 *.tmp
 *.bak
 *.swp
+
+# ─── Large ML Benchmark Models (>100MB — use Git LFS or host externally) ─────
+# random_forest_model.joblib is 329MB and exceeds GitHub's 100MB limit.
+# XGBoost and other smaller models are fine to commit normally.
+models/random_forest_model.joblib
