@@ -371,6 +371,80 @@
             </table>
         </div>
 
+        <!-- Enterprise Security Auditing Grid (Drift, Policy-as-Code, PQC) -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
+            <!-- 1. Configuration Drift Detector -->
+            <div class="card-box" id="dashDriftBox">
+                <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>🔄 Configuration Drift Detection</span>
+                    <button onclick="askAiAboutCard('Configuration Drift Detection Audit', 'Explains current baseline alignment vs observed diffs, variance percentage, and what parameters match or drift.')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Explain Drift Audit with AI">✨ Explain with AI</button>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <div>
+                        <span style="font-size:12px; color:var(--text-secondary);">Baseline Alignment:</span><br>
+                        <strong id="driftStatusText" style="font-size:15px; color:#4ade80;">SYNCHRONIZED (0 Diffs)</strong>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:12px; color:var(--text-secondary);">Variance Score:</span><br>
+                        <strong id="driftScoreText" style="font-size:15px; color:#38bdf8;">0% Variance</strong>
+                    </div>
+                </div>
+                <div style="font-size:11px; color:var(--text-secondary); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; border:1px solid var(--card-border);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>IKE Version:</span><strong style="color:#4ade80;">Matched (IKEv2)</strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Encryption Cipher:</span><strong style="color:#4ade80;">Matched (AES-256-GCM)</strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Diffie-Hellman Group:</span><strong style="color:#4ade80;">Matched (Group 19)</strong></div>
+                    <div style="display:flex; justify-content:space-between;"><span>PFS Rekeying:</span><strong style="color:#4ade80;">Matched (Enforced)</strong></div>
+                </div>
+            </div>
+
+            <!-- 2. Policy-as-Code Rulebook -->
+            <div class="card-box" id="dashPolicyBox">
+                <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>🛡️ Policy-as-Code Rulebook</span>
+                    <button onclick="askAiAboutCard('Policy-as-Code Compliance Rulebook', 'Explains organizational rulebook evaluation (POL-01 to POL-06), pass/fail criteria, and compliance mandate requirements.')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Explain Policy Rules with AI">✨ Explain with AI</button>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <div>
+                        <span style="font-size:12px; color:var(--text-secondary);">Policy Evaluation:</span><br>
+                        <strong id="policyScoreText" style="font-size:15px; color:#4ade80;">100% COMPLIANT</strong>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <span class="badge-tag bg-secure" id="polPassCount">6 PASS</span>
+                        <span class="badge-tag bg-high" id="polFailCount" style="display:none;">0 FAIL</span>
+                    </div>
+                </div>
+                <div style="font-size:11px; color:var(--text-secondary); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; border:1px solid var(--card-border);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>POL-01 Protocol Version:</span><span class="badge-tag bg-secure" style="padding:1px 6px;">PASS</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>POL-02 AEAD Cipher:</span><span class="badge-tag bg-secure" style="padding:1px 6px;">PASS</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>POL-03 DH Group Margin:</span><span class="badge-tag bg-secure" style="padding:1px 6px;">PASS</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>POL-04 PFS Rekeying:</span><span class="badge-tag bg-secure" style="padding:1px 6px;">PASS</span></div>
+                </div>
+            </div>
+
+            <!-- 3. Post-Quantum Readiness Assessor -->
+            <div class="card-box" id="dashPqcBox">
+                <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>⚛️ Post-Quantum Readiness</span>
+                    <button onclick="askAiAboutCard('Post-Quantum Cryptographic Readiness & Crypto-Agility', 'Explains Quantum threat models (Shor\'s algorithm on ECC/DH vs Grover\'s algorithm on AES-256), Store-Now-Decrypt-Later threats, and RFC 8784 hybrid post-quantum readiness.')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Explain PQC Readiness with AI">✨ Explain with AI</button>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <div>
+                        <span style="font-size:12px; color:var(--text-secondary);">Quantum Threat:</span><br>
+                        <strong id="pqcThreatText" style="font-size:14px; color:#fde047;">MEDIUM RISK (Shor's)</strong>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:12px; color:var(--text-secondary);">Crypto-Agility:</span><br>
+                        <strong id="pqcAgilityText" style="font-size:14px; color:#4ade80;">EXCELLENT</strong>
+                    </div>
+                </div>
+                <div style="font-size:11px; color:var(--text-secondary); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; border:1px solid var(--card-border);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Shor's Key Vulnerability:</span><strong style="color:#fde047;">ECC (Group 19)</strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Grover's Cipher Security:</span><strong style="color:#4ade80;">256-bit (Protected)</strong></div>
+                    <div style="display:flex; justify-content:space-between;"><span>RFC 8784 Hybrid Support:</span><strong style="color:#4ade80;">IKEv2 Ready</strong></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Real-Time Plain-English Rationale Breakdown -->
         <div class="card-box" style="margin-bottom: 24px;">
             <div class="card-title">💡 Active Tunnel Plain-English Rationale (For Non-Experts)</div>
@@ -547,6 +621,46 @@
                 const res = await fetch(`/api/report-data?filename=${filename}`);
                 if (res.ok) {
                     const data = await res.json();
+                    
+                    // 1. Update Drift Panel
+                    const drift = data.drift_detection || {};
+                    const driftStatusEl = document.getElementById('driftStatusText');
+                    const driftScoreEl = document.getElementById('driftScoreText');
+                    if (driftStatusEl && driftScoreEl) {
+                        const isDrift = drift.drift_detected;
+                        driftStatusEl.textContent = isDrift ? `DRIFTED (${drift.drift_count} Diffs)` : "SYNCHRONIZED (0 Diffs)";
+                        driftStatusEl.style.color = isDrift ? "#fca5a5" : "#4ade80";
+                        driftScoreEl.textContent = `${drift.variance_score || 0}% Variance`;
+                    }
+
+                    // 2. Update Policy Panel
+                    const pol = data.policy_as_code || {};
+                    const polScoreEl = document.getElementById('policyScoreText');
+                    const polPassEl = document.getElementById('polPassCount');
+                    const polFailEl = document.getElementById('polFailCount');
+                    if (polScoreEl) {
+                        polScoreEl.textContent = `${pol.compliance_score || 100}% COMPLIANT`;
+                        polScoreEl.style.color = (pol.compliance_score >= 80) ? "#4ade80" : ((pol.compliance_score >= 50) ? "#fde047" : "#fca5a5");
+                    }
+                    if (polPassEl) polPassEl.textContent = `${pol.passed || 6} PASS`;
+                    if (polFailEl) {
+                        polFailEl.textContent = `${pol.failed || 0} FAIL`;
+                        polFailEl.style.display = (pol.failed > 0) ? "inline-block" : "none";
+                    }
+
+                    // 3. Update PQC Panel
+                    const pqc = data.post_quantum_readiness || {};
+                    const pqcThreatEl = document.getElementById('pqcThreatText');
+                    const pqcAgilityEl = document.getElementById('pqcAgilityText');
+                    if (pqcThreatEl) {
+                        pqcThreatEl.textContent = pqc.quantum_threat_rating || "MEDIUM RISK";
+                        pqcThreatEl.style.color = (pqc.quantum_threat_rating === "QUANTUM_RESISTANT") ? "#4ade80" : "#fde047";
+                    }
+                    if (pqcAgilityEl) {
+                        pqcAgilityEl.textContent = pqc.crypto_agility_rating || "EXCELLENT";
+                    }
+
+                    // 4. Update Rationale Cards
                     const explain = data.explainability || [];
                     if (explain.length > 0) {
                         const container = document.getElementById('dashExplainerContainer');

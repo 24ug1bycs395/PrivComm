@@ -157,7 +157,7 @@ def evaluate_ipsec_security(
             # Check File Transfer PFS requirement
             if "pfs_recommendation" in rule:
                 pfs = ipsec_config.get("pfs", "unknown")
-                if pfs == "disabled":
+                if pfs in ["disabled", False]:
                     findings.append(SecurityFinding(
                         finding_id="IPSEC-CTX-FT-001",
                         category="Context-Aware Security",
@@ -169,3 +169,195 @@ def evaluate_ipsec_security(
                     ))
 
     return findings
+
+
+def evaluate_policy_as_code_rules(ipsec_info: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Evaluates org-defined Policy-as-Code control rules and produces explicit PASS/WARNING/FAIL badges.
+    """
+    rules: List[Dict[str, Any]] = []
+
+    # POL-01: Protocol Modernity
+    ike_ver = str(ipsec_info.get("ike_version", "IKEv2")).upper()
+    if "V2" in ike_ver or ike_ver == "IKEV2":
+        rules.append({
+            "rule_id": "POL-01",
+            "name": "Protocol Version Modernity",
+            "category": "Protocol Baseline",
+            "status": "PASS",
+            "observed": ike_ver,
+            "requirement": "IKEv2 Mandatory",
+            "description": "IKEv2 stream exchange verified. Resists DoS state exhaustion and supports MOBIKE mobility."
+        })
+    elif "AGGRESSIVE" in ike_ver:
+        rules.append({
+            "rule_id": "POL-01",
+            "name": "Protocol Version Modernity",
+            "category": "Protocol Baseline",
+            "status": "FAIL",
+            "observed": "IKEv1 Aggressive Mode",
+            "requirement": "IKEv2 Mandatory",
+            "description": "CRITICAL: Aggressive Mode exposes PSK hashes to offline GPU cracking."
+        })
+    else:
+        rules.append({
+            "rule_id": "POL-01",
+            "name": "Protocol Version Modernity",
+            "category": "Protocol Baseline",
+            "status": "WARNING",
+            "observed": ike_ver,
+            "requirement": "IKEv2 Mandatory",
+            "description": "Legacy protocol handshake detected. Migration to IKEv2 required."
+        })
+
+    # POL-02: Encryption Cipher Strength
+    enc = str(ipsec_info.get("encryption", "AES-256-GCM")).upper()
+    if any(forbidden in enc for forbidden in ["3DES", "DES", "NULL", "NONE"]):
+        rules.append({
+            "rule_id": "POL-02",
+            "name": "Encryption Cipher Strength",
+            "category": "Confidentiality",
+            "status": "FAIL",
+            "observed": enc,
+            "requirement": "AES-256-GCM / AES-128-GCM / ChaCha20-Poly1305",
+            "description": "Prohibited cipher detected. Vulnerable to Sweet32 collision or raw plaintext eavesdropping."
+        })
+    elif "GCM" in enc or "CHACHA" in enc:
+        rules.append({
+            "rule_id": "POL-02",
+            "name": "Encryption Cipher Strength",
+            "category": "Confidentiality",
+            "status": "PASS",
+            "observed": enc,
+            "requirement": "AEAD Cipher Required",
+            "description": "Top-tier AEAD cipher providing combined confidentiality and integrated Galois integrity verification."
+        })
+    else:
+        rules.append({
+            "rule_id": "POL-02",
+            "name": "Encryption Cipher Strength",
+            "category": "Confidentiality",
+            "status": "WARNING",
+            "observed": enc,
+            "requirement": "AEAD Cipher Preferred",
+            "description": "CBC block mode cipher requires external HMAC integrity checks."
+        })
+
+    # POL-03: Diffie-Hellman Key Agreement Margin
+    dh = str(ipsec_info.get("dh_group", "19")).upper()
+    if dh in ["1", "2", "5", "MODP-1024"]:
+        rules.append({
+            "rule_id": "POL-03",
+            "name": "Diffie-Hellman Cryptographic Margin",
+            "category": "Key Agreement",
+            "status": "FAIL",
+            "observed": f"Group {dh} (1024-bit)",
+            "requirement": "Group 14+ or Group 19+",
+            "description": "Sub-minimum prime modulus vulnerable to supercomputer precomputation (Logjam attack)."
+        })
+    elif dh in ["19", "20", "21", "28", "31", "ECP-256", "ECP-384"]:
+        rules.append({
+            "rule_id": "POL-03",
+            "name": "Diffie-Hellman Cryptographic Margin",
+            "category": "Key Agreement",
+            "status": "PASS",
+            "observed": f"Group {dh} (Elliptic Curve)",
+            "requirement": "Group 19+ ECP Required",
+            "description": "High-speed Elliptic Curve prime group providing 128-bit+ symmetric security margin."
+        })
+    else:
+        rules.append({
+            "rule_id": "POL-03",
+            "name": "Diffie-Hellman Cryptographic Margin",
+            "category": "Key Agreement",
+            "status": "PASS" if dh in ["14", "15", "16", "2048"] else "WARNING",
+            "observed": f"Group {dh}",
+            "requirement": "Group 14+ (2048-bit MODP)",
+            "description": "Modular prime group meets NIST enterprise baseline."
+        })
+
+    # POL-04: Perfect Forward Secrecy (PFS)
+    pfs_val = ipsec_info.get("pfs")
+    pfs_enforced = True if pfs_val in [True, "enforced", "yes"] else False
+    if pfs_enforced:
+        rules.append({
+            "rule_id": "POL-04",
+            "name": "Perfect Forward Secrecy (PFS)",
+            "category": "Key Isolation",
+            "status": "PASS",
+            "observed": "Enforced",
+            "requirement": "CREATE_CHILD_SA Rekeying Mandatory",
+            "description": "Ephemeral key generation isolates session keys from master key compromise."
+        })
+    else:
+        rules.append({
+            "rule_id": "POL-04",
+            "name": "Perfect Forward Secrecy (PFS)",
+            "category": "Key Isolation",
+            "status": "FAIL",
+            "observed": "Disabled",
+            "requirement": "PFS Mandatory",
+            "description": "Retroactive decryption risk: stealing server master key compromises historical recorded traffic."
+        })
+
+    # POL-05: Obsolete Hash Prohibition
+    prf = str(ipsec_info.get("prf", ipsec_info.get("integrity", "AEAD"))).upper()
+    if any(weak in prf for weak in ["MD5", "SHA1"]):
+        rules.append({
+            "rule_id": "POL-05",
+            "name": "Obsolete Hash Prohibition",
+            "category": "Integrity",
+            "status": "FAIL",
+            "observed": prf,
+            "requirement": "MD5 & SHA-1 Prohibited",
+            "description": "Legacy hash algorithm vulnerable to cryptographic collision attacks."
+        })
+    else:
+        rules.append({
+            "rule_id": "POL-05",
+            "name": "Obsolete Hash Prohibition",
+            "category": "Integrity",
+            "status": "PASS",
+            "observed": prf,
+            "requirement": "AEAD / SHA2-256+",
+            "description": "Compliant hash verification digest."
+        })
+
+    # POL-06: Encapsulation Envelope
+    mode = str(ipsec_info.get("mode", "Tunnel")).capitalize()
+    if mode == "Tunnel":
+        rules.append({
+            "rule_id": "POL-06",
+            "name": "Encapsulation Envelope Protection",
+            "category": "Network Topology",
+            "status": "PASS",
+            "observed": "Tunnel Mode",
+            "requirement": "Tunnel Mode Mandatory",
+            "description": "Complete packet encapsulation hides internal private IP architecture."
+        })
+    else:
+        rules.append({
+            "rule_id": "POL-06",
+            "name": "Encapsulation Envelope Protection",
+            "category": "Network Topology",
+            "status": "WARNING",
+            "observed": "Transport Mode",
+            "requirement": "Tunnel Mode Preferred",
+            "description": "Transport mode leaves original source/destination IP headers visible."
+        })
+
+    passed = sum(1 for r in rules if r["status"] == "PASS")
+    warnings = sum(1 for r in rules if r["status"] == "WARNING")
+    failed = sum(1 for r in rules if r["status"] == "FAIL")
+
+    comp_score = int((passed / len(rules)) * 100) if rules else 100
+
+    return {
+        "total_rules": len(rules),
+        "passed": passed,
+        "warnings": warnings,
+        "failed": failed,
+        "compliance_score": comp_score,
+        "rule_results": rules
+    }
+

@@ -7,6 +7,9 @@ from typing import Dict, Any, List
 logger = logging.getLogger(__name__)
 
 from security.explainability import generate_plain_english_explanations
+from security.drift_detector import detect_configuration_drift
+from security.policy_engine import evaluate_policy_as_code_rules
+from security.pqc_assessor import evaluate_post_quantum_readiness
 
 def build_unified_analysis_report(
     ingest_res: Dict[str, Any],
@@ -18,6 +21,9 @@ def build_unified_analysis_report(
     """Build standardized unified analysis dictionary matching PRD Section 12."""
     ipsec_info = ingest_res.get("ipsec", {})
     explanations = generate_plain_english_explanations(ipsec_info, traffic_res)
+    drift_res = detect_configuration_drift(ipsec_info)
+    policy_rules_res = evaluate_policy_as_code_rules(ipsec_info)
+    pqc_res = evaluate_post_quantum_readiness(ipsec_info)
 
     report = {
         "capture": {
@@ -35,7 +41,10 @@ def build_unified_analysis_report(
             "findings": [f.to_dict() if hasattr(f, "to_dict") else f for f in findings],
             "recommendations": recommendations
         },
-        "explainability": explanations
+        "explainability": explanations,
+        "drift_detection": drift_res,
+        "policy_as_code": policy_rules_res,
+        "post_quantum_readiness": pqc_res
     }
 
     return report
