@@ -9,17 +9,19 @@ This repository is an IPsec/VPN capture analyzer with three connected surfaces:
 - **Classification and assessment:** `ml/model_loader.py` loads the pre-trained artifacts from `models/` (or `traffic-classifier/models/`), and `ml/xgboost_adapter.py` aligns features and returns the traffic class/probabilities. `security/policy_engine.py` evaluates the normalized IPsec configuration against `config/security_policy.yaml`; `security/risk.py` and `security/recommendations.py` turn findings into the final assessment.
 - **Reports and interfaces:** `reports/report_generator.py` defines the unified JSON/report shape and batch CSV output; `reports/html_report_generator.py` creates executive HTML. `routers/protocol.py` provides `/analyze/protocol`, `/analyze/sample`, `/analyze/sample-weak`, and report-download endpoints. The React app in `frontend/` calls those relative endpoints. The FastAPI root serves `frontend/dist` when it exists and otherwise falls back to the legacy root `index.html`, `style.css`, and `script.js`. `dashboard/app.py` is a separate Streamlit UI using the same analysis functions.
 
+The analyzer is intended to support both saved captures and live network capture. The current checked-in CLI/API paths are centered on `.pcap`/`.pcapng` files, but live capture should feed the same normalized ingestion and analysis contract rather than create a separate classifier or policy engine.
+
 The intended data flow is:
 
 ```text
-PCAP/PCAPNG -> TShark or Scapy ingestion
-            -> IKE/ESP/AH parsing + flow feature extraction
-            -> pre-trained XGBoost classification
-            -> YAML policy evaluation
-            -> findings, recommendations, risk, JSON/HTML reports
+Live interface or PCAP/PCAPNG -> TShark or Scapy ingestion
+                               -> IKE/ESP/AH parsing + flow feature extraction
+                               -> pre-trained XGBoost classification
+                               -> YAML policy evaluation
+                               -> findings, recommendations, risk, JSON/HTML reports
 ```
 
-Keep new capture sources compatible with this ingestion contract so a future strongSwan testbed can feed captures into the same pipeline.
+Keep capture-source handling separate from analysis: a live-interface reader should produce the same packet/metadata/flow inputs as file ingestion, support bounded capture duration or explicit stop behavior, and preserve cleanup/error reporting. Do not make live capture depend on a browser-only path. A future strongSwan testbed should feed captures into this same pipeline.
 
 ## Setup and commands
 
@@ -33,7 +35,7 @@ pip install -r requirements.txt
 
 The root `requirements.txt` contains the FastAPI/uvicorn, PyShark/Scapy, model, configuration, Streamlit, and test dependencies. The separate `traffic-classifier/requirements.txt` is for the data-science/training workflow; install it only when working on that pipeline.
 
-TShark/Wireshark is an external Windows dependency. The code searches `TSHARK_PATH`, then `PATH`, then standard Wireshark installation locations. Verify the environment with:
+TShark/Wireshark is an external Windows dependency for both offline dissection and future live-interface capture. The code searches `TSHARK_PATH`, then `PATH`, then standard Wireshark installation locations. Verify the environment with:
 
 ```bash
 python main.py check-dependencies
@@ -88,6 +90,18 @@ npm run preview
 
 There is currently no frontend lint or test script in `frontend/package.json`. During local development, run the Python server separately because the React code uses relative API paths such as `/analyze/protocol`.
 
+### Docker
+
+The production-style container builds the Vite SPA in a Node stage and runs FastAPI/Uvicorn in a Python 3.11 stage with TShark, tcpdump, libpcap, and the model artifacts:
+
+```bash
+docker build -t ipsec-analyzer .
+docker run --rm -p 8000:8000 --env-file .env ipsec-analyzer
+docker compose up --build
+```
+
+Copy `.env.example` to `.env` and provide cloud credentials only when those integrations are enabled. Compose mounts `results/` and `captures/` for runtime output and mounts `config/` read-only. Container health is available at `/api/health` (the compatibility endpoint `/health` remains available too).
+
 ### Traffic-classifier workflow
 
 Run these commands from `traffic-classifier/` after installing its requirements:
@@ -109,6 +123,7 @@ This workflow writes processed data, encoders, model metadata, model artifacts, 
 - **Preserve the report contract:** Unified results have `capture`, `ipsec`, `traffic_classification`, and `security_assessment` sections. Changes to one producer should be checked against CLI output, API response models, dashboard access, and HTML/JSON exporters.
 - **Do not invent packet facts:** parser and normalization code must preserve `"unknown"`/`None` when a capture cannot reveal a parameter. In particular, PFS and replay-window details are not inferred from ordinary observation.
 - **TShark is preferred but optional:** use the TShark JSON path for protocol dissection when available; maintain the Scapy fallback for environments without TShark. Flow features are extracted with Scapy even when TShark supplies protocol metadata.
+- **Offline and live capture share semantics:** when adding live capture, reuse the existing packet parsers, flow extractor, classifier adapter, policy engine, and report builder. Keep interface selection, capture duration, permissions, and process shutdown in the ingestion boundary; do not duplicate downstream analysis logic.
 - **Policy is data-driven:** security thresholds and approved/forbidden algorithms belong in `config/security_policy.yaml`. `security/policy_engine.py` has a fallback policy for missing/unreadable YAML; keep policy comparisons consistent with the normalized names emitted by the parsers.
 - **Model schema is authoritative:** inference must use the feature order and class metadata loaded from the model artifacts. Preserve the engineered features (`bytes_per_pkt`, `fiat_biat_ratio`, `log_duration`, `log_bytes_sec`, `log_pkts_sec`) and return explicit status values such as `insufficient_features`, `model_error`, or `inference_error`.
 - **Paths are currently working-directory relative:** commands are expected to run from the repository root, and model/config/sample/result locations are resolved with relative paths. Avoid changing this assumption without updating all launchers and documentation.
@@ -116,3 +131,4 @@ This workflow writes processed data, encoders, model metadata, model artifacts, 
 - **Sample weak scenario is intentionally simulated:** `/analyze/sample-weak` analyzes the bundled sample but overrides the returned fields/findings to demonstrate a weak legacy configuration. Do not mistake it for a second capture file or a parser regression.
 - **Generated artifacts are not source inputs:** analysis results under `results/`, caches, and build/dependency directories are ignored or generated. Keep durable model metadata and required sample captures separate from transient report output.
 - **Frontend integration uses relative URLs:** do not hard-code a different API origin in components unless adding an explicit proxy/configuration. The Vite build is copied/served through `frontend/dist` by the FastAPI app.
+- **Browser validation:** if a Playwright MCP server is configured, use it for frontend smoke checks against the running FastAPI server (load the analyzer, exercise sample/upload flows, and verify report-download links). Do not treat browser automation as a replacement for Python parser/unit tests.

@@ -49,6 +49,9 @@ class ProtocolIdentificationEngine:
         report_data = build_unified_analysis_report(ingest_res, traffic_res, findings, recommendations, risk_res)
         generate_html_report(report_data, html_output)
 
+        from db.storage import StorageService
+        report_url = StorageService.upload_report_html(f"{base_filename}_executive_report.html", html_output)
+
         # Format dh_group representation
         dh_val = ipsec.get("dh_group")
         dh_str = str(dh_val) if dh_val not in (None, "unknown") else None
@@ -77,5 +80,5 @@ class ProtocolIdentificationEngine:
                 "findings": [f.to_dict() if hasattr(f, "to_dict") else f for f in findings],
                 "recommendations": recommendations
             },
-            report_html=os.path.abspath(html_output)
+            report_html=report_url
         )

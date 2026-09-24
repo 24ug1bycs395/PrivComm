@@ -50,6 +50,19 @@ async def analyze_protocol(
 
     try:
         result = engine.analyze_pcap(temp_path)
+        
+        # Persist to Database / Local JSON storage
+        try:
+            from db.repository import AnalysisJobRepository
+            job_record = result.model_dump() if hasattr(result, "model_dump") else result.dict()
+            job_record["filename"] = pcap_file.filename
+            job_record["filesize"] = os.path.getsize(temp_path) if os.path.exists(temp_path) else 0
+            job_record["status"] = "COMPLETED"
+            AnalysisJobRepository.save_analysis(job_record)
+        except Exception as e:
+            # Non-blocking persistence error logging
+            pass
+
         return result
     except Exception as e:
         raise HTTPException(
@@ -171,3 +184,20 @@ async def download_json_report(filename: str = Query(..., description="PCAP file
         raise HTTPException(status_code=404, detail=f"JSON report for '{filename}' not found.")
 
     return FileResponse(json_path, media_type="application/json", filename=f"{base_name}_analysis.json")
+
+
+@router.get("/api/jobs", summary="Get recent PCAP analysis jobs")
+async def list_analysis_jobs(limit: int = Query(50, ge=1, le=100)):
+    """GET /api/jobs: Returns history of completed and recent PCAP analysis jobs."""
+    from db.repository import AnalysisJobRepository
+    return AnalysisJobRepository.list_analyses(limit=limit)
+
+
+@router.get("/api/jobs/{job_id}", summary="Get specific PCAP analysis job by ID")
+async def get_analysis_job_detail(job_id: str):
+    """GET /api/jobs/{job_id}: Returns detailed result of a past analysis job."""
+    from db.repository import AnalysisJobRepository
+    job = AnalysisJobRepository.get_analysis(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail=f"Analysis job '{job_id}' not found.")
+    return job
