@@ -2,8 +2,10 @@ import os
 import shutil
 import tempfile
 import json
+from pydantic import BaseModel
 from fastapi import APIRouter, UploadFile, File, HTTPException, status, Query
 from fastapi.responses import FileResponse, JSONResponse
+
 from models.protocol_analysis import ProtocolAnalysisResult
 from services.protocol_engine import ProtocolIdentificationEngine
 
@@ -234,6 +236,19 @@ async def download_json_report(filename: str = Query(..., description="PCAP file
         raise HTTPException(status_code=404, detail=f"JSON report for '{filename}' not found.")
 
     return FileResponse(json_path, media_type="application/json", filename=f"{base_name}_analysis.json")
+
+
+class ChatRequest(BaseModel):
+    message: str
+
+
+@router.post("/api/chat")
+async def chat_assistant(req: ChatRequest):
+    """POST /api/chat: Cyber Sentinel AI Security Assistant Chatbot endpoint."""
+    from security.llm_explainer import query_gemini_assistant
+    reply = query_gemini_assistant(req.message)
+    return {"reply": reply}
+
 
 
 def _record_history(filename: str, result: ProtocolAnalysisResult):

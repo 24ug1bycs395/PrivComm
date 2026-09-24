@@ -295,7 +295,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </tbody>
         </table>
 
+        <div class="section-title">💡 Plain-English Component Rationale (For Non-Experts)</div>
+        {% if report.explainability %}
+            {% for item in report.explainability %}
+            <div class="finding-card {{ item.status }}">
+                <div class="finding-header">
+                    <span class="finding-title">{{ item.icon }} {{ item.title }} (<code>{{ item.observed_value }}</code>)</span>
+                    <span class="badge badge-{{ 'secure' if item.status == 'SECURE' else ('high' if item.status == 'OBSOLETE' else ('medium' if item.status == 'WEAK' else 'secure')) }}">{{ item.status }}</span>
+                </div>
+                <p><strong>Plain-English Role:</strong> {{ item.plain_english_summary }}</p>
+                <p style="color: var(--text-secondary); font-size: 13px; margin-top: 6px;">{{ item.detailed_explanation }}</p>
+            </div>
+            {% endfor %}
+        {% endif %}
+
         <div class="section-title">🚨 Security Assessment & Actionable Recommendations</div>
+
         {% if report.security_assessment.findings %}
             {% for finding in report.security_assessment.findings %}
             <div class="finding-card {{ finding.severity }}">

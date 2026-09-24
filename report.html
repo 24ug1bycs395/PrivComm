@@ -390,6 +390,43 @@
             </tbody>
         </table>
 
+        <div class="section-title">💡 Plain-English Component Rationale (For Non-Experts)</div>
+        <div id="repExplainContainer">
+            <!-- Default static fallback cards if no dynamic data -->
+            <div class="finding-card LOW">
+                <div class="finding-header">
+                    <span class="finding-title">📞 Modern Tunnel Negotiator (IKEv2)</span>
+                    <span class="badge badge-secure">SECURE</span>
+                </div>
+                <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> Establishes and manages the secure VPN connection with speed, auto-reconnect, and multi-network stability.</p>
+                <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">IKEv2 handles connection negotiation and roaming seamlessly (switching from Wi-Fi to mobile data without dropping your tunnel).</p>
+            </div>
+            <div class="finding-card LOW">
+                <div class="finding-header">
+                    <span class="finding-title">🔒 Bank-Grade Vault Lock (AES-256-GCM)</span>
+                    <span class="badge badge-secure">SECURE</span>
+                </div>
+                <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> High-speed encryption that scrambles your data so hackers cannot read it, with built-in tamper detection.</p>
+                <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">AEAD mode ensures that any altered or forged packets are rejected immediately before decryption.</p>
+            </div>
+            <div class="finding-card LOW">
+                <div class="finding-header">
+                    <span class="finding-title">🤝 Elliptic Curve Secret Handshake (DH Group 19)</span>
+                    <span class="badge badge-secure">SECURE</span>
+                </div>
+                <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> Allows two servers to agree on secret encryption keys across the open internet without anyone overhearing.</p>
+                <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">Elliptic Curve math (ECP-256) provides 256-bit cryptographic strength with minimal CPU overhead.</p>
+            </div>
+            <div class="finding-card LOW">
+                <div class="finding-header">
+                    <span class="finding-title">🔑 Temporary One-Time Keys (PFS Enforced)</span>
+                    <span class="badge badge-secure">SECURE</span>
+                </div>
+                <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> Generates fresh session keys constantly so compromising today's key leaves past and future traffic completely safe.</p>
+                <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">Even if a long-term master key is compromised in the future, past recorded sessions cannot be retroactively decrypted.</p>
+            </div>
+        </div>
+
         <div class="section-title">🚨 Security Assessment & Actionable Recommendations</div>
         <div id="repFindingsContainer">
             <div class="finding-card LOW">
@@ -423,6 +460,7 @@
             const ipsec = data.ipsec || {};
             const tc = data.traffic_classification || {};
             const sec = data.security_assessment || {};
+            const explain = data.explainability || [];
 
             document.getElementById('repFilename').textContent = `🛡 IPsec VPN Executive Report: ${cap.filename || filename}`;
             document.getElementById('repMeta').textContent = `Filepath: ${cap.filepath || filename} | Total Packets: ${cap.packet_count || 12}`;
@@ -444,6 +482,24 @@
             document.getElementById('tblDh').textContent = `Group ${ipsec.dh_group || '19'}`;
             document.getElementById('tblSpis').textContent = `Init: ${ipsec.initiator_spi || '62f94c9887715a34'} | Resp: ${ipsec.responder_spi || 'f05534eef373dc1b'}`;
 
+            if (explain && explain.length > 0) {
+                const explainContainer = document.getElementById('repExplainContainer');
+                let expHtml = "";
+                explain.forEach(item => {
+                    const statusClass = item.status === "SECURE" ? "badge-secure" : (item.status === "OBSOLETE" ? "badge-high" : (item.status === "WEAK" ? "badge-medium" : "badge-secure"));
+                    expHtml += `
+                    <div class="finding-card ${item.status}">
+                        <div class="finding-header">
+                            <span class="finding-title">${item.icon} ${item.title} (<code>${item.observed_value}</code>)</span>
+                            <span class="badge ${statusClass}">${item.status}</span>
+                        </div>
+                        <p style="font-size:13px; margin:4px 0;"><strong>Plain-English Role:</strong> ${item.plain_english_summary}</p>
+                        <p style="color:var(--text-secondary); font-size:13px; margin:4px 0 0 0;">${item.detailed_explanation}</p>
+                    </div>`;
+                });
+                explainContainer.innerHTML = expHtml;
+            }
+
             const container = document.getElementById('repFindingsContainer');
             const findings = sec.findings || [];
             if (findings.length > 0) {
@@ -462,6 +518,7 @@
                 container.innerHTML = html;
             }
         }
+
     </script>
 </body>
 </html>

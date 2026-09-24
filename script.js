@@ -348,6 +348,31 @@ function renderAnalysisResults(data, filename) {
     </div>`;
   }
 
+  let explainHtml = "";
+  const explainList = data.explainability || [];
+  if (explainList.length > 0) {
+    explainList.forEach(item => {
+      const badgeBg = item.status === 'SECURE' ? 'rgba(34,197,94,0.2)' : (item.status === 'OBSOLETE' ? 'rgba(239,68,68,0.2)' : 'rgba(234,179,8,0.2)');
+      const badgeColor = item.status === 'SECURE' ? '#4ade80' : (item.status === 'OBSOLETE' ? '#fca5a5' : '#fde047');
+      const safeTitle = (item.title || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+      const safeDetail = (item.detailed_explanation || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+      explainHtml += `
+      <div style="margin-top:6px; padding:8px 10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:6px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="font-size:0.85rem; color:#38bdf8;">${item.icon} ${item.title}</strong>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button onclick="askAiAboutCard('${safeTitle}', '${safeDetail}')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:0.7rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:3px;" title="Ask AI about this component">
+              ✨ Ask AI
+            </button>
+            <span style="font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:bold; background:${badgeBg}; color:${badgeColor};">${item.status}</span>
+          </div>
+        </div>
+        <div style="font-size:0.8rem; color:#f1f5f9; margin-top:3px;"><strong>Role:</strong> ${item.plain_english_summary}</div>
+        <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;">${item.detailed_explanation}</div>
+      </div>`;
+    });
+  }
+
   resConsole.innerHTML = `
     <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:12px;">
       <div style="background:rgba(255,255,255,0.05); padding:8px; border-radius:6px; text-align:center;">
@@ -368,6 +393,12 @@ function renderAnalysisResults(data, filename) {
     <span class="console-line"><span class="console-highlight">[KEY EXCHANGE]</span> DH Group: <strong>Group ${data.dh_group || '19'}</strong> &bull; PFS: <strong>Enforced</strong></span>
     <span class="console-line"><span class="console-highlight">[ENCAPSULATION]</span> ESP: <strong>${data.esp_detected}</strong> &bull; AH: <strong>${data.ah_detected}</strong> &bull; Replay Protection: <strong>Active</strong></span>
 
+    ${explainHtml ? `
+    <div style="margin-top:12px;">
+      <span class="console-highlight" style="color:#e0f2fe;">💡 PLAIN-ENGLISH COMPONENT RATIONALE</span>
+      ${explainHtml}
+    </div>` : ''}
+
     <div style="margin-top:12px;">
       <span class="console-highlight">[SECURITY AUDIT FINDINGS]</span>
       ${findingsHtml}
@@ -385,6 +416,7 @@ function renderAnalysisResults(data, filename) {
       </a>
     </div>
   `;
+
 }
 
 function renderSampleFallback(scenarioType) {
@@ -421,3 +453,94 @@ function renderSampleFallback(scenarioType) {
     `;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Interactive Cyber Sentinel AI Assistant Chatbot Logic
+   -------------------------------------------------------------------------- */
+function toggleChatbot() {
+  const windowEl = document.getElementById('chatbotWindow');
+  if (windowEl) {
+    if (windowEl.style.display === 'none' || !windowEl.style.display) {
+      windowEl.style.display = 'flex';
+      document.getElementById('chatInput')?.focus();
+    } else {
+      windowEl.style.display = 'none';
+    }
+  }
+}
+
+function sendQuickPrompt(promptText) {
+  const inputEl = document.getElementById('chatInput');
+  if (inputEl) {
+    inputEl.value = promptText;
+    sendChatMessage();
+  }
+}
+
+async function sendChatMessage() {
+  const inputEl = document.getElementById('chatInput');
+  const messagesEl = document.getElementById('chatMessages');
+  if (!inputEl || !messagesEl) return;
+
+  const msgText = inputEl.value.trim();
+  if (!msgText) return;
+
+  // Append User message
+  const userMsgDiv = document.createElement('div');
+  userMsgDiv.className = 'chat-msg msg-user';
+  userMsgDiv.innerHTML = `<div class="msg-bubble">${escapeHtml(msgText)}</div>`;
+  messagesEl.appendChild(userMsgDiv);
+
+  inputEl.value = '';
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  // Append AI Thinking bubble
+  const aiMsgDiv = document.createElement('div');
+  aiMsgDiv.className = 'chat-msg msg-ai';
+  aiMsgDiv.innerHTML = `<div class="msg-bubble" style="color: #38bdf8;">🧠 Cyber Sentinel AI is analyzing...</div>`;
+  messagesEl.appendChild(aiMsgDiv);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msgText })
+    });
+    
+    if (!res.ok) throw new Error("Assistant unavailable");
+    const data = await res.json();
+    
+    let replyText = data.reply || "I am analyzing your IPsec VPN security posture.";
+    replyText = replyText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    replyText = replyText.replace(/\n/g, '<br>');
+
+    aiMsgDiv.innerHTML = `<div class="msg-bubble">${replyText}</div>`;
+  } catch (err) {
+    aiMsgDiv.innerHTML = `<div class="msg-bubble" style="color:#fca5a5;">⚠️ Assistant notice: Unable to connect to backend server. Ensure server is running with <code>python main.py server</code>.</div>`;
+  }
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function askAiAboutCard(title, details) {
+  const windowEl = document.getElementById('chatbotWindow');
+  if (windowEl && (windowEl.style.display === 'none' || !windowEl.style.display)) {
+    if (typeof toggleChatbot === 'function') {
+      toggleChatbot();
+    }
+  }
+  const promptText = `Explain in detail the security mechanics, RFC standards, and compliance impact of: ${title}. Observed details: ${details}`;
+  const inputEl = document.getElementById('chatInput');
+  if (inputEl) {
+    inputEl.value = promptText;
+    if (typeof sendChatMessage === 'function') {
+      sendChatMessage();
+    }
+  }
+}
+
+

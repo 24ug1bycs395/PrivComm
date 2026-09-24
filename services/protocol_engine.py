@@ -77,5 +77,7 @@ class ProtocolIdentificationEngine:
                 "findings": [f.to_dict() if hasattr(f, "to_dict") else f for f in findings],
                 "recommendations": recommendations
             },
+            explainability=report_data.get("explainability", []),
             report_html=os.path.abspath(html_output)
         )
+

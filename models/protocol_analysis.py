@@ -20,4 +20,6 @@ class ProtocolAnalysisResult(BaseModel):
     # Extended AI Traffic & Security Assessment Fields
     traffic_classification: Optional[Dict[str, Any]] = Field(default=None, description="XGBoost AI encrypted traffic classification result")
     security_assessment: Optional[Dict[str, Any]] = Field(default=None, description="Security policy audit findings and risk evaluation")
+    explainability: Optional[List[Dict[str, Any]]] = Field(default=None, description="Plain-English component-by-component security explanations")
     report_html: Optional[str] = Field(default=None, description="Generated Executive HTML report path or download link")
+

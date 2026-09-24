@@ -899,7 +899,53 @@
     </div>
   </div>
 
+  <!-- FLOATING CYBER SENTINEL AI ASSISTANT CHATBOT WIDGET -->
+  <div class="chatbot-trigger" onclick="toggleChatbot()" id="chatbotTrigger" title="Open Cyber Sentinel AI Assistant">
+    <div class="chatbot-trigger-icon">🤖</div>
+    <span class="chatbot-trigger-label">Cyber Sentinel AI Assistant</span>
+    <span class="chatbot-badge-dot"></span>
+  </div>
+
+  <div class="chatbot-window" id="chatbotWindow" style="display: none;">
+    <div class="chatbot-header">
+      <div class="chatbot-title-group">
+        <span class="chatbot-avatar">🤖</span>
+        <div>
+          <h4 class="chatbot-title">Cyber Sentinel AI Assistant</h4>
+          <span class="chatbot-subtitle">Powered by Gemini AI & Security Engine</span>
+        </div>
+      </div>
+      <button type="button" class="chatbot-close-btn" onclick="toggleChatbot()">&times;</button>
+    </div>
+
+    <div class="chatbot-messages" id="chatMessages">
+      <div class="chat-msg msg-ai">
+        <div class="msg-bubble">
+          👋 Hello! I am <strong>Cyber Sentinel AI Assistant</strong>. Ask me anything about your IPsec VPN configuration, ciphers (AES-GCM, 3DES), DH groups, risk ratings, or remediation steps!
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Suggestion Pills -->
+    <div class="chat-pills-container">
+      <button class="chat-pill" onclick="sendQuickPrompt('Explain my IPsec configuration in simple terms')">💬 Explain configuration</button>
+      <button class="chat-pill" onclick="sendQuickPrompt('Why is DH Group 2 or 3DES high risk?')">🔒 Why is 3DES / DH2 weak?</button>
+      <button class="chat-pill" onclick="sendQuickPrompt('How do I upgrade to IKEv2 with AES-256-GCM?')">🛡️ Remediation steps</button>
+    </div>
+
+    <div class="chatbot-input-area">
+      <input type="text" id="chatInput" placeholder="Ask a question about IPsec, ciphers, risk..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+      <button type="button" id="chatSendBtn" class="chat-send-btn" onclick="sendChatMessage()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
   <!-- Interactive JavaScript Logic -->
   <script src="script.js"></script>
 </body>
 </html>
+

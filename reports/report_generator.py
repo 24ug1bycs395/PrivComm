@@ -6,6 +6,8 @@ from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
+from security.explainability import generate_plain_english_explanations
+
 def build_unified_analysis_report(
     ingest_res: Dict[str, Any],
     traffic_res: Dict[str, Any],
@@ -15,6 +17,7 @@ def build_unified_analysis_report(
 ) -> Dict[str, Any]:
     """Build standardized unified analysis dictionary matching PRD Section 12."""
     ipsec_info = ingest_res.get("ipsec", {})
+    explanations = generate_plain_english_explanations(ipsec_info, traffic_res)
 
     report = {
         "capture": {
@@ -31,10 +34,12 @@ def build_unified_analysis_report(
             "findings_count": len(findings),
             "findings": [f.to_dict() if hasattr(f, "to_dict") else f for f in findings],
             "recommendations": recommendations
-        }
+        },
+        "explainability": explanations
     }
 
     return report
+
 
 def save_json_report(report_data: Dict[str, Any], output_path: str):
     """Save analysis report dictionary to JSON file."""
