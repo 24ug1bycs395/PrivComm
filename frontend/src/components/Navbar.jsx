@@ -1,10 +1,12 @@
 import React from 'react';
-import { Shield, Activity, Layers, FileCheck, Cpu, Terminal } from 'lucide-react';
+import { Shield, Activity, Layers, FileCheck, Server, Database } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab }) {
   const tabs = [
     { id: 'analyzer', label: 'Live PCAP Analyzer', icon: Activity },
-    { id: 'overview', label: 'Platform Architecture', icon: Layers },
+    { id: 'testbed', label: 'strongSwan Testbed', icon: Server },
+    { id: 'vault', label: 'Analysis Vault', icon: Database },
+    { id: 'overview', label: 'Architecture', icon: Layers },
     { id: 'threat-matrix', label: 'Threat Matrix', icon: Shield },
     { id: 'compliance', label: 'Compliance Specs', icon: FileCheck },
   ];

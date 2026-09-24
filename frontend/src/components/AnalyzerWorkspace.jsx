@@ -16,12 +16,19 @@ import {
   Activity
 } from 'lucide-react';
 
-export default function AnalyzerWorkspace() {
+export default function AnalyzerWorkspace({ externalAnalysis }) {
   const [loading, setLoading] = useState(false);
   const [pipelineLogs, setPipelineLogs] = useState([]);
   const [activeFilename, setActiveFilename] = useState('');
-  const [analysisResult, setAnalysisResult] = useState(null);
+  const [analysisResult, setAnalysisResult] = useState(externalAnalysis || null);
   const [errorNotice, setErrorNotice] = useState(null);
+
+  React.useEffect(() => {
+    if (externalAnalysis) {
+      setAnalysisResult(externalAnalysis);
+      setActiveFilename(externalAnalysis.filename || 'inspected_capture.pcap');
+    }
+  }, [externalAnalysis]);
 
   // Trigger analysis for sample scenarios
   const handleLoadSample = async (scenarioType) => {
