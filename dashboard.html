@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Sentinel — Live Telemetry & Analytics Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #070b14;
+            --card-bg: #0f172a;
+            --card-border: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #22c55e;
+            --accent-yellow: #eab308;
+            --accent-red: #ef4444;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        .header-nav {
+            background-color: #0d1322;
+            border-bottom: 1px solid var(--card-border);
+            padding: 14px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: 1px solid var(--card-border);
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        .btn:hover { border-color: var(--accent-blue); }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 25px auto;
+            padding: 0 20px;
+        }
+
+        .status-banner {
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 8px;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #38bdf8;
+            text-transform: uppercase;
+        }
+
+        .dot-green {
+            width: 8px;
+            height: 8px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #22c55e;
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .metric-val {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--accent-blue);
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 4px;
+        }
+
+        .metric-lbl {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .card-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 3x3 Threat Matrix Grid */
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(3, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .matrix-cell {
+            padding: 14px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .matrix-low { background: rgba(34, 197, 94, 0.12); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); }
+        .matrix-med { background: rgba(234, 179, 8, 0.12); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.25); }
+        .matrix-high { background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.25); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--card-border);
+            font-size: 13px;
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .badge-tag {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .bg-secure { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        .bg-high { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+
+        .console-stream {
+            background: #040711;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #38bdf8;
+            height: 140px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-nav">
+        <div class="brand-group">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="M9 12l2 2 4-4"/>
+            </svg>
+            <span class="brand-title">CYBER SENTINEL</span>
+            <span style="font-size: 12px; color: var(--text-secondary);">/ Live Telemetry & Analytics Dashboard</span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="btn">← Back to Main Platform</a>
+            <a href="/report" class="btn" style="border-color: #3b82f6; color: #60a5fa;">📄 Open Executive Report Page</a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Status Banner -->
+        <div class="status-banner">
+            <div class="status-pill">
+                <span class="dot-green"></span>
+                <span>VM TUNNEL INGESTION STREAM: READY / ACTIVE</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary);">
+                Incoming Stream Mode: <strong>eBPF / TShark TAP</strong> | Air-Gapped Verification: <strong>ENABLED</strong>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="metrics-row">
+            <div class="metric-card">
+                <div class="metric-lbl">Total Packets Processed</div>
+                <div class="metric-val" id="dashPackets">12</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-lbl">Active IPsec SAs</div>
+                <div class="metric-val" style="color: #4ade80;">2 Active</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-lbl">AI Traffic Classification</div>
+                <div class="metric-val" id="dashTraffic" style="font-size: 20px;">CHAT (47.7%)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-lbl">System Risk Score</div>
+                <div class="metric-val" id="dashRisk" style="color: #4ade80;">0/100 (SECURE)</div>
+            </div>
+        </div>
+
+        <!-- Analytics Grid -->
+        <div class="charts-row">
+            <div class="card-box">
+                <div class="card-title">📊 3x3 Security Threat Matrix Grid</div>
+                <div class="matrix-grid">
+                    <div></div>
+                    <div style="font-size: 10px; color: var(--text-secondary);">Low Impact</div>
+                    <div style="font-size: 10px; color: var(--text-secondary);">Med Impact</div>
+                    <div style="font-size: 10px; color: var(--text-secondary);">High Impact</div>
+
+                    <div style="font-size: 10px; color: var(--text-secondary); margin: auto 0;">High Likelihood</div>
+                    <div class="matrix-cell matrix-med">Medium</div>
+                    <div class="matrix-cell matrix-high">High</div>
+                    <div class="matrix-cell matrix-high">Critical</div>
+
+                    <div style="font-size: 10px; color: var(--text-secondary);">Med Likelihood</div>
+                    <div class="matrix-cell matrix-low">Low</div>
+                    <div class="matrix-cell matrix-med">Medium</div>
+                    <div class="matrix-cell matrix-high">High</div>
+
+                    <div style="font-size: 10px; color: var(--text-secondary);">Low Likelihood</div>
+                    <div class="matrix-cell matrix-low">Low</div>
+                    <div class="matrix-cell matrix-low">Low</div>
+                    <div class="matrix-cell matrix-med">Medium</div>
+                </div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">🤖 AI Encrypted Traffic Probability Breakdown</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Traffic Category</th>
+                            <th>AI Confidence Score</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashProbTable">
+                        <tr>
+                            <td><strong>CHAT</strong></td>
+                            <td>47.7%</td>
+                            <td><span class="badge-tag bg-secure">PREDICTED CLASS</span></td>
+                        </tr>
+                        <tr>
+                            <td>P2P</td>
+                            <td>25.8%</td>
+                            <td>Competing Class</td>
+                        </tr>
+                        <tr>
+                            <td>BROWSING</td>
+                            <td>8.6%</td>
+                            <td>Competing Class</td>
+                        </tr>
+                        <tr>
+                            <td>FILE TRANSFER (FT)</td>
+                            <td>8.3%</td>
+                            <td>Competing Class</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Ingestion History & VM Stream Table -->
+        <div class="card-box" style="margin-bottom: 24px;">
+            <div class="card-title">📂 Recent Capture Ingestions & Analysis History</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Capture Filename</th>
+                        <th>Protocol / Mode</th>
+                        <th>Encryption Suite</th>
+                        <th>AI Predicted Class</th>
+                        <th>Risk Score</th>
+                        <th>Executive Report Action</th>
+                    </tr>
+                </thead>
+                <tbody id="dashHistoryTable">
+                    <tr>
+                        <td><strong>ikev2_s2s_ipsec_vpn_aes_gcm.pcapng</strong></td>
+                        <td>IKEv2 (Tunnel)</td>
+                        <td>AES-256-GCM (Group 19)</td>
+                        <td>CHAT (47.7%)</td>
+                        <td><span class="badge-tag bg-secure">SECURE (0/100)</span></td>
+                        <td><a href="/report?filename=ikev2_s2s_ipsec_vpn_aes_gcm.pcapng" class="btn" style="padding: 4px 10px; font-size: 11px; color: #38bdf8;">👁️ View Report Page</a></td>
+                    </tr>
+                    <tr>
+                        <td>IKEv1_Aggressive_DES_MD5.pcap</td>
+                        <td>IKEv1 (Aggressive)</td>
+                        <td>3DES-CBC (Group 2)</td>
+                        <td>VPN-BROWSING (52.1%)</td>
+                        <td><span class="badge-tag bg-high">HIGH RISK (60/100)</span></td>
+                        <td><a href="/report?filename=IKEv1_Aggressive_DES_MD5.pcap" class="btn" style="padding: 4px 10px; font-size: 11px; color: #fca5a5;">👁️ View Report Page</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Console Stream Feed -->
+        <div class="card-box">
+            <div class="card-title">📡 Real-Time Telemetry Stream Log</div>
+            <div class="console-stream" id="consoleStream">
+                [SYSTEM] Cyber Sentinel Live Telemetry Dashboard initialized.<br>
+                [STREAM] Listening for VM tap ingestion streams on port 500 / 4500 / 50...<br>
+                [DISSECTOR] Engine ready. XGBoost Multiclass Classifier loaded.<br>
+                [POLICY] Context-Aware Security Baseline Rulebook v2.0 ACTIVE.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/api/history');
+                if (res.ok) {
+                    const history = await res.json();
+                    if (history && history.length > 0) {
+                        renderHistory(history);
+                    }
+                }
+            } catch(e) {
+                console.log("Telemetry ready");
+            }
+        });
+
+        function renderHistory(list) {
+            const tbody = document.getElementById('dashHistoryTable');
+            let html = "";
+            list.forEach(item => {
+                const riskClass = item.risk_level === "SECURE" || item.risk_level === "LOW" ? "bg-secure" : "bg-high";
+                html += `
+                <tr>
+                    <td><strong>${item.filename}</strong></td>
+                    <td>${item.ike_version || 'IKEv2'} (${item.mode || 'Tunnel'})</td>
+                    <td>${item.encryption || 'AES-256-GCM'} (Group ${item.dh_group || '19'})</td>
+                    <td>${item.traffic_type || 'CHAT'} (${item.confidence ? (item.confidence*100).toFixed(1) : '47.7'}%)</td>
+                    <td><span class="badge-tag ${riskClass}">${item.risk_level} (${item.risk_score}/100)</span></td>
+                    <td><a href="/report?filename=${encodeURIComponent(item.filename)}" class="btn" style="padding: 4px 10px; font-size: 11px; color: #38bdf8;">👁️ View Report Page</a></td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

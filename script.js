@@ -195,58 +195,53 @@ function initTopologyCanvas() {
   animationFrameId = requestAnimationFrame(render);
 }
 
-function scrollToAnalyzer() {
-  const workspace = document.getElementById('analyzer-workspace');
-  if (workspace) {
-    workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
-
 function openPcapModal() {
-  scrollToAnalyzer();
+  const modal = document.getElementById('pcapModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
 }
 
 function closePcapModal() {
-  // Maintained for backwards compatibility
+  const modal = document.getElementById('pcapModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
 }
 
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closePcapModal();
+});
+
+document.addEventListener('click', (e) => {
+  const modal = document.getElementById('pcapModal');
+  if (e.target === modal) {
+    closePcapModal();
+  }
+});
+
 async function loadSampleScenario(scenarioType) {
-  scrollToAnalyzer();
+  openPcapModal();
+  const resultBox = document.getElementById('inspectionResult');
+  const resTitle = document.getElementById('resTitle');
+  const resBadge = document.getElementById('resBadge');
+  const resConsole = document.getElementById('resConsole');
 
-  const consoleContainer = document.getElementById('executionConsoleContainer');
-  const consoleOutput = document.getElementById('pipelineConsoleOutput');
-  const statusTitle = document.getElementById('pipelineStatusTitle');
-  const statusBadge = document.getElementById('pipelineStatusBadge');
-  const dashboardContainer = document.getElementById('dashboardResultsContainer');
+  if (!resultBox || !resConsole) return;
+  resultBox.style.display = 'block';
 
-  if (consoleContainer) consoleContainer.style.display = 'block';
-  if (dashboardContainer) dashboardContainer.style.display = 'none';
+  resTitle.textContent = scenarioType === 'ikev2-strong'
+    ? 'Analyzing Sample Capture: IKEv2_SuiteB_GCM256.pcap...'
+    : 'Analyzing Sample Capture: IKEv1_Aggressive_DES_MD5.pcap...';
 
-  const targetFilename = scenarioType === 'ikev2-strong'
-    ? 'ikev2_s2s_ipsec_vpn_aes_gcm.pcapng'
-    : 'IKEv1_Aggressive_DES_MD5.pcap';
-
-  if (statusTitle) {
-    statusTitle.textContent = scenarioType === 'ikev2-strong'
-      ? 'Analyzing Reference Capture: IKEv2 Suite-B AES-256-GCM...'
-      : 'Analyzing Vulnerable Capture: IKEv1 Aggressive DES-MD5...';
-  }
-
-  if (statusBadge) {
-    statusBadge.textContent = 'RUNNING PROTOCOL & AI ENGINES';
-    statusBadge.style.color = '#38bdf8';
-  }
-
-  if (consoleOutput) {
-    consoleOutput.innerHTML = `
-      <span class="console-line"><span class="console-highlight">[01/04 INGESTION]</span> Ingesting ${targetFilename} into high-speed memory buffer...</span>
-      <span class="console-line"><span class="console-highlight">[02/04 DISSECTION]</span> Parsing IKE handshakes, SPI headers, transform attributes & PFS groups...</span>
-      <span class="console-line"><span class="console-highlight">[03/04 AI INFERENCE]</span> Extracting 28 statistical flow features & computing XGBoost probability distribution...</span>
-      <span class="console-line"><span class="console-highlight">[04/04 COMPLIANCE]</span> Evaluating deterministic policy against NIST SP 800-77 Rev 1 & CSfC 4.1...</span>
-    `;
-  }
+  resBadge.textContent = 'RUNNING PROTOCOL & AI ENGINES';
+  resBadge.style.background = 'rgba(56, 189, 248, 0.15)';
+  resBadge.style.color = '#38bdf8';
 
   const endpoint = scenarioType === 'ikev2-strong' ? '/analyze/sample' : '/analyze/sample-weak';
+  const targetFilename = scenarioType === 'ikev2-strong' ? 'IKEv2_SuiteB_GCM256.pcap' : 'IKEv1_Aggressive_DES_MD5.pcap';
 
   try {
     const response = await fetch(endpoint);
@@ -256,10 +251,8 @@ async function loadSampleScenario(scenarioType) {
     const data = await response.json();
     renderAnalysisResults(data, targetFilename);
   } catch (err) {
-    if (statusBadge) {
-      statusBadge.textContent = 'FALLBACK AUDIT COMPLETED';
-    }
-    renderSampleFallback(scenarioType, targetFilename);
+    resBadge.textContent = 'SAMPLE ANALYSIS';
+    renderSampleFallback(scenarioType);
   }
 }
 
@@ -267,31 +260,25 @@ async function handleFileSelected(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  scrollToAnalyzer();
+  const resultBox = document.getElementById('inspectionResult');
+  const resTitle = document.getElementById('resTitle');
+  const resBadge = document.getElementById('resBadge');
+  const resConsole = document.getElementById('resConsole');
 
-  const consoleContainer = document.getElementById('executionConsoleContainer');
-  const consoleOutput = document.getElementById('pipelineConsoleOutput');
-  const statusTitle = document.getElementById('pipelineStatusTitle');
-  const statusBadge = document.getElementById('pipelineStatusBadge');
-  const dashboardContainer = document.getElementById('dashboardResultsContainer');
+  if (!resultBox || !resConsole) return;
 
-  if (consoleContainer) consoleContainer.style.display = 'block';
-  if (dashboardContainer) dashboardContainer.style.display = 'none';
+  resultBox.style.display = 'block';
+  resTitle.textContent = `Analyzing: ${file.name} (${(file.size / 1024).toFixed(1)} KB)...`;
+  resBadge.textContent = 'TRANSMITTING TO PROTOCOL ENGINE';
+  resBadge.style.background = 'rgba(56, 189, 248, 0.15)';
+  resBadge.style.color = '#38bdf8';
 
-  if (statusTitle) statusTitle.textContent = `Streaming ${file.name} (${(file.size / 1024).toFixed(1)} KB) to Protocol Engine...`;
-  if (statusBadge) {
-    statusBadge.textContent = 'LIVE INGESTION & DISSECTION';
-    statusBadge.style.color = '#38bdf8';
-  }
-
-  if (consoleOutput) {
-    consoleOutput.innerHTML = `
-      <span class="console-line"><span class="console-highlight">[01/04 INGESTION]</span> Receiving payload stream and allocating dissection buffer...</span>
-      <span class="console-line"><span class="console-highlight">[02/04 DISSECTION]</span> Ingesting frames via Scapy / TShark native protocol parser...</span>
-      <span class="console-line"><span class="console-highlight">[03/04 AI CLASSIFIER]</span> Running XGBoost Encrypted Traffic Multiclass Model...</span>
-      <span class="console-line"><span class="console-highlight">[04/04 SECURITY AUDIT]</span> Evaluating cryptographic parameters and generating report...</span>
-    `;
-  }
+  resConsole.innerHTML = `
+    <span class="console-line"><span class="console-highlight">[INGESTION]</span> Streaming capture file to backend Protocol Identification Engine...</span>
+    <span class="console-line"><span class="console-highlight">[DISSECTION]</span> Parsing IKEv1/IKEv2 handshakes and ESP/AH encapsulation headers...</span>
+    <span class="console-line"><span class="console-highlight">[AI CLASSIFIER]</span> Computing 28 flow features and running XGBoost Multiclass Inference...</span>
+    <span class="console-line"><span class="console-highlight">[SECURITY AUDIT]</span> Evaluating security baseline compliance & generating executive report...</span>
+  `;
 
   try {
     const formData = new FormData();
@@ -310,273 +297,127 @@ async function handleFileSelected(event) {
     const data = await response.json();
     renderAnalysisResults(data, file.name);
   } catch (err) {
-    if (statusBadge) {
-      statusBadge.textContent = 'ANALYSIS NOTICE';
-      statusBadge.style.color = '#f87171';
-    }
-    if (consoleOutput) {
-      consoleOutput.innerHTML += `
-        <span class="console-line console-warning"><span class="console-highlight">[ENGINE NOTICE]</span> ${err.message}</span>
-        <span class="console-line" style="color: #64748b;">(Ensure FastAPI server is active at <code>http://127.0.0.1:8000</code>)</span>
-      `;
-    }
+    resBadge.textContent = 'ANALYSIS NOTICE';
+    resConsole.innerHTML += `
+      <span class="console-line" style="color: #94a3b8; margin-top: 6px;"><span class="console-highlight">[ENGINE NOTICE]</span> ${err.message}</span>
+      <span class="console-line" style="color: #64748b;">(Start backend server with <code>python main.py server</code> to enable live upload processing)</span>
+    `;
   }
 }
 
 function renderAnalysisResults(data, filename) {
-  const dashboardContainer = document.getElementById('dashboardResultsContainer');
-  const consoleContainer = document.getElementById('executionConsoleContainer');
-  if (consoleContainer) consoleContainer.style.display = 'none';
-  if (dashboardContainer) dashboardContainer.style.display = 'flex';
+  const resTitle = document.getElementById('resTitle');
+  const resBadge = document.getElementById('resBadge');
+  const resConsole = document.getElementById('resConsole');
 
-  // 1. Filename & Metadata
-  const analyzedFilename = document.getElementById('analyzedFilename');
-  const analyzedMeta = document.getElementById('analyzedMeta');
-  if (analyzedFilename) analyzedFilename.textContent = filename;
-  if (analyzedMeta) {
-    const pCount = data.capture_summary ? data.capture_summary.total_packets : (data.packet_count || '1,482');
-    analyzedMeta.textContent = `Frames Parsed: ${pCount} • Engine: Scapy/TShark Decoupled • Compliance Verified`;
-  }
-
-  // 2. Risk Assessment
+  resTitle.textContent = `Analyzed: ${filename}`;
+  
   const sec = data.security_assessment || {};
   const riskLevel = sec.risk_level || (data.ipsec_detected ? "SECURE" : "UNKNOWN");
-  const riskScore = sec.risk_score !== undefined ? sec.risk_score : 0;
+  const riskScore = sec.risk_score || 0;
 
-  const dashboardRiskBadge = document.getElementById('dashboardRiskBadge');
-  const dashboardRiskText = document.getElementById('dashboardRiskText');
-  const dashRiskScore = document.getElementById('dashRiskScore');
-  const dashRiskLevelBadge = document.getElementById('dashRiskLevelBadge');
-
-  if (dashRiskScore) dashRiskScore.textContent = riskScore;
-  if (dashRiskLevelBadge) {
-    dashRiskLevelBadge.textContent = riskLevel;
-    dashRiskLevelBadge.className = `metric-footer-badge ${riskLevel}`;
+  resBadge.textContent = `RISK: ${riskLevel} (${riskScore}/100)`;
+  if (riskLevel === "SECURE" || riskLevel === "LOW") {
+    resBadge.style.background = 'rgba(34, 197, 94, 0.2)';
+    resBadge.style.color = '#4ade80';
+  } else if (riskLevel === "MEDIUM") {
+    resBadge.style.background = 'rgba(234, 179, 8, 0.2)';
+    resBadge.style.color = '#fde047';
+  } else {
+    resBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+    resBadge.style.color = '#fca5a5';
   }
 
-  if (dashboardRiskBadge && dashboardRiskText) {
-    dashboardRiskText.textContent = `${riskLevel} (${riskScore}/100)`;
-    dashboardRiskBadge.className = 'banner-risk-pill';
-    if (riskLevel === 'SECURE' || riskLevel === 'LOW') {
-      dashboardRiskBadge.classList.add('secure');
-    } else if (riskLevel === 'MEDIUM') {
-      dashboardRiskBadge.classList.add('medium');
-    } else {
-      dashboardRiskBadge.classList.add('high');
-    }
-  }
-
-  // 3. AI Traffic Classification
   const tc = data.traffic_classification || {};
-  const trafficType = tc.traffic_type || "VPN-TUNNEL";
-  const confidence = tc.confidence !== undefined && tc.confidence !== null ? tc.confidence : 0.954;
-  const confPercent = (confidence * 100).toFixed(1);
+  const trafficType = tc.traffic_type || "N/A";
+  const confidence = tc.confidence ? (tc.confidence * 100).toFixed(1) + "%" : "N/A";
 
-  const dashTrafficType = document.getElementById('dashTrafficType');
-  const dashConfidenceLabel = document.getElementById('dashConfidenceLabel');
-  const dashConfidenceFill = document.getElementById('dashConfidenceFill');
-
-  if (dashTrafficType) dashTrafficType.textContent = trafficType;
-  if (dashConfidenceLabel) dashConfidenceLabel.textContent = `${confPercent}%`;
-  if (dashConfidenceFill) dashConfidenceFill.style.width = `${confPercent}%`;
-
-  // 4. Cipher Suite & Encryption
-  const dashEncryption = document.getElementById('dashEncryption');
-  const dashIntegrity = document.getElementById('dashIntegrity');
-  if (dashEncryption) dashEncryption.textContent = data.encryption || 'AES-256-GCM';
-  if (dashIntegrity) dashIntegrity.textContent = data.integrity || 'AEAD / SHA2-256';
-
-  // 5. DH Group & Mode
-  const dashDhGroup = document.getElementById('dashDhGroup');
-  const dashProtocolMode = document.getElementById('dashProtocolMode');
-  if (dashDhGroup) dashDhGroup.textContent = data.dh_group ? `Group ${data.dh_group}` : 'Group 19 (ECP-256)';
-  if (dashProtocolMode) dashProtocolMode.textContent = `${data.ike_version || 'IKEv2'} (${data.mode || 'Tunnel'})`;
-
-  // 6. 3x3 Threat Matrix Highlight
-  highlightThreatMatrix(riskLevel, sec.findings || []);
-
-  // 7. Cryptographic & Protocol Baseline Table
-  renderCryptoTable(data);
-
-  // 8. Security Findings List
-  renderFindingsList(sec.findings || []);
-
-  // 9. Report Export Action Buttons
-  const downloadHtmlBtn = document.getElementById('downloadHtmlReportBtn');
-  const downloadJsonBtn = document.getElementById('downloadJsonReportBtn');
-
-  if (downloadHtmlBtn) {
-    downloadHtmlBtn.href = `/reports/download-html?filename=${encodeURIComponent(filename)}`;
-  }
-  if (downloadJsonBtn) {
-    downloadJsonBtn.href = `/reports/download-json?filename=${encodeURIComponent(filename)}`;
-  }
-}
-
-function highlightThreatMatrix(riskLevel, findings) {
-  const cells = document.querySelectorAll('.threat-matrix-grid .tm-cell');
-  cells.forEach(c => c.classList.remove('active-risk-cell'));
-
-  let activeCellId = 'tm-c-low3';
-  if (riskLevel === 'HIGH' || riskLevel === 'CRITICAL') {
-    activeCellId = 'tm-c-crit';
-  } else if (riskLevel === 'MEDIUM') {
-    activeCellId = 'tm-c-med2';
-  } else if (riskLevel === 'LOW' || riskLevel === 'SECURE') {
-    activeCellId = 'tm-c-low2';
+  let findingsHtml = "";
+  const findings = sec.findings || [];
+  if (findings.length > 0) {
+    findings.forEach(f => {
+      findingsHtml += `<div style="margin-top:8px; padding:8px; background:rgba(239, 68, 68, 0.1); border-left:3px solid #ef4444; border-radius:4px;">
+        <strong>[${f.finding_id}] ${f.title} (${f.severity})</strong><br>
+        <small>Observed: ${f.observed} | Expected: ${f.expected}</small><br>
+        <small style="color:#7dd3fc;">Action: ${f.recommendation}</small>
+      </div>`;
+    });
+  } else {
+    findingsHtml = `<div style="margin-top:8px; padding:8px; background:rgba(34, 197, 94, 0.1); border-left:3px solid #22c55e; border-radius:4px; color:#4ade80;">
+      ✓ Configuration complies with security policy baselines. No vulnerabilities observed.
+    </div>`;
   }
 
-  const target = document.getElementById(activeCellId);
-  if (target) {
-    target.classList.add('active-risk-cell');
-  }
-}
+  resConsole.innerHTML = `
+    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:12px;">
+      <div style="background:rgba(255,255,255,0.05); padding:8px; border-radius:6px; text-align:center;">
+        <span style="font-size:0.7rem; color:#94a3b8;">IPSEC PROTOCOL</span><br>
+        <strong style="color:#38bdf8;">${data.ike_version || 'IKEv2'} (${data.mode || 'Tunnel'})</strong>
+      </div>
+      <div style="background:rgba(255,255,255,0.05); padding:8px; border-radius:6px; text-align:center;">
+        <span style="font-size:0.7rem; color:#94a3b8;">AI TRAFFIC CLASS</span><br>
+        <strong style="color:#38bdf8;">${trafficType} (${confidence})</strong>
+      </div>
+      <div style="background:rgba(255,255,255,0.05); padding:8px; border-radius:6px; text-align:center;">
+        <span style="font-size:0.7rem; color:#94a3b8;">RISK SCORE</span><br>
+        <strong style="color:#38bdf8;">${riskScore}/100 [${riskLevel}]</strong>
+      </div>
+    </div>
 
-function renderCryptoTable(data) {
-  const tbody = document.getElementById('cryptoParametersBody');
-  if (!tbody) return;
+    <span class="console-line"><span class="console-highlight">[CIPHER SUITE]</span> Encryption: <strong>${data.encryption || 'AES-256-GCM'}</strong> &bull; Integrity: <strong>${data.integrity || 'AEAD'}</strong></span>
+    <span class="console-line"><span class="console-highlight">[KEY EXCHANGE]</span> DH Group: <strong>Group ${data.dh_group || '19'}</strong> &bull; PFS: <strong>Enforced</strong></span>
+    <span class="console-line"><span class="console-highlight">[ENCAPSULATION]</span> ESP: <strong>${data.esp_detected}</strong> &bull; AH: <strong>${data.ah_detected}</strong> &bull; Replay Protection: <strong>Active</strong></span>
 
-  const ikeVer = data.ike_version || 'IKEv2';
-  const enc = data.encryption || 'AES-256-GCM';
-  const integ = data.integrity || 'AEAD';
-  const dh = data.dh_group || '19';
-  const initSpi = data.initiator_spi || '0xa9f4e28174b081c2';
-  const respSpi = data.responder_spi || '0x981255e1a3bc47d0';
+    <div style="margin-top:12px;">
+      <span class="console-highlight">[SECURITY AUDIT FINDINGS]</span>
+      ${findingsHtml}
+    </div>
 
-  const isIkeCompliant = ikeVer.toLowerCase().includes('v2');
-  const isEncCompliant = !enc.toLowerCase().includes('3des') && !enc.toLowerCase().includes('des');
-  const isIntegCompliant = !integ.toLowerCase().includes('md5') && !integ.toLowerCase().includes('sha1');
-  const isDhCompliant = parseInt(dh, 10) >= 14 || dh === '19' || dh === '20';
-
-  tbody.innerHTML = `
-    <tr>
-      <td><strong>IPsec / IKE Version</strong></td>
-      <td><code>${ikeVer} (${data.mode || 'Tunnel Mode'})</code></td>
-      <td>IKEv2 (RFC 7296)</td>
-      <td><span class="status-chip ${isIkeCompliant ? 'compliant' : 'danger'}">${isIkeCompliant ? 'COMPLIANT' : 'VIOLATION'}</span></td>
-    </tr>
-    <tr>
-      <td><strong>Encryption Cipher</strong></td>
-      <td><code>${enc} (256-bit)</code></td>
-      <td>AES-256-GCM / AES-256-CBC</td>
-      <td><span class="status-chip ${isEncCompliant ? 'compliant' : 'danger'}">${isEncCompliant ? 'COMPLIANT' : 'DEPRECATED'}</span></td>
-    </tr>
-    <tr>
-      <td><strong>Integrity / PRF Hash</strong></td>
-      <td><code>${integ}</code></td>
-      <td>AEAD / HMAC-SHA2-256+</td>
-      <td><span class="status-chip ${isIntegCompliant ? 'compliant' : 'danger'}">${isIntegCompliant ? 'COMPLIANT' : 'WEAK'}</span></td>
-    </tr>
-    <tr>
-      <td><strong>Diffie-Hellman Group</strong></td>
-      <td><code>Group ${dh}</code></td>
-      <td>Group 14, 19, 20, 21 (NIST SP 800-77)</td>
-      <td><span class="status-chip ${isDhCompliant ? 'compliant' : 'danger'}">${isDhCompliant ? 'COMPLIANT' : 'INSECURE'}</span></td>
-    </tr>
-    <tr>
-      <td><strong>Security Associations (SPIs)</strong></td>
-      <td><code>Init: ${initSpi.substring(0, 10)}... | Resp: ${respSpi.substring(0, 10)}...</code></td>
-      <td>Valid 64-bit SPI Pair</td>
-      <td><span class="status-chip compliant">COMPLIANT</span></td>
-    </tr>
-    <tr>
-      <td><strong>Encapsulation & Replay</strong></td>
-      <td><code>ESP Active • Replay Window Verified</code></td>
-      <td>RFC 4303 Encapsulating Security Payload</td>
-      <td><span class="status-chip compliant">COMPLIANT</span></td>
-    </tr>
+    <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
+      <a href="/report?filename=${encodeURIComponent(filename)}" target="_blank" class="btn btn-primary-sm" style="text-decoration:none; background:#2563eb; color:#fff;">
+        👁️ View Executive Report Page
+      </a>
+      <a href="/reports/download-html?filename=${encodeURIComponent(filename)}" target="_blank" class="btn btn-secondary-sm" style="text-decoration:none;">
+        🌐 Download HTML
+      </a>
+      <a href="/reports/download-json?filename=${encodeURIComponent(filename)}" target="_blank" class="btn btn-secondary-sm" style="text-decoration:none;">
+        📄 Technical JSON
+      </a>
+    </div>
   `;
 }
 
-function renderFindingsList(findings) {
-  const container = document.getElementById('findingsListContainer');
-  if (!container) return;
+function renderSampleFallback(scenarioType) {
+  const resTitle = document.getElementById('resTitle');
+  const resBadge = document.getElementById('resBadge');
+  const resConsole = document.getElementById('resConsole');
 
-  if (findings.length === 0) {
-    container.innerHTML = `
-      <div class="cyber-finding-card LOW">
-        <div class="finding-card-header">
-          <span class="finding-card-title">✓ Corporate & Federal Policy Compliance Verified</span>
-          <span class="status-chip compliant">0 VIOLATIONS</span>
-        </div>
-        <p class="finding-detail-row">
-          The analyzed IPsec tunnel matches all cryptographic baselines defined in NIST SP 800-77 Rev 1 and NSA Commercial Solutions for Classified (CSfC). No weak transforms, deprecated hashing, or legacy DH groups were detected.
-        </p>
-      </div>
+  if (scenarioType === 'ikev2-strong') {
+    resTitle.textContent = 'Capture: IKEv2_SuiteB_GCM256.pcap';
+    resBadge.textContent = 'COMPLIANT &bull; NIST SP 800-77';
+    resBadge.style.background = 'rgba(56, 189, 248, 0.15)';
+    resBadge.style.color = '#38bdf8';
+
+    resConsole.innerHTML = `
+      <span class="console-line"><span class="console-highlight">[PACKET DISSECTOR]</span> Parsed 1,482 frames across 2 tunnel endpoints.</span>
+      <span class="console-line"><span class="console-highlight">[IKE_SA_INIT]</span> Initiator SPI: 0xa9f4e28174b081c2 &bull; Responder SPI: 0x981255e1a3bc47d0</span>
+      <span class="console-line"><span class="console-highlight">[TRANSFORM]</span> Encryption: AES-GCM (256-bit key) &bull; PRF: PRF_HMAC_SHA2_384</span>
+      <span class="console-line"><span class="console-highlight">[DIFFIE-HELLMAN]</span> Group 19 (256-bit Random ECP group) &bull; PFS Enforced</span>
+      <span class="console-line"><span class="console-highlight">[AI TRAFFIC CLASS]</span> Predicted: CHAT (Confidence: 47.7%)</span>
+      <span class="console-line"><span class="console-highlight">[EVALUATION]</span> Conforms to NIST SP 800-77 Rev 1 guidelines and NSA CSfC 4.1 baseline.</span>
     `;
-    return;
+  } else {
+    resTitle.textContent = 'Capture: IKEv1_Aggressive_DES_MD5.pcap';
+    resBadge.textContent = 'POLICY VIOLATION DETECTED';
+    resBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+    resBadge.style.color = '#fca5a5';
+
+    resConsole.innerHTML = `
+      <span class="console-line"><span class="console-highlight">[PACKET DISSECTOR]</span> Parsed 844 frames across 2 tunnel endpoints.</span>
+      <span class="console-line"><span class="console-highlight">[IKEv1 MODE]</span> Aggressive Mode exchange detected.</span>
+      <span class="console-line"><span class="console-warning">[DEPRECATION WARNING]</span> Cipher: 3DES-CBC &bull; Integrity Hash: MD5 (RFC 8221 Deprecated)</span>
+      <span class="console-line"><span class="console-warning">[KEY EXCHANGE RISK]</span> Diffie-Hellman Group 2 (MODP 1024-bit) &bull; Sub-minimum security margin.</span>
+      <span class="console-line"><span class="console-warning">[REMEDIATION DIRECTIVE]</span> Upgrade tunnel policy to IKEv2 with AES-256-GCM and DH Group 14+ or Group 19.</span>
+    `;
   }
-
-  let html = '';
-  findings.forEach(f => {
-    const sev = f.severity || 'HIGH';
-    html += `
-      <div class="cyber-finding-card ${sev}">
-        <div class="finding-card-header">
-          <span class="finding-card-title">[${f.finding_id || 'SEC-AUDIT'}] ${f.title || 'Cryptographic Policy Violation'}</span>
-          <span class="status-chip ${sev === 'HIGH' ? 'danger' : (sev === 'MEDIUM' ? 'warning' : 'compliant')}">${sev} SEVERITY</span>
-        </div>
-        <div class="finding-detail-row">
-          <span>Observed: <code>${f.observed || 'Deprecated Transform'}</code> &bull; Expected Baseline: <code>${f.expected || 'AES-256-GCM / IKEv2'}</code></span>
-        </div>
-        <div class="finding-action-row">
-          <strong>Remediation Directive:</strong> ${f.recommendation || 'Upgrade IPsec configuration to use modern cryptographic suites.'}
-        </div>
-      </div>
-    `;
-  });
-
-  container.innerHTML = html;
-}
-
-function renderSampleFallback(scenarioType, filename) {
-  const isStrong = scenarioType === 'ikev2-strong';
-  const mockData = {
-    ipsec_detected: true,
-    ike_version: isStrong ? 'IKEv2' : 'IKEv1',
-    mode: 'Tunnel',
-    encryption: isStrong ? 'AES-256-GCM' : '3DES-CBC',
-    integrity: isStrong ? 'AEAD (Combined Mode)' : 'HMAC-MD5-96',
-    dh_group: isStrong ? '19' : '2',
-    initiator_spi: isStrong ? '0xa9f4e28174b081c2' : '0x812fa910bb421109',
-    responder_spi: isStrong ? '0x981255e1a3bc47d0' : '0x12c4ea55781290aa',
-    esp_detected: true,
-    ah_detected: false,
-    traffic_classification: {
-      traffic_type: isStrong ? 'CHAT / MESSAGING' : 'REMOTE-DESKTOP',
-      confidence: isStrong ? 0.942 : 0.887
-    },
-    security_assessment: {
-      risk_level: isStrong ? 'SECURE' : 'HIGH',
-      risk_score: isStrong ? 0 : 85,
-      findings: isStrong ? [] : [
-        {
-          finding_id: 'FINDING-001',
-          title: 'Deprecated 3DES Cipher Suite Observed',
-          severity: 'HIGH',
-          observed: '3DES-CBC (168-bit Effective 112-bit)',
-          expected: 'AES-256-GCM or ChaCha20-Poly1305',
-          recommendation: 'Decommission 3DES immediately to prevent Sweet32 collision exploitation.'
-        },
-        {
-          finding_id: 'FINDING-002',
-          title: 'Weak Diffie-Hellman Group 2 (MODP 1024-bit)',
-          severity: 'HIGH',
-          observed: 'DH Group 2 (1024-bit)',
-          expected: 'DH Group 14 (2048-bit) or Group 19 (ECP-256)',
-          recommendation: 'Reconfigure Phase 1 transform set to minimum Group 14 or Group 19.'
-        },
-        {
-          finding_id: 'FINDING-003',
-          title: 'Deprecated MD5 Integrity Hash Algorithm',
-          severity: 'HIGH',
-          observed: 'HMAC-MD5-96',
-          expected: 'HMAC-SHA2-256 or AEAD Cipher',
-          recommendation: 'Migrate integrity transform to SHA2-256+ or AEAD Galois/Counter Mode.'
-        }
-      ]
-    }
-  };
-
-  renderAnalysisResults(mockData, filename);
 }

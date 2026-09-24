@@ -49,22 +49,20 @@ app.add_middleware(
 
 app.include_router(protocol_router)
 
-# Mount React static build assets if present
-react_dist = os.path.join("frontend", "dist")
-react_assets = os.path.join(react_dist, "assets")
-
-if os.path.exists(react_assets):
-    app.mount("/assets", StaticFiles(directory=react_assets), name="react-assets")
-
-# Serve React frontend homepage
+# Serve homepage (index.html), dashboard (dashboard.html), and executive report (report.html)
 @app.get("/", include_in_schema=False)
 async def serve_homepage():
-    react_index = os.path.join(react_dist, "index.html")
-    if os.path.exists(react_index):
-        return FileResponse(react_index)
     return FileResponse("index.html")
 
-# Serve legacy static assets if present
+@app.get("/dashboard.html", include_in_schema=False)
+async def serve_dashboard_page():
+    return FileResponse("dashboard.html")
+
+@app.get("/report", include_in_schema=False)
+async def serve_report_page():
+    return FileResponse("report.html")
+
+# Serve static assets if present
 if os.path.exists("style.css"):
     @app.get("/style.css", include_in_schema=False)
     async def serve_css():
