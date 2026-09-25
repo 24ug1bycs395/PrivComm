@@ -1,17 +1,18 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# Vagrantfile for 3-Node strongSwan IPsec VPN Testbed
+# Tuned 3-Node strongSwan IPsec VPN Testbed (Fast & Lightweight)
 # VirtualBox Host-Only Network (192.168.56.0/24)
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu/jammy64" # Ubuntu 22.04 LTS
+  config.vm.box = "bento/ubuntu-22.04" # Lightweight, fast boot base box
 
   # Global VM provider settings
   config.vm.provider "virtualbox" do |vb|
-    vb.memory = "1024"
+    vb.memory = "512"
     vb.cpus = 1
     vb.gui = false
+    vb.linked_clone = true   # ⚡ Instant disk creation & 80% less disk space
   end
 
   # ==========================================
@@ -22,8 +23,9 @@ Vagrant.configure("2") do |config|
     vm1.vm.network "private_network", ip: "192.168.56.10"
     vm1.vm.provision "shell", inline: <<-SHELL
       echo ">>> Provisioning VM1 (Initiator)..."
-      sudo apt-get update -y
-      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y strongswan strongswan-swanctl strongswan-pki libcharon-extra-plugins curl iperf3 tcpdump
+      sudo apt-get update -qq
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        strongswan strongswan-swanctl strongswan-pki libcharon-extra-plugins curl iperf3 tcpdump
       # Allow password/key ssh authentication
       sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
       sudo systemctl restart ssh
@@ -39,8 +41,9 @@ Vagrant.configure("2") do |config|
     vm2.vm.network "private_network", ip: "192.168.56.20"
     vm2.vm.provision "shell", inline: <<-SHELL
       echo ">>> Provisioning VM2 (Responder)..."
-      sudo apt-get update -y
-      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y strongswan strongswan-swanctl strongswan-pki libcharon-extra-plugins curl iperf3 tcpdump nginx
+      sudo apt-get update -qq
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        strongswan strongswan-swanctl strongswan-pki libcharon-extra-plugins curl iperf3 tcpdump nginx
       sudo systemctl restart ssh
       echo "vm2-responder ready!"
     SHELL
@@ -54,8 +57,9 @@ Vagrant.configure("2") do |config|
     vm3.vm.network "private_network", ip: "192.168.56.30", nic_promisc: "allow-all"
     vm3.vm.provision "shell", inline: <<-SHELL
       echo ">>> Provisioning VM3 (Observer)..."
-      sudo apt-get update -y
-      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tshark tcpdump libpcap-dev
+      sudo apt-get update -qq
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        tshark tcpdump libpcap-dev
       # Allow non-root packet capture
       sudo chmod +x /usr/bin/dumpcap || true
       sudo systemctl restart ssh

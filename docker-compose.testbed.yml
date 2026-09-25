@@ -1,0 +1,50 @@
+services:
+  vm1-initiator:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.testbed-node
+    container_name: vm1-initiator
+    hostname: vm1-initiator
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      testbed_net:
+        ipv4_address: 192.168.56.10
+    restart: unless-stopped
+
+  vm2-responder:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.testbed-node
+    container_name: vm2-responder
+    hostname: vm2-responder
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      testbed_net:
+        ipv4_address: 192.168.56.20
+    restart: unless-stopped
+
+  vm3-observer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.testbed-node
+    container_name: vm3-observer
+    hostname: vm3-observer
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      testbed_net:
+        ipv4_address: 192.168.56.30
+    restart: unless-stopped
+
+networks:
+  testbed_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.56.0/24
+          gateway: 192.168.56.1
