@@ -273,7 +273,7 @@ class ChatRequest(BaseModel):
 
 @router.post("/api/chat")
 async def chat_assistant(req: ChatRequest):
-    """POST /api/chat: Cyber Sentinel AI Security Assistant Chatbot endpoint."""
+    """POST /api/chat: Privcomm AI Security Assistant Chatbot endpoint."""
     from security.llm_explainer import query_gemini_assistant
     reply = query_gemini_assistant(req.message)
     return {"reply": reply}

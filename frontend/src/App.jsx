@@ -42,7 +42,7 @@ export default function App() {
         <div className="footer-inner">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Shield size={18} color="#38bdf8" />
-            <span style={{ fontWeight: 700, color: '#fff' }}>Cyber Sentinel</span>
+            <span style={{ fontWeight: 700, color: '#fff' }}>Privcomm</span>
             <span style={{ color: '#64748b' }}>&bull; AI-Assisted IPsec VPN Security Intelligence</span>
           </div>
           <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.72rem', color: '#94a3b8' }}>

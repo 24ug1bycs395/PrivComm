@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cyber Sentinel — AI-Assisted IPsec VPN Security Intelligence Platform</title>
-  <meta name="description" content="Transform VPN packet captures, logs, configurations, and encrypted traffic into actionable security intelligence, risk assessments, and explainable recommendations.">
+  <title>Privcomm — AI-Assisted IPsec VPN Security Intelligence Platform</title>
+  <meta name="description"
+    content="Transform VPN packet captures, logs, configurations, and encrypted traffic into actionable security intelligence, risk assessments, and explainable recommendations.">
   <meta name="theme-color" content="#070b14">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
   <!-- Background Ambient Canvas / Gradients -->
@@ -21,15 +26,16 @@
   <!-- Global Header / Navigation -->
   <header class="site-header" id="site-header">
     <div class="header-container">
-      <a href="#" class="brand-link" aria-label="Cyber Sentinel Home">
+      <a href="#" class="brand-link" aria-label="Privcomm Home">
         <div class="brand-symbol">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            <path d="M9 12l2 2 4-4"/>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="M9 12l2 2 4-4" />
           </svg>
         </div>
         <div class="brand-text">
-          <span class="brand-name">CYBER SENTINEL</span>
+          <span class="brand-name">Privcomm</span>
           <span class="brand-tagline">IPSEC INTELLIGENCE</span>
         </div>
       </a>
@@ -62,7 +68,7 @@
         </div>
 
         <h1 class="hero-title">
-          Cyber Sentinel
+          Privcomm
         </h1>
 
         <p class="hero-subtitle">
@@ -70,22 +76,25 @@
         </p>
 
         <p class="hero-description">
-          Transform VPN packet captures, logs, configurations, and encrypted traffic into actionable security intelligence, risk assessments, and explainable recommendations.
+          Transform VPN packet captures, logs, configurations, and encrypted traffic into actionable security
+          intelligence, risk assessments, and explainable recommendations.
         </p>
 
         <div class="hero-actions">
           <button type="button" class="btn btn-primary" id="hero-analyze-btn" onclick="openPcapModal()">
             <span class="btn-text">Analyze PCAP</span>
-            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
+            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
           </button>
           <a href="#workflow" class="btn btn-secondary" id="hero-explore-btn">
             <span class="btn-text">Explore Platform</span>
-            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"/>
+            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9" />
             </svg>
           </a>
         </div>
@@ -110,7 +119,7 @@
             <!-- Canvas for flowing encrypted data paths & tunnel mesh -->
             <div class="canvas-wrapper">
               <canvas id="topologyCanvas" width="1120" height="420"></canvas>
-              
+
               <!-- Clean Topology Anchors Overlaid with semantic data -->
               <div class="topology-overlays" id="topologyOverlays">
                 <div class="node-badge node-gateway-a" style="left: 12%; top: 48%;">
@@ -165,7 +174,8 @@
         <div class="section-pretitle">EXECUTION PIPELINE</div>
         <h2 class="section-title">Platform Workflow</h2>
         <p class="section-description">
-          A deterministic and explainable seven-stage methodology engineered to systematically inspect, evaluate, and fortify enterprise IPsec architectures.
+          A deterministic and explainable seven-stage methodology engineered to systematically inspect, evaluate, and
+          fortify enterprise IPsec architectures.
         </p>
       </div>
 
@@ -178,14 +188,16 @@
           <div class="workflow-step-card" data-step="1">
             <div class="step-index-badge">01</div>
             <div class="step-icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="2" y1="12" x2="22" y2="12"/>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
               </svg>
             </div>
             <h3 class="step-name">Observe</h3>
-            <p class="step-desc">Ingest and dissect live interface taps, raw PCAP/PCAPNG streams, and gateway session telemetry.</p>
+            <p class="step-desc">Ingest and dissect live interface taps, raw PCAP/PCAPNG streams, and gateway session
+              telemetry.</p>
             <div class="step-tag">Data Ingestion</div>
           </div>
 
@@ -193,16 +205,18 @@
           <div class="workflow-step-card" data-step="2">
             <div class="step-index-badge">02</div>
             <div class="step-icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-                <polyline points="10 9 9 9 8 9"/>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
               </svg>
             </div>
             <h3 class="step-name">Identify</h3>
-            <p class="step-desc">Demultiplex IKEv1/IKEv2 handshakes, ESP/AH payload types, SPI indices, and negotiation transforms.</p>
+            <p class="step-desc">Demultiplex IKEv1/IKEv2 handshakes, ESP/AH payload types, SPI indices, and negotiation
+              transforms.</p>
             <div class="step-tag">Protocol Parsing</div>
           </div>
 
@@ -210,12 +224,14 @@
           <div class="workflow-step-card" data-step="3">
             <div class="step-index-badge">03</div>
             <div class="step-icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
             </div>
             <h3 class="step-name">Assess</h3>
-            <p class="step-desc">Validate cipher resilience, PRF/hash integrity, key lengths, and Diffie-Hellman group parameters.</p>
+            <p class="step-desc">Validate cipher resilience, PRF/hash integrity, key lengths, and Diffie-Hellman group
+              parameters.</p>
             <div class="step-tag">Crypto Evaluation</div>
           </div>
 
@@ -223,14 +239,16 @@
           <div class="workflow-step-card" data-step="4">
             <div class="step-index-badge">04</div>
             <div class="step-icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="16" x2="12" y2="12"/>
-                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
               </svg>
             </div>
             <h3 class="step-name">Explain</h3>
-            <p class="step-desc">Generate transparent, deterministic security rationale without black-box machine learning obfuscation.</p>
+            <p class="step-desc">Generate transparent, deterministic security rationale without black-box machine
+              learning obfuscation.</p>
             <div class="step-tag">Explainable Reasoning</div>
           </div>
 
@@ -238,14 +256,16 @@
           <div class="workflow-step-card" data-step="5">
             <div class="step-index-badge">05</div>
             <div class="step-icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                <line x1="8" y1="21" x2="16" y2="21"/>
-                <line x1="12" y1="17" x2="12" y2="21"/>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                <line x1="8" y1="21" x2="16" y2="21" />
+                <line x1="12" y1="17" x2="12" y2="21" />
               </svg>
             </div>
             <h3 class="step-name">Simulate</h3>
-            <p class="step-desc">Model hypothetical cipher downgrades, rekey exhaustion events, and replay vulnerability postures.</p>
+            <p class="step-desc">Model hypothetical cipher downgrades, rekey exhaustion events, and replay vulnerability
+              postures.</p>
             <div class="step-tag">Digital Twin</div>
           </div>
 
@@ -253,13 +273,15 @@
           <div class="workflow-step-card" data-step="6">
             <div class="step-index-badge">06</div>
             <div class="step-icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 11 12 14 22 4"/>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 11 12 14 22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
               </svg>
             </div>
             <h3 class="step-name">Recommend</h3>
-            <p class="step-desc">Formulate vendor-accurate configuration remediations for Cisco, Fortinet, pfSense, and StrongSwan.</p>
+            <p class="step-desc">Formulate vendor-accurate configuration remediations for Cisco, Fortinet, pfSense, and
+              StrongSwan.</p>
             <div class="step-tag">Vendor Directives</div>
           </div>
 
@@ -267,13 +289,15 @@
           <div class="workflow-step-card" data-step="7">
             <div class="step-index-badge">07</div>
             <div class="step-icon-box">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
               </svg>
             </div>
             <h3 class="step-name">Validate</h3>
-            <p class="step-desc">Verify post-remediation capture streams to confirm closed exposure vectors and policy conformance.</p>
+            <p class="step-desc">Verify post-remediation capture streams to confirm closed exposure vectors and policy
+              conformance.</p>
             <div class="step-tag">Verification & Audit</div>
           </div>
         </div>
@@ -286,7 +310,8 @@
         <div class="section-pretitle">TECHNICAL SPECIFICATIONS</div>
         <h2 class="section-title">Core Capabilities</h2>
         <p class="section-description">
-          Architected for high-assurance environments requiring granular scrutiny of tunnel negotiation, cryptographic primitives, and protocol encapsulation.
+          Architected for high-assurance environments requiring granular scrutiny of tunnel negotiation, cryptographic
+          primitives, and protocol encapsulation.
         </p>
       </div>
 
@@ -295,16 +320,18 @@
         <div class="capability-card">
           <div class="cap-header">
             <div class="cap-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="16 18 22 12 16 6"/>
-                <polyline points="8 6 2 12 8 18"/>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
               </svg>
             </div>
             <span class="cap-category">PROTOCOL ANALYSIS</span>
           </div>
           <h3 class="cap-title">Protocol Intelligence</h3>
           <p class="cap-body">
-            Deep dissection and state-machine verification across IKEv1 (Main & Aggressive Mode), IKEv2 (INIT, AUTH, INFORMATIONAL), ESP, and AH in both Tunnel and Transport topologies.
+            Deep dissection and state-machine verification across IKEv1 (Main & Aggressive Mode), IKEv2 (INIT, AUTH,
+            INFORMATIONAL), ESP, and AH in both Tunnel and Transport topologies.
           </p>
           <ul class="cap-specs">
             <li><span>Dissection</span><strong>IKEv1 / IKEv2 / ESP / AH</strong></li>
@@ -317,15 +344,17 @@
         <div class="capability-card">
           <div class="cap-header">
             <div class="cap-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 12h4l3 9 4-18 3 9h4"/>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12h4l3 9 4-18 3 9h4" />
               </svg>
             </div>
             <span class="cap-category">TRAFFIC INFERENCE</span>
           </div>
           <h3 class="cap-title">Traffic Intelligence</h3>
           <p class="cap-body">
-            Statistical packet size distribution, inter-arrival timing analysis, and entropy modeling to characterize tunnel traffic classes without decrypting customer payload data.
+            Statistical packet size distribution, inter-arrival timing analysis, and entropy modeling to characterize
+            tunnel traffic classes without decrypting customer payload data.
           </p>
           <ul class="cap-specs">
             <li><span>Inference Method</span><strong>Statistical Entropy & Timing Analysis</strong></li>
@@ -338,16 +367,18 @@
         <div class="capability-card">
           <div class="cap-header">
             <div class="cap-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
             </div>
             <span class="cap-category">CRYPTOGRAPHIC AUDIT</span>
           </div>
           <h3 class="cap-title">Security Assessment</h3>
           <p class="cap-body">
-            Automated verification of cipher suites against NIST SP 800-77 Rev 1 and CSfC baselines. Flags deprecated primitives including DES, 3DES, MD5, SHA-1, and sub-2048-bit DH groups.
+            Automated verification of cipher suites against NIST SP 800-77 Rev 1 and CSfC baselines. Flags deprecated
+            primitives including DES, 3DES, MD5, SHA-1, and sub-2048-bit DH groups.
           </p>
           <ul class="cap-specs">
             <li><span>Policy Standards</span><strong>NIST SP 800-77, NSA CSfC 4.1</strong></li>
@@ -360,16 +391,18 @@
         <div class="capability-card">
           <div class="cap-header">
             <div class="cap-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                <polyline points="22,6 12,13 2,6"/>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
               </svg>
             </div>
             <span class="cap-category">TELEMETRY CORRELATION</span>
           </div>
           <h3 class="cap-title">Metadata Intelligence</h3>
           <p class="cap-body">
-            Examines packet headers, SPI continuity, sequence number anomalies, padding structures, and ICMP unreachables to identify packet leakage and MTU black holes.
+            Examines packet headers, SPI continuity, sequence number anomalies, padding structures, and ICMP
+            unreachables to identify packet leakage and MTU black holes.
           </p>
           <ul class="cap-specs">
             <li><span>Integrity Checks</span><strong>Sequence Replay Window Tracking</strong></li>
@@ -382,19 +415,21 @@
         <div class="capability-card">
           <div class="cap-header">
             <div class="cap-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="18" cy="5" r="3"/>
-                <circle cx="6" cy="12" r="3"/>
-                <circle cx="18" cy="19" r="3"/>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
               </svg>
             </div>
             <span class="cap-category">EXPOSURE MODELING</span>
           </div>
           <h3 class="cap-title">Attack Path Analysis</h3>
           <p class="cap-body">
-            Maps configuration vulnerabilities to practical adversary exploitation paths, including Aggressive Mode hash cracking, downgrade MITM attacks, and IKE reflection vectors.
+            Maps configuration vulnerabilities to practical adversary exploitation paths, including Aggressive Mode hash
+            cracking, downgrade MITM attacks, and IKE reflection vectors.
           </p>
           <ul class="cap-specs">
             <li><span>Adversary Vectoring</span><strong>MITM Downgrade & Offline PSK Cracking</strong></li>
@@ -407,17 +442,20 @@
         <div class="capability-card">
           <div class="cap-header">
             <div class="cap-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                <line x1="12" y1="22.08" x2="12" y2="12"/>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                <line x1="12" y1="22.08" x2="12" y2="12" />
               </svg>
             </div>
             <span class="cap-category">POSTURE MODELING</span>
           </div>
           <h3 class="cap-title">Digital Twin Simulation</h3>
           <p class="cap-body">
-            Simulates the operational and security impact of cryptographic migrations, rekey interval adjustments, and cipher deprecation prior to applying changes on production gateways.
+            Simulates the operational and security impact of cryptographic migrations, rekey interval adjustments, and
+            cipher deprecation prior to applying changes on production gateways.
           </p>
           <ul class="cap-specs">
             <li><span>Migration Sandbox</span><strong>Pre-deployment Policy Validation</strong></li>
@@ -435,7 +473,8 @@
           <div class="section-pretitle">TRANSFORMATION PARADIGM</div>
           <h2 class="section-title">From Packet Data to Security Intelligence</h2>
           <p class="section-description">
-            Raw captures and gateway logs are voluminous and complex. Cyber Sentinel converts multi-gigabyte protocol negotiations into deterministic, verifiable security guidance.
+            Raw captures and gateway logs are voluminous and complex. Privcomm converts multi-gigabyte protocol
+            negotiations into deterministic, verifiable security guidance.
           </p>
         </div>
 
@@ -457,16 +496,17 @@
 
           <!-- Connector 1 -->
           <div class="transform-arrow" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"/>
-              <polyline points="12 5 19 12 12 19"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
             </svg>
           </div>
 
           <!-- Processing Engine -->
           <div class="transform-block engine-block">
             <div class="block-badge accent-badge">CORE ANALYSIS</div>
-            <h4 class="block-title">Cyber Sentinel Analysis Engine</h4>
+            <h4 class="block-title">Privcomm Analysis Engine</h4>
             <p class="block-desc">
               Protocol state machine reconstruction, cryptographic rigor auditing, and deterministic rule evaluation.
             </p>
@@ -480,9 +520,10 @@
 
           <!-- Connector 2 -->
           <div class="transform-arrow" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"/>
-              <polyline points="12 5 19 12 12 19"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
             </svg>
           </div>
 
@@ -504,12 +545,14 @@
 
         <div class="philosophy-guarantee">
           <div class="guarantee-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
           <div class="guarantee-text">
-            <strong>Auditable Intelligence Principle:</strong> Every finding links directly to byte-level packet offsets, RFC standards, or vendor configuration parameters. Zero black-box hallucinations.
+            <strong>Auditable Intelligence Principle:</strong> Every finding links directly to byte-level packet
+            offsets, RFC standards, or vendor configuration parameters. Zero black-box hallucinations.
           </div>
         </div>
       </div>
@@ -533,16 +576,19 @@
             <div class="arch-level-num">TIER 01</div>
             <div class="arch-level-content">
               <div class="arch-level-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
-                  <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
-                  <line x1="6" y1="6" x2="6.01" y2="6"/>
-                  <line x1="6" y1="18" x2="6.01" y2="18"/>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+                  <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+                  <line x1="6" y1="6" x2="6.01" y2="6" />
+                  <line x1="6" y1="18" x2="6.01" y2="18" />
                 </svg>
                 <h4>VPN Infrastructure</h4>
               </div>
-              <p>Perimeter gateways, firewalls, and cloud edge routers running IPsec tunnels across public and private backbones.</p>
-              <span class="arch-tag">Cisco IOS-XE &bull; Fortinet &bull; pfSense &bull; StrongSwan &bull; AWS Transit Gateway</span>
+              <p>Perimeter gateways, firewalls, and cloud edge routers running IPsec tunnels across public and private
+                backbones.</p>
+              <span class="arch-tag">Cisco IOS-XE &bull; Fortinet &bull; pfSense &bull; StrongSwan &bull; AWS Transit
+                Gateway</span>
             </div>
           </div>
 
@@ -556,14 +602,17 @@
             <div class="arch-level-num">TIER 02</div>
             <div class="arch-level-content">
               <div class="arch-level-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
                 </svg>
-                <h4>Cyber Sentinel Agent</h4>
+                <h4>Privcomm Agent</h4>
               </div>
-              <p>Lightweight, passive collector deployed as an eBPF probe, syslog sink, or port-mirror ingestion daemon.</p>
-              <span class="arch-tag">Passive Telemetry &bull; Zero Impact to In-Flight Traffic &bull; eBPF / AF_PACKET</span>
+              <p>Lightweight, passive collector deployed as an eBPF probe, syslog sink, or port-mirror ingestion daemon.
+              </p>
+              <span class="arch-tag">Passive Telemetry &bull; Zero Impact to In-Flight Traffic &bull; eBPF /
+                AF_PACKET</span>
             </div>
           </div>
 
@@ -577,13 +626,16 @@
             <div class="arch-level-num">TIER 03</div>
             <div class="arch-level-content">
               <div class="arch-level-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                 </svg>
                 <h4>Security Intelligence Engine</h4>
               </div>
-              <p>Centralized policy evaluation engine verifying tunnel renegotiation frequencies, cipher deprecations, and compliance drifts.</p>
-              <span class="arch-tag">Real-Time Cryptographic Validation &bull; NIST SP 800-77 &bull; Anomaly Engine</span>
+              <p>Centralized policy evaluation engine verifying tunnel renegotiation frequencies, cipher deprecations,
+                and compliance drifts.</p>
+              <span class="arch-tag">Real-Time Cryptographic Validation &bull; NIST SP 800-77 &bull; Anomaly
+                Engine</span>
             </div>
           </div>
 
@@ -597,15 +649,18 @@
             <div class="arch-level-num">TIER 04</div>
             <div class="arch-level-content">
               <div class="arch-level-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="3" y1="9" x2="21" y2="9"/>
-                  <line x1="9" y1="21" x2="9" y2="9"/>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="3" y1="9" x2="21" y2="9" />
+                  <line x1="9" y1="21" x2="9" y2="9" />
                 </svg>
                 <h4>Interactive Analysis Platform</h4>
               </div>
-              <p>Unified analyst workspace for forensic investigation, digital twin what-if modeling, and audit documentation generation.</p>
-              <span class="arch-tag">SOC Workspace &bull; Vendor Remediation CLI Export &bull; PDF/JSON Audit Reports</span>
+              <p>Unified analyst workspace for forensic investigation, digital twin what-if modeling, and audit
+                documentation generation.</p>
+              <span class="arch-tag">SOC Workspace &bull; Vendor Remediation CLI Export &bull; PDF/JSON Audit
+                Reports</span>
             </div>
           </div>
         </div>
@@ -615,17 +670,21 @@
           <div class="narrative-card">
             <h3>Automating Human Bottlenecks in IPsec Operations</h3>
             <p>
-              Traditional VPN security audits happen annually or quarterly through labor-intensive sampling in Wireshark. In modern dynamic multi-cloud environments, tunnel configurations drift silently:
+              Traditional VPN security audits happen annually or quarterly through labor-intensive sampling in
+              Wireshark. In modern dynamic multi-cloud environments, tunnel configurations drift silently:
             </p>
             <ul class="narrative-points">
               <li>
-                <strong>Configuration Drift:</strong> Temporary fallbacks to permissive ciphers (e.g. 3DES or DH Group 2) for emergency interoperability often persist indefinitely unnoticed.
+                <strong>Configuration Drift:</strong> Temporary fallbacks to permissive ciphers (e.g. 3DES or DH Group
+                2) for emergency interoperability often persist indefinitely unnoticed.
               </li>
               <li>
-                <strong>Rekey Expiration:</strong> Missing or miscalculated SA lifetime limits trigger silent dropped sessions or perpetual key reuse.
+                <strong>Rekey Expiration:</strong> Missing or miscalculated SA lifetime limits trigger silent dropped
+                sessions or perpetual key reuse.
               </li>
               <li>
-                <strong>Continuous Assurance:</strong> Sentinel transitions audit assurance from point-in-time snapshots to an automated, continuous verification pipeline.
+                <strong>Continuous Assurance:</strong> Sentinel transitions audit assurance from point-in-time snapshots
+                to an automated, continuous verification pipeline.
               </li>
             </ul>
 
@@ -635,7 +694,8 @@
                 <span>DEPLOYMENT ARCHITECTURE</span>
               </div>
               <p class="ns-body">
-                Operates out-of-band. The Sentinel Agent consumes duplicated or mirrored traffic streams without placing in-line latency on production encryption hardware.
+                Operates out-of-band. The Sentinel Agent consumes duplicated or mirrored traffic streams without placing
+                in-line latency on production encryption hardware.
               </p>
             </div>
           </div>
@@ -649,7 +709,8 @@
         <div class="section-pretitle">OPERATIONAL AUDIENCE</div>
         <h2 class="section-title">Intended Users</h2>
         <p class="section-description">
-          Tailored interfaces and analytical depths designed for operational specialists safeguarding critical communications infrastructure.
+          Tailored interfaces and analytical depths designed for operational specialists safeguarding critical
+          communications infrastructure.
         </p>
       </div>
 
@@ -658,14 +719,16 @@
         <div class="user-card">
           <div class="user-role-badge">FORENSICS & TRIAGE</div>
           <div class="user-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"/>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
           </div>
           <h3 class="user-title">Security Analysts</h3>
           <p class="user-description">
-            Inspect packet-level negotiation anomalies, investigate flagged handshake failures, and trace potential downgrade or replay attacks without manual hex dissection.
+            Inspect packet-level negotiation anomalies, investigate flagged handshake failures, and trace potential
+            downgrade or replay attacks without manual hex dissection.
           </p>
           <div class="user-capabilities">
             <span>Dissection telemetry</span>
@@ -678,14 +741,16 @@
         <div class="user-card">
           <div class="user-role-badge">GATEWAY ENGINEERING</div>
           <div class="user-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="4 17 10 11 4 5"/>
-              <line x1="12" y1="19" x2="20" y2="19"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="4 17 10 11 4 5" />
+              <line x1="12" y1="19" x2="20" y2="19" />
             </svg>
           </div>
           <h3 class="user-title">VPN Operations Teams</h3>
           <p class="user-description">
-            Verify tunnel health, optimize proposal order across vendor hardware, diagnose MTU fragmentation, and execute validated configuration changes with zero disruption.
+            Verify tunnel health, optimize proposal order across vendor hardware, diagnose MTU fragmentation, and
+            execute validated configuration changes with zero disruption.
           </p>
           <div class="user-capabilities">
             <span>Vendor config templates</span>
@@ -698,15 +763,17 @@
         <div class="user-card">
           <div class="user-role-badge">REGULATORY & COMPLIANCE</div>
           <div class="user-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <path d="M9 15l2 2 4-4"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <path d="M9 15l2 2 4-4" />
             </svg>
           </div>
           <h3 class="user-title">Auditors</h3>
           <p class="user-description">
-            Generate authoritative compliance attestation reports aligned directly to NIST SP 800-77, NSA CSfC, and ISO 27001 cryptographic requirements.
+            Generate authoritative compliance attestation reports aligned directly to NIST SP 800-77, NSA CSfC, and ISO
+            27001 cryptographic requirements.
           </p>
           <div class="user-capabilities">
             <span>NIST 800-77 attestation</span>
@@ -719,16 +786,18 @@
         <div class="user-card">
           <div class="user-role-badge">RISK GOVERNANCE</div>
           <div class="user-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </div>
           <h3 class="user-title">Security Managers</h3>
           <p class="user-description">
-            Quantify perimeter IPsec cryptographic resilience through unified posture scoring, track remediation progress over time, and ensure resource allocation efficiency.
+            Quantify perimeter IPsec cryptographic resilience through unified posture scoring, track remediation
+            progress over time, and ensure resource allocation efficiency.
           </p>
           <div class="user-capabilities">
             <span>Unified posture rating</span>
@@ -741,13 +810,16 @@
         <div class="user-card highlight-card">
           <div class="user-role-badge sovereign-badge">HIGH ASSURANCE</div>
           <div class="user-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
           </div>
           <h3 class="user-title">Government Cyber Defense Teams</h3>
           <p class="user-description">
-            Safeguard classified mission networks, verify sovereign encryption parameters, and ensure rigorous defense against state-tier interception and decryption programs.
+            Safeguard classified mission networks, verify sovereign encryption parameters, and ensure rigorous defense
+            against state-tier interception and decryption programs.
           </p>
           <div class="user-capabilities">
             <span>CSfC 4.1 multi-layer audit</span>
@@ -765,15 +837,17 @@
           <div class="acc-badge">SECURE INGESTION</div>
           <h2>Ready to Evaluate Your IPsec Infrastructure?</h2>
           <p>
-            Submit an existing packet capture (.pcap, .pcapng) or inspect sample protocol handshakes in an isolated sandbox.
+            Submit an existing packet capture (.pcap, .pcapng) or inspect sample protocol handshakes in an isolated
+            sandbox.
           </p>
         </div>
         <div class="acc-actions">
           <button type="button" class="btn btn-primary" onclick="openPcapModal()">
             <span>Analyze PCAP Now</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"/>
-              <polyline points="12 5 19 12 12 19"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
             </svg>
           </button>
         </div>
@@ -787,14 +861,16 @@
       <div class="footer-main">
         <div class="footer-brand-col">
           <div class="footer-logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              <path d="M9 12l2 2 4-4"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="M9 12l2 2 4-4" />
             </svg>
-            <span>Cyber Sentinel</span>
+            <span>Privcomm</span>
           </div>
           <p class="footer-motto-description">
-            Deterministic security intelligence for high-assurance VPN architectures. Built for auditors, network defense operators, and federal cyber commands.
+            Deterministic security intelligence for high-assurance VPN architectures. Built for auditors, network
+            defense operators, and federal cyber commands.
           </p>
         </div>
 
@@ -824,7 +900,7 @@
 
       <div class="footer-bottom">
         <div class="footer-copy">
-          &copy; 2026 Cyber Sentinel &bull; AI-Assisted IPsec VPN Security Intelligence Platform. All rights reserved.
+          &copy; 2026 Privcomm &bull; AI-Assisted IPsec VPN Security Intelligence Platform. All rights reserved.
         </div>
         <div class="footer-badges">
           <span class="badge-tag">Air-Gap Compatible</span>
@@ -835,7 +911,8 @@
   </footer>
 
   <!-- PCAP ANALYSIS MODAL (Enterprise Modal UI) -->
-  <div class="modal-overlay" id="pcapModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display: none;">
+  <div class="modal-overlay" id="pcapModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"
+    style="display: none;">
     <div class="modal-window">
       <div class="modal-header">
         <div class="modal-title-group">
@@ -848,16 +925,19 @@
       <div class="modal-body">
         <div class="upload-dropzone" id="dropZone">
           <div class="upload-icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
           </div>
           <p class="dropzone-primary">Select or drag & drop capture files (.pcap, .pcapng)</p>
           <p class="dropzone-secondary">Maximum single capture size: 2 GB &bull; Local parsing in memory</p>
-          <input type="file" id="pcapFileInput" accept=".pcap,.pcapng,.cap" style="display: none;" onchange="handleFileSelected(event)">
-          <button type="button" class="btn btn-secondary-sm" onclick="document.getElementById('pcapFileInput').click()">Browse Local Storage</button>
+          <input type="file" id="pcapFileInput" accept=".pcap,.pcapng,.cap" style="display: none;"
+            onchange="handleFileSelected(event)">
+          <button type="button" class="btn btn-secondary-sm"
+            onclick="document.getElementById('pcapFileInput').click()">Browse Local Storage</button>
         </div>
 
         <div class="sample-pcaps">
@@ -899,10 +979,10 @@
     </div>
   </div>
 
-  <!-- FLOATING CYBER SENTINEL AI ASSISTANT CHATBOT WIDGET -->
-  <div class="chatbot-trigger" onclick="toggleChatbot()" id="chatbotTrigger" title="Open Cyber Sentinel AI Assistant">
+  <!-- FLOATING Privcomm AI ASSISTANT CHATBOT WIDGET -->
+  <div class="chatbot-trigger" onclick="toggleChatbot()" id="chatbotTrigger" title="Open Privcomm AI Assistant">
     <div class="chatbot-trigger-icon">🤖</div>
-    <span class="chatbot-trigger-label">Cyber Sentinel AI Assistant</span>
+    <span class="chatbot-trigger-label">Privcomm AI Assistant</span>
     <span class="chatbot-badge-dot"></span>
   </div>
 
@@ -911,7 +991,7 @@
       <div class="chatbot-title-group">
         <span class="chatbot-avatar">🤖</span>
         <div>
-          <h4 class="chatbot-title">Cyber Sentinel AI Assistant</h4>
+          <h4 class="chatbot-title">Privcomm AI Assistant</h4>
           <span class="chatbot-subtitle">Powered by Gemini AI & Security Engine</span>
         </div>
       </div>
@@ -921,24 +1001,30 @@
     <div class="chatbot-messages" id="chatMessages">
       <div class="chat-msg msg-ai">
         <div class="msg-bubble">
-          👋 Hello! I am <strong>Cyber Sentinel AI Assistant</strong>. Ask me anything about your IPsec VPN configuration, ciphers (AES-GCM, 3DES), DH groups, risk ratings, or remediation steps!
+          👋 Hello! I am <strong>Privcomm AI Assistant</strong>. Ask me anything about your IPsec VPN configuration,
+          ciphers (AES-GCM, 3DES), DH groups, risk ratings, or remediation steps!
         </div>
       </div>
     </div>
 
     <!-- Quick Suggestion Pills -->
     <div class="chat-pills-container">
-      <button class="chat-pill" onclick="sendQuickPrompt('Explain my IPsec configuration in simple terms')">💬 Explain configuration</button>
-      <button class="chat-pill" onclick="sendQuickPrompt('Why is DH Group 2 or 3DES high risk?')">🔒 Why is 3DES / DH2 weak?</button>
-      <button class="chat-pill" onclick="sendQuickPrompt('How do I upgrade to IKEv2 with AES-256-GCM?')">🛡️ Remediation steps</button>
+      <button class="chat-pill" onclick="sendQuickPrompt('Explain my IPsec configuration in simple terms')">💬 Explain
+        configuration</button>
+      <button class="chat-pill" onclick="sendQuickPrompt('Why is DH Group 2 or 3DES high risk?')">🔒 Why is 3DES / DH2
+        weak?</button>
+      <button class="chat-pill" onclick="sendQuickPrompt('How do I upgrade to IKEv2 with AES-256-GCM?')">🛡️ Remediation
+        steps</button>
     </div>
 
     <div class="chatbot-input-area">
-      <input type="text" id="chatInput" placeholder="Ask a question about IPsec, ciphers, risk..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+      <input type="text" id="chatInput" placeholder="Ask a question about IPsec, ciphers, risk..."
+        onkeydown="if(event.key==='Enter') sendChatMessage()">
       <button type="button" id="chatSendBtn" class="chat-send-btn" onclick="sendChatMessage()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="22" y1="2" x2="11" y2="13"/>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13" />
+          <polygon points="22 2 15 22 11 13 2 9 22 2" />
         </svg>
       </button>
     </div>
@@ -947,5 +1033,5 @@
   <!-- Interactive JavaScript Logic -->
   <script src="script.js"></script>
 </body>
-</html>
 
+</html>

@@ -19,7 +19,7 @@ export default function Navbar({ activeTab, setActiveTab }) {
             <Shield size={22} />
           </div>
           <div className="brand-title-group">
-            <span className="brand-title">CYBER SENTINEL</span>
+            <span className="brand-title">Privcomm</span>
             <span className="brand-subtitle">AI-ASSISTED IPSEC INTELLIGENCE</span>
           </div>
         </div>

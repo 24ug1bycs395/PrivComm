@@ -1,4 +1,4 @@
-# Cyber Sentinel — AI-Assisted IPsec VPN Security Intelligence Platform
+# Privcomm — AI-Assisted IPsec VPN Security Intelligence Platform
 
 An end-to-end cybersecurity framework for analyzing network capture files (`.pcap`, `.pcapng`), extracting IPsec / IKEv1 / IKEv2 / ESP cryptographic parameters, classifying network traffic using a pre-trained **XGBoost Encrypted Traffic Classifier**, evaluating security configurations against context-aware NIST SP 800-77 / FIPS 140-3 policies, and orchestrating a multi-node **strongSwan IPsec VPN Testbed**.
 

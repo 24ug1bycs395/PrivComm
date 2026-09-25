@@ -42,9 +42,9 @@ async def lifespan(app: FastAPI):
         logger.info("Supabase not configured or unreachable; operating in local storage fallback mode.")
     yield
 
-# FastAPI App Instance for Cyber Sentinel Web Platform
+# FastAPI App Instance for Privcomm Web Platform
 app = FastAPI(
-    title="Cyber Sentinel — AI-Assisted IPsec VPN Security Intelligence Platform",
+    title="Privcomm — AI-Assisted IPsec VPN Security Intelligence Platform",
     description="Full IPsec VPN protocol dissection, XGBoost traffic classification, and compliance audit engine.",
     version="2.0",
     lifespan=lifespan
@@ -245,9 +245,9 @@ def run_dashboard():
         logger.info("Dashboard stopped.")
 
 def run_server():
-    """Launch Cyber Sentinel FastAPI Server serving Web App and APIs."""
+    """Launch Privcomm FastAPI Server serving Web App and APIs."""
     import uvicorn
-    logger.info("Launching Cyber Sentinel Platform Server at http://localhost:8000...")
+    logger.info("Launching Privcomm Platform Server at http://localhost:8000...")
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
 
 def main():
@@ -269,7 +269,7 @@ def main():
     batch_parser.add_argument("--output", type=str, default="results", help="Output directory for reports and summary CSV")
 
     subparsers.add_parser("dashboard", help="Launch Streamlit Web Dashboard UI")
-    subparsers.add_parser("server", help="Launch Cyber Sentinel FastAPI Platform Server (Web UI + APIs)")
+    subparsers.add_parser("server", help="Launch Privcomm FastAPI Platform Server (Web UI + APIs)")
 
     args = parser.parse_args()
 

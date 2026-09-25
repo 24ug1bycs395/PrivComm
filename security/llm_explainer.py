@@ -1,5 +1,5 @@
 """
-Optional Google Gemini LLM & Local Knowledge Base Assistant Module for Cyber Sentinel.
+Optional Google Gemini LLM & Local Knowledge Base Assistant Module for Privcomm.
 
 Provides dynamic AI assistant responses for the Web UI Chatbot widget.
 """
@@ -120,7 +120,7 @@ def query_gemini_assistant(user_message: str) -> str:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
 
         prompt = (
-            "You are Cyber Sentinel AI, an expert cybersecurity assistant for IPsec VPN analysis and encrypted traffic intelligence. "
+            "You are Privcomm AI, an expert cybersecurity assistant for IPsec VPN analysis and encrypted traffic intelligence. "
             "Help non-technical business leaders and security teams understand IPsec protocols, AES ciphers, DH Groups, PFS, "
             "risk scores, and remediation steps in clear, professional, and intuitive terms. Keep responses concise (2-4 bullet points or short paragraphs).\n\n"
             f"User Question: {user_message}"
@@ -206,7 +206,7 @@ def query_gemini_assistant(user_message: str) -> str:
         )
 
     return (
-        "🤖 **Cyber Sentinel Security Assistant**\n"
+        "🤖 **Privcomm Security Assistant**\n"
         "I am ready to help you analyze your IPsec VPN security posture, cryptographic parameters, risk scores, or traffic classifications!\n\n"
         "You can ask me questions like:\n"
         "• *'Why is DH Group 2 considered weak?'*\n"

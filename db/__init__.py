@@ -1,5 +1,5 @@
 """
-Database and Persistence Module for Cyber Sentinel.
+Database and Persistence Module for Privcomm.
 Supports Supabase Cloud Storage & PostgreSQL with seamless local JSON fallback.
 """
 from db.supabase_client import get_supabase_client, is_supabase_enabled

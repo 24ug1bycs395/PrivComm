@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Sentinel — Live Telemetry & Analytics Dashboard</title>
+    <title>Privcomm — Live Telemetry & Analytics Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --bg-color: #070b14;
@@ -72,7 +75,9 @@
             color: var(--text-primary);
         }
 
-        .btn:hover { border-color: var(--accent-blue); }
+        .btn:hover {
+            border-color: var(--accent-blue);
+        }
 
         .dashboard-container {
             max-width: 1200px;
@@ -178,9 +183,23 @@
             font-size: 12px;
         }
 
-        .matrix-low { background: rgba(34, 197, 94, 0.12); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); }
-        .matrix-med { background: rgba(234, 179, 8, 0.12); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.25); }
-        .matrix-high { background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.25); }
+        .matrix-low {
+            background: rgba(34, 197, 94, 0.12);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        .matrix-med {
+            background: rgba(234, 179, 8, 0.12);
+            color: #fde047;
+            border: 1px solid rgba(234, 179, 8, 0.25);
+        }
+
+        .matrix-high {
+            background: rgba(239, 68, 68, 0.12);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
 
         table {
             width: 100%;
@@ -188,7 +207,8 @@
             margin-top: 10px;
         }
 
-        th, td {
+        th,
+        td {
             padding: 10px 14px;
             text-align: left;
             border-bottom: 1px solid var(--card-border);
@@ -208,8 +228,15 @@
             font-weight: 700;
         }
 
-        .bg-secure { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-        .bg-high { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+        .bg-secure {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+
+        .bg-high {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+        }
 
         .console-stream {
             background: #040711;
@@ -224,20 +251,23 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="header-nav">
         <div class="brand-group">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <path d="M9 12l2 2 4-4"/>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="M9 12l2 2 4-4" />
             </svg>
-            <span class="brand-title">CYBER SENTINEL</span>
+            <span class="brand-title">Privcomm</span>
             <span style="font-size: 12px; color: var(--text-secondary);">/ Live Telemetry & Analytics Dashboard</span>
         </div>
         <div class="nav-links">
             <a href="/" class="btn">← Back to Main Platform</a>
-            <a href="/report" class="btn" style="border-color: #3b82f6; color: #60a5fa;">📄 Open Executive Report Page</a>
+            <a href="/report" class="btn" style="border-color: #3b82f6; color: #60a5fa;">📄 Open Executive Report
+                Page</a>
         </div>
     </div>
 
@@ -249,7 +279,8 @@
                 <span>VM TUNNEL INGESTION STREAM: READY / ACTIVE</span>
             </div>
             <div style="font-size: 12px; color: var(--text-secondary);">
-                Incoming Stream Mode: <strong>eBPF / TShark TAP</strong> | Air-Gapped Verification: <strong>ENABLED</strong>
+                Incoming Stream Mode: <strong>eBPF / TShark TAP</strong> | Air-Gapped Verification:
+                <strong>ENABLED</strong>
             </div>
         </div>
 
@@ -342,29 +373,45 @@
                 <span>📡 Observable Metadata Exposure Intelligence</span>
                 <span class="badge-tag bg-secure" id="dashMetaExposureBadge">EXPOSURE: LOW (0/100)</span>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 12px;">
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;">
-                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">VISIBLE ENDPOINT IPS</div>
-                    <strong id="dashSrcDstIp" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #38bdf8;">192.168.1.10 → 10.0.0.1</strong>
-                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Outer IP Pair (IPv4)</div>
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 12px;">
+                <div
+                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">VISIBLE ENDPOINT IPS
+                    </div>
+                    <strong id="dashSrcDstIp"
+                        style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #38bdf8;">192.168.1.10
+                        → 10.0.0.1</strong>
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Outer IP Pair (IPv4)
+                    </div>
                 </div>
 
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;">
-                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">IKE IDENTITY PAYLOADS (IDi / IDr)</div>
+                <div
+                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">IKE IDENTITY
+                        PAYLOADS (IDi / IDr)</div>
                     <strong id="dashIdentityStatus" style="font-size: 13px; color: #4ade80;">ENCRYPTED / ABSENT</strong>
-                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">No Plaintext Leakage</div>
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">No Plaintext Leakage
+                    </div>
                 </div>
 
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;">
-                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">SPI SESSION LINKABILITY</div>
+                <div
+                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">SPI SESSION
+                        LINKABILITY</div>
                     <strong id="dashSpiRisk" style="font-size: 13px; color: #fde047;">MEDIUM TRACKING RISK</strong>
-                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">ESP SPI Headers Observed</div>
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">ESP SPI Headers
+                        Observed</div>
                 </div>
 
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;">
-                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">HEADER EXPOSURE (MODE)</div>
-                    <strong id="dashModeExposure" style="font-size: 13px; color: #4ade80;">Tunnel Mode (0 B/pkt)</strong>
-                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Full Envelope Encapsulation</div>
+                <div
+                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">HEADER EXPOSURE
+                        (MODE)</div>
+                    <strong id="dashModeExposure" style="font-size: 13px; color: #4ade80;">Tunnel Mode (0
+                        B/pkt)</strong>
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Full Envelope
+                        Encapsulation</div>
                 </div>
             </div>
         </div>
@@ -390,7 +437,9 @@
                         <td>AES-256-GCM (Group 19)</td>
                         <td>CHAT (47.7%)</td>
                         <td><span class="badge-tag bg-secure">SECURE (0/100)</span></td>
-                        <td><a href="/report?filename=ikev2_s2s_ipsec_vpn_aes_gcm.pcapng" class="btn" style="padding: 4px 10px; font-size: 11px; color: #38bdf8;">👁️ View Report Page</a></td>
+                        <td><a href="/report?filename=ikev2_s2s_ipsec_vpn_aes_gcm.pcapng" class="btn"
+                                style="padding: 4px 10px; font-size: 11px; color: #38bdf8;">👁️ View Report Page</a>
+                        </td>
                     </tr>
                     <tr>
                         <td>IKEv1_Aggressive_DES_MD5.pcap</td>
@@ -398,7 +447,9 @@
                         <td>3DES-CBC (Group 2)</td>
                         <td>VPN-BROWSING (52.1%)</td>
                         <td><span class="badge-tag bg-high">HIGH RISK (60/100)</span></td>
-                        <td><a href="/report?filename=IKEv1_Aggressive_DES_MD5.pcap" class="btn" style="padding: 4px 10px; font-size: 11px; color: #fca5a5;">👁️ View Report Page</a></td>
+                        <td><a href="/report?filename=IKEv1_Aggressive_DES_MD5.pcap" class="btn"
+                                style="padding: 4px 10px; font-size: 11px; color: #fca5a5;">👁️ View Report Page</a>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -410,23 +461,32 @@
             <div class="card-box" id="dashDriftBox">
                 <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
                     <span>🔄 Configuration Drift Detection</span>
-                    <button onclick="askAiAboutCard('Configuration Drift Detection Audit', 'Explains current baseline alignment vs observed diffs, variance percentage, and what parameters match or drift.')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Explain Drift Audit with AI">✨ Explain with AI</button>
+                    <button
+                        onclick="askAiAboutCard('Configuration Drift Detection Audit', 'Explains current baseline alignment vs observed diffs, variance percentage, and what parameters match or drift.')"
+                        style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;"
+                        title="Explain Drift Audit with AI">✨ Explain with AI</button>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                     <div>
                         <span style="font-size:12px; color:var(--text-secondary);">Baseline Alignment:</span><br>
-                        <strong id="driftStatusText" style="font-size:15px; color:#4ade80;">SYNCHRONIZED (0 Diffs)</strong>
+                        <strong id="driftStatusText" style="font-size:15px; color:#4ade80;">SYNCHRONIZED (0
+                            Diffs)</strong>
                     </div>
                     <div style="text-align:right;">
                         <span style="font-size:12px; color:var(--text-secondary);">Variance Score:</span><br>
                         <strong id="driftScoreText" style="font-size:15px; color:#38bdf8;">0% Variance</strong>
                     </div>
                 </div>
-                <div style="font-size:11px; color:var(--text-secondary); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; border:1px solid var(--card-border);">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>IKE Version:</span><strong style="color:#4ade80;">Matched (IKEv2)</strong></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Encryption Cipher:</span><strong style="color:#4ade80;">Matched (AES-256-GCM)</strong></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Diffie-Hellman Group:</span><strong style="color:#4ade80;">Matched (Group 19)</strong></div>
-                    <div style="display:flex; justify-content:space-between;"><span>PFS Rekeying:</span><strong style="color:#4ade80;">Matched (Enforced)</strong></div>
+                <div
+                    style="font-size:11px; color:var(--text-secondary); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; border:1px solid var(--card-border);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>IKE
+                            Version:</span><strong style="color:#4ade80;">Matched (IKEv2)</strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Encryption
+                            Cipher:</span><strong style="color:#4ade80;">Matched (AES-256-GCM)</strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Diffie-Hellman
+                            Group:</span><strong style="color:#4ade80;">Matched (Group 19)</strong></div>
+                    <div style="display:flex; justify-content:space-between;"><span>PFS Rekeying:</span><strong
+                            style="color:#4ade80;">Matched (Enforced)</strong></div>
                 </div>
             </div>
 
@@ -434,7 +494,10 @@
             <div class="card-box" id="dashPolicyBox">
                 <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
                     <span>🛡️ Policy-as-Code Rulebook</span>
-                    <button onclick="askAiAboutCard('Policy-as-Code Compliance Rulebook', 'Explains organizational rulebook evaluation (POL-01 to POL-06), pass/fail criteria, and compliance mandate requirements.')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Explain Policy Rules with AI">✨ Explain with AI</button>
+                    <button
+                        onclick="askAiAboutCard('Policy-as-Code Compliance Rulebook', 'Explains organizational rulebook evaluation (POL-01 to POL-06), pass/fail criteria, and compliance mandate requirements.')"
+                        style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;"
+                        title="Explain Policy Rules with AI">✨ Explain with AI</button>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                     <div>
@@ -446,11 +509,16 @@
                         <span class="badge-tag bg-high" id="polFailCount" style="display:none;">0 FAIL</span>
                     </div>
                 </div>
-                <div style="font-size:11px; color:var(--text-secondary); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; border:1px solid var(--card-border);">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>POL-01 Protocol Version:</span><span class="badge-tag bg-secure" style="padding:1px 6px;">PASS</span></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>POL-02 AEAD Cipher:</span><span class="badge-tag bg-secure" style="padding:1px 6px;">PASS</span></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>POL-03 DH Group Margin:</span><span class="badge-tag bg-secure" style="padding:1px 6px;">PASS</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>POL-04 PFS Rekeying:</span><span class="badge-tag bg-secure" style="padding:1px 6px;">PASS</span></div>
+                <div
+                    style="font-size:11px; color:var(--text-secondary); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; border:1px solid var(--card-border);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>POL-01 Protocol
+                            Version:</span><span class="badge-tag bg-secure" style="padding:1px 6px;">PASS</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>POL-02 AEAD
+                            Cipher:</span><span class="badge-tag bg-secure" style="padding:1px 6px;">PASS</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>POL-03 DH Group
+                            Margin:</span><span class="badge-tag bg-secure" style="padding:1px 6px;">PASS</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>POL-04 PFS Rekeying:</span><span
+                            class="badge-tag bg-secure" style="padding:1px 6px;">PASS</span></div>
                 </div>
             </div>
 
@@ -458,7 +526,10 @@
             <div class="card-box" id="dashPqcBox">
                 <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
                     <span>⚛️ Post-Quantum Readiness</span>
-                    <button onclick="askAiAboutCard('Post-Quantum Cryptographic Readiness & Crypto-Agility', 'Explains Quantum threat models (Shor\'s algorithm on ECC/DH vs Grover\'s algorithm on AES-256), Store-Now-Decrypt-Later threats, and RFC 8784 hybrid post-quantum readiness.')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Explain PQC Readiness with AI">✨ Explain with AI</button>
+                    <button
+                        onclick="askAiAboutCard('Post-Quantum Cryptographic Readiness & Crypto-Agility', 'Explains Quantum threat models (Shor\'s algorithm on ECC/DH vs Grover\'s algorithm on AES-256), Store-Now-Decrypt-Later threats, and RFC 8784 hybrid post-quantum readiness.')"
+                        style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;"
+                        title="Explain PQC Readiness with AI">✨ Explain with AI</button>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                     <div>
@@ -470,10 +541,14 @@
                         <strong id="pqcAgilityText" style="font-size:14px; color:#4ade80;">EXCELLENT</strong>
                     </div>
                 </div>
-                <div style="font-size:11px; color:var(--text-secondary); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; border:1px solid var(--card-border);">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Shor's Key Vulnerability:</span><strong style="color:#fde047;">ECC (Group 19)</strong></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Grover's Cipher Security:</span><strong style="color:#4ade80;">256-bit (Protected)</strong></div>
-                    <div style="display:flex; justify-content:space-between;"><span>RFC 8784 Hybrid Support:</span><strong style="color:#4ade80;">IKEv2 Ready</strong></div>
+                <div
+                    style="font-size:11px; color:var(--text-secondary); background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; border:1px solid var(--card-border);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Shor's Key
+                            Vulnerability:</span><strong style="color:#fde047;">ECC (Group 19)</strong></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Grover's Cipher
+                            Security:</span><strong style="color:#4ade80;">256-bit (Protected)</strong></div>
+                    <div style="display:flex; justify-content:space-between;"><span>RFC 8784 Hybrid
+                            Support:</span><strong style="color:#4ade80;">IKEv2 Ready</strong></div>
                 </div>
             </div>
         </div>
@@ -482,76 +557,136 @@
         <div class="card-box" style="margin-bottom: 24px;">
             <div class="card-title">💡 Active Tunnel Plain-English Rationale (For Non-Experts)</div>
             <div id="dashExplainerContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-left: 4px solid var(--accent-green); border-radius: 8px; padding: 14px;">
+                <div
+                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-left: 4px solid var(--accent-green); border-radius: 8px; padding: 14px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                        <strong style="font-size: 14px; color: var(--accent-blue);">📞 Modern IKEv2 Protocol Engine (RFC 7296)</strong>
+                        <strong style="font-size: 14px; color: var(--accent-blue);">📞 Modern IKEv2 Protocol Engine (RFC
+                            7296)</strong>
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <button onclick="askAiAboutCard('Modern IKEv2 Protocol Engine (RFC 7296)', 'Manages your VPN connection lifecycle with high speed, instant auto-reconnect, and seamless network mobility across Wi-Fi and 5G.')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Ask AI about IKEv2">✨ Ask AI</button>
+                            <button
+                                onclick="askAiAboutCard('Modern IKEv2 Protocol Engine (RFC 7296)', 'Manages your VPN connection lifecycle with high speed, instant auto-reconnect, and seamless network mobility across Wi-Fi and 5G.')"
+                                style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;"
+                                title="Ask AI about IKEv2">✨ Ask AI</button>
                             <span class="badge-tag bg-secure">SECURE</span>
                         </div>
                     </div>
-                    <div style="font-size: 12px; color: var(--text-primary); margin-bottom: 4px;"><strong>Role:</strong> Manages your VPN connection lifecycle with high speed, instant auto-reconnect, and seamless network mobility across Wi-Fi and 5G.</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">IKEv2 acts as the intelligent digital negotiator for your VPN. Like traveling on a train where your laptop switches between station Wi-Fi and 5G cellular, MOBIKE (RFC 4555) technology shifts your encrypted session without dropping active video calls or web apps.</div>
+                    <div style="font-size: 12px; color: var(--text-primary); margin-bottom: 4px;"><strong>Role:</strong>
+                        Manages your VPN connection lifecycle with high speed, instant auto-reconnect, and seamless
+                        network mobility across Wi-Fi and 5G.</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">IKEv2 acts as the intelligent digital
+                        negotiator for your VPN. Like traveling on a train where your laptop switches between station
+                        Wi-Fi and 5G cellular, MOBIKE (RFC 4555) technology shifts your encrypted session without
+                        dropping active video calls or web apps.</div>
                 </div>
 
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-left: 4px solid var(--accent-green); border-radius: 8px; padding: 14px;">
+                <div
+                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-left: 4px solid var(--accent-green); border-radius: 8px; padding: 14px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                        <strong style="font-size: 14px; color: var(--accent-blue);">🔒 Authenticated AES-256-GCM Cipher (Galois/Counter Mode)</strong>
+                        <strong style="font-size: 14px; color: var(--accent-blue);">🔒 Authenticated AES-256-GCM Cipher
+                            (Galois/Counter Mode)</strong>
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <button onclick="askAiAboutCard('Authenticated AES-256-GCM Cipher', 'Bank-grade 256-bit encryption that scrambles data while simultaneously attaching a 128-bit tamper-proof digital seal.')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Ask AI about AES-GCM">✨ Ask AI</button>
+                            <button
+                                onclick="askAiAboutCard('Authenticated AES-256-GCM Cipher', 'Bank-grade 256-bit encryption that scrambles data while simultaneously attaching a 128-bit tamper-proof digital seal.')"
+                                style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;"
+                                title="Ask AI about AES-GCM">✨ Ask AI</button>
                             <span class="badge-tag bg-secure">SECURE</span>
                         </div>
                     </div>
-                    <div style="font-size: 12px; color: var(--text-primary); margin-bottom: 4px;"><strong>Role:</strong> Bank-grade 256-bit encryption that scrambles data while simultaneously attaching a 128-bit tamper-proof digital seal.</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Think of AES-256-GCM as placing your secret documents into an unbreakable steel vault while applying a tamper-evident holographic seal to the outside. If a hacker alters even 1 bit of data, the server detects the broken seal and discards the packet instantly before decryption.</div>
+                    <div style="font-size: 12px; color: var(--text-primary); margin-bottom: 4px;"><strong>Role:</strong>
+                        Bank-grade 256-bit encryption that scrambles data while simultaneously attaching a 128-bit
+                        tamper-proof digital seal.</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Think of AES-256-GCM as placing your
+                        secret documents into an unbreakable steel vault while applying a tamper-evident holographic
+                        seal to the outside. If a hacker alters even 1 bit of data, the server detects the broken seal
+                        and discards the packet instantly before decryption.</div>
                 </div>
 
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-left: 4px solid var(--accent-green); border-radius: 8px; padding: 14px;">
+                <div
+                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-left: 4px solid var(--accent-green); border-radius: 8px; padding: 14px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                        <strong style="font-size: 14px; color: var(--accent-blue);">🤝 Elliptic Curve Secret Handshake (DH Group 19 / NIST ECP-256)</strong>
+                        <strong style="font-size: 14px; color: var(--accent-blue);">🤝 Elliptic Curve Secret Handshake
+                            (DH Group 19 / NIST ECP-256)</strong>
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <button onclick="askAiAboutCard('Elliptic Curve Diffie-Hellman Group 19', 'Allows two remote servers across the open internet to safely agree on identical secret encryption keys without ever sending the key over the wire.')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Ask AI about Group 19">✨ Ask AI</button>
+                            <button
+                                onclick="askAiAboutCard('Elliptic Curve Diffie-Hellman Group 19', 'Allows two remote servers across the open internet to safely agree on identical secret encryption keys without ever sending the key over the wire.')"
+                                style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;"
+                                title="Ask AI about Group 19">✨ Ask AI</button>
                             <span class="badge-tag bg-secure">SECURE</span>
                         </div>
                     </div>
-                    <div style="font-size: 12px; color: var(--text-primary); margin-bottom: 4px;"><strong>Role:</strong> Allows two remote servers across the open internet to safely agree on identical secret encryption keys without ever sending the key over the wire.</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Imagine two people in a room full of eavesdroppers mixing base colors publicly to end up with the exact same secret color mixture. Group 19 uses NIST P-256 Elliptic Curve math to compute shared secrets 10x faster than legacy 2048-bit prime numbers, dramatically saving battery power.</div>
+                    <div style="font-size: 12px; color: var(--text-primary); margin-bottom: 4px;"><strong>Role:</strong>
+                        Allows two remote servers across the open internet to safely agree on identical secret
+                        encryption keys without ever sending the key over the wire.</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Imagine two people in a room full of
+                        eavesdroppers mixing base colors publicly to end up with the exact same secret color mixture.
+                        Group 19 uses NIST P-256 Elliptic Curve math to compute shared secrets 10x faster than legacy
+                        2048-bit prime numbers, dramatically saving battery power.</div>
                 </div>
 
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-left: 4px solid var(--accent-green); border-radius: 8px; padding: 14px;">
+                <div
+                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-left: 4px solid var(--accent-green); border-radius: 8px; padding: 14px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                        <strong style="font-size: 14px; color: var(--accent-blue);">🔑 Ephemeral One-Time Rekeying (PFS Enforced)</strong>
+                        <strong style="font-size: 14px; color: var(--accent-blue);">🔑 Ephemeral One-Time Rekeying (PFS
+                            Enforced)</strong>
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <button onclick="askAiAboutCard('Ephemeral One-Time Rekeying (PFS Enforced)', 'Constantly generates brand-new, independent session keys so compromising today\'s key leaves all past and future recorded traffic 100% safe.')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Ask AI about PFS">✨ Ask AI</button>
+                            <button
+                                onclick="askAiAboutCard('Ephemeral One-Time Rekeying (PFS Enforced)', 'Constantly generates brand-new, independent session keys so compromising today\'s key leaves all past and future recorded traffic 100% safe.')"
+                                style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;"
+                                title="Ask AI about PFS">✨ Ask AI</button>
                             <span class="badge-tag bg-secure">SECURE</span>
                         </div>
                     </div>
-                    <div style="font-size: 12px; color: var(--text-primary); margin-bottom: 4px;"><strong>Role:</strong> Constantly generates brand-new, independent session keys so compromising today's key leaves all past and future recorded traffic 100% safe.</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Imagine a hotel keycard system where every single room keycard is completely unique and automatically expires after 1 hour, rather than having one master key. With PFS enforced (CREATE_CHILD_SA), even if a hacker steals the server's master key in the future, past recorded traffic remains un-decryptable.</div>
+                    <div style="font-size: 12px; color: var(--text-primary); margin-bottom: 4px;"><strong>Role:</strong>
+                        Constantly generates brand-new, independent session keys so compromising today's key leaves all
+                        past and future recorded traffic 100% safe.</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Imagine a hotel keycard system where
+                        every single room keycard is completely unique and automatically expires after 1 hour, rather
+                        than having one master key. With PFS enforced (CREATE_CHILD_SA), even if a hacker steals the
+                        server's master key in the future, past recorded traffic remains un-decryptable.</div>
                 </div>
 
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-left: 4px solid var(--accent-green); border-radius: 8px; padding: 14px;">
+                <div
+                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-left: 4px solid var(--accent-green); border-radius: 8px; padding: 14px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                        <strong style="font-size: 14px; color: var(--accent-blue);">🛡️ IPsec Tunnel Mode Encapsulation (Complete Outer IP Envelope)</strong>
+                        <strong style="font-size: 14px; color: var(--accent-blue);">🛡️ IPsec Tunnel Mode Encapsulation
+                            (Complete Outer IP Envelope)</strong>
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <button onclick="askAiAboutCard('IPsec Tunnel Mode Encapsulation', 'Encloses your entire original IP packet—including private source and destination IP addresses—inside a brand-new encrypted outer IP envelope.')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Ask AI about Tunnel Mode">✨ Ask AI</button>
+                            <button
+                                onclick="askAiAboutCard('IPsec Tunnel Mode Encapsulation', 'Encloses your entire original IP packet—including private source and destination IP addresses—inside a brand-new encrypted outer IP envelope.')"
+                                style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;"
+                                title="Ask AI about Tunnel Mode">✨ Ask AI</button>
                             <span class="badge-tag bg-secure">SECURE</span>
                         </div>
                     </div>
-                    <div style="font-size: 12px; color: var(--text-primary); margin-bottom: 4px;"><strong>Role:</strong> Encloses your entire original IP packet—including private source and destination IP addresses—inside a brand-new encrypted outer IP envelope.</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Like placing a coded postcard inside a thick, sealed courier envelope addressed between two secure VPN gateways. Eavesdroppers on public networks cannot inspect internal company IP addresses, device names, or private network topology.</div>
+                    <div style="font-size: 12px; color: var(--text-primary); margin-bottom: 4px;"><strong>Role:</strong>
+                        Encloses your entire original IP packet—including private source and destination IP
+                        addresses—inside a brand-new encrypted outer IP envelope.</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Like placing a coded postcard inside a
+                        thick, sealed courier envelope addressed between two secure VPN gateways. Eavesdroppers on
+                        public networks cannot inspect internal company IP addresses, device names, or private network
+                        topology.</div>
                 </div>
 
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-left: 4px solid var(--accent-green); border-radius: 8px; padding: 14px;">
+                <div
+                    style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-left: 4px solid var(--accent-green); border-radius: 8px; padding: 14px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                        <strong style="font-size: 14px; color: var(--accent-blue);">🧠 AI Behavioral Pattern Recognition (CHAT Application)</strong>
+                        <strong style="font-size: 14px; color: var(--accent-blue);">🧠 AI Behavioral Pattern Recognition
+                            (CHAT Application)</strong>
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <button onclick="askAiAboutCard('AI Behavioral Pattern Recognition', 'Machine Learning identified the exact application activity (\'CHAT\') inside the VPN tunnel using behavioral traffic patterns without breaking encryption.')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Ask AI about AI Classification">✨ Ask AI</button>
+                            <button
+                                onclick="askAiAboutCard('AI Behavioral Pattern Recognition', 'Machine Learning identified the exact application activity (\'CHAT\') inside the VPN tunnel using behavioral traffic patterns without breaking encryption.')"
+                                style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:600; cursor:pointer;"
+                                title="Ask AI about AI Classification">✨ Ask AI</button>
                             <span class="badge-tag bg-secure">SECURE</span>
                         </div>
                     </div>
-                    <div style="font-size: 12px; color: var(--text-primary); margin-bottom: 4px;"><strong>Role:</strong> Machine Learning identified the exact application activity ('CHAT') inside the VPN tunnel using behavioral traffic patterns without breaking encryption.</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">Like a detective identifying a person by the cadence of their footsteps without seeing their face, our XGBoost Machine Learning model analyzed 28 non-encrypted flow characteristics (packet sizes, timing, burst ratios) to classify messaging activity with statistical confidence.</div>
+                    <div style="font-size: 12px; color: var(--text-primary); margin-bottom: 4px;"><strong>Role:</strong>
+                        Machine Learning identified the exact application activity ('CHAT') inside the VPN tunnel using
+                        behavioral traffic patterns without breaking encryption.</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Like a detective identifying a person by
+                        the cadence of their footsteps without seeing their face, our XGBoost Machine Learning model
+                        analyzed 28 non-encrypted flow characteristics (packet sizes, timing, burst ratios) to classify
+                        messaging activity with statistical confidence.</div>
                 </div>
             </div>
         </div>
@@ -560,7 +695,7 @@
         <div class="card-box">
             <div class="card-title">📡 Real-Time Telemetry Stream Log</div>
             <div class="console-stream" id="consoleStream">
-                [SYSTEM] Cyber Sentinel Live Telemetry Dashboard initialized.<br>
+                [SYSTEM] Privcomm Live Telemetry Dashboard initialized.<br>
                 [STREAM] Listening for VM tap ingestion streams on port 500 / 4500 / 50...<br>
                 [DISSECTOR] Engine ready. XGBoost Multiclass Classifier loaded.<br>
                 [POLICY] Context-Aware Security Baseline Rulebook v2.0 ACTIVE.
@@ -568,50 +703,173 @@
         </div>
     </div>
 
-    <!-- FLOATING CYBER SENTINEL AI ASSISTANT CHATBOT WIDGET -->
+    <!-- FLOATING Privcomm AI ASSISTANT CHATBOT WIDGET -->
     <style>
-        .chatbot-trigger { position: fixed; bottom: 24px; right: 24px; z-index: 3000; background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); color: #fff; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 30px; padding: 10px 18px; display: flex; align-items: center; gap: 10px; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .chatbot-window { position: fixed; bottom: 80px; right: 24px; width: 380px; max-width: calc(100vw - 32px); height: 500px; background: #0b111c; border: 1px solid var(--card-border); border-radius: 16px; z-index: 3000; display: flex; flex-direction: column; overflow: hidden; }
-        .chatbot-header { background: #0f172a; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); }
-        .chatbot-messages { flex-grow: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #070b14; }
-        .chat-msg { display: flex; max-width: 88%; }
-        .msg-ai { align-self: flex-start; } .msg-user { align-self: flex-end; }
-        .msg-bubble { padding: 8px 12px; border-radius: 10px; font-size: 12px; line-height: 1.5; }
-        .msg-ai .msg-bubble { background: #1e293b; color: #f8fafc; border: 1px solid var(--card-border); }
-        .msg-user .msg-bubble { background: #2563eb; color: #fff; }
-        .chat-pills-container { padding: 6px 10px; background: #0d1322; border-top: 1px solid var(--card-border); display: flex; gap: 6px; overflow-x: auto; }
-        .chat-pill { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #38bdf8; border-radius: 12px; padding: 3px 8px; font-size: 11px; cursor: pointer; white-space: nowrap; }
-        .chatbot-input-area { padding: 8px 10px; background: #0f172a; border-top: 1px solid var(--card-border); display: flex; gap: 6px; }
-        .chatbot-input-area input { flex-grow: 1; background: #070b14; border: 1px solid var(--card-border); border-radius: 6px; padding: 6px 10px; color: #fff; font-size: 12px; outline: none; }
-        .chat-send-btn { background: #2563eb; border: none; color: #fff; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+        .chatbot-trigger {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 3000;
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+            color: #fff;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            border-radius: 30px;
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .chatbot-window {
+            position: fixed;
+            bottom: 80px;
+            right: 24px;
+            width: 380px;
+            max-width: calc(100vw - 32px);
+            height: 500px;
+            background: #0b111c;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chatbot-header {
+            background: #0f172a;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .chatbot-messages {
+            flex-grow: 1;
+            padding: 14px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #070b14;
+        }
+
+        .chat-msg {
+            display: flex;
+            max-width: 88%;
+        }
+
+        .msg-ai {
+            align-self: flex-start;
+        }
+
+        .msg-user {
+            align-self: flex-end;
+        }
+
+        .msg-bubble {
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .msg-ai .msg-bubble {
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px solid var(--card-border);
+        }
+
+        .msg-user .msg-bubble {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .chat-pills-container {
+            padding: 6px 10px;
+            background: #0d1322;
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+        }
+
+        .chat-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #38bdf8;
+            border-radius: 12px;
+            padding: 3px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .chatbot-input-area {
+            padding: 8px 10px;
+            background: #0f172a;
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            gap: 6px;
+        }
+
+        .chatbot-input-area input {
+            flex-grow: 1;
+            background: #070b14;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .chat-send-btn {
+            background: #2563eb;
+            border: none;
+            color: #fff;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
     </style>
 
     <div class="chatbot-trigger" onclick="toggleChatbot()">
         <span style="font-size: 1.2rem;">🤖</span>
-        <span style="font-size: 13px; font-weight: 700;">Cyber Sentinel AI Assistant</span>
+        <span style="font-size: 13px; font-weight: 700;">Privcomm AI Assistant</span>
         <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
     </div>
 
     <div class="chatbot-window" id="chatbotWindow" style="display: none;">
         <div class="chatbot-header">
             <div>
-                <strong style="font-size: 14px; color: #fff;">🤖 Cyber Sentinel Assistant</strong>
-                <span style="font-size: 11px; color: var(--text-secondary); display: block;">Live Telemetry & Security Advisor</span>
+                <strong style="font-size: 14px; color: #fff;">🤖 Privcomm Assistant</strong>
+                <span style="font-size: 11px; color: var(--text-secondary); display: block;">Live Telemetry & Security
+                    Advisor</span>
             </div>
-            <button onclick="toggleChatbot()" style="background:none; border:none; color:var(--text-secondary); font-size:18px; cursor:pointer;">&times;</button>
+            <button onclick="toggleChatbot()"
+                style="background:none; border:none; color:var(--text-secondary); font-size:18px; cursor:pointer;">&times;</button>
         </div>
         <div class="chatbot-messages" id="chatMessages">
             <div class="chat-msg msg-ai">
-                <div class="msg-bubble">👋 Hello! Ask me anything about live VM telemetry, IPsec ciphers, DH groups, or risk ratings!</div>
+                <div class="msg-bubble">👋 Hello! Ask me anything about live VM telemetry, IPsec ciphers, DH groups, or
+                    risk ratings!</div>
             </div>
         </div>
         <div class="chat-pills-container">
-            <button class="chat-pill" onclick="sendQuickPrompt('Explain active live VM stream security')">💬 Active stream rationale</button>
-            <button class="chat-pill" onclick="sendQuickPrompt('Why is 3DES or DH Group 2 weak?')">🔒 Why is 3DES weak?</button>
-            <button class="chat-pill" onclick="sendQuickPrompt('Remediation steps for high risk tunnels')">🛡️ Remediation steps</button>
+            <button class="chat-pill" onclick="sendQuickPrompt('Explain active live VM stream security')">💬 Active
+                stream rationale</button>
+            <button class="chat-pill" onclick="sendQuickPrompt('Why is 3DES or DH Group 2 weak?')">🔒 Why is 3DES
+                weak?</button>
+            <button class="chat-pill" onclick="sendQuickPrompt('Remediation steps for high risk tunnels')">🛡️
+                Remediation steps</button>
         </div>
         <div class="chatbot-input-area">
-            <input type="text" id="chatInput" placeholder="Ask a question..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+            <input type="text" id="chatInput" placeholder="Ask a question..."
+                onkeydown="if(event.key==='Enter') sendChatMessage()">
             <button class="chat-send-btn" onclick="sendChatMessage()">Send</button>
         </div>
     </div>
@@ -626,7 +884,7 @@
                         renderHistory(history);
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log("Telemetry ready");
             }
         });
@@ -641,7 +899,7 @@
                     <td><strong>${item.filename}</strong></td>
                     <td>${item.ike_version || 'IKEv2'} (${item.mode || 'Tunnel'})</td>
                     <td>${item.encryption || 'AES-256-GCM'} (Group ${item.dh_group || '19'})</td>
-                    <td>${item.traffic_type || 'CHAT'} (${item.confidence ? (item.confidence*100).toFixed(1) : '47.7'}%)</td>
+                    <td>${item.traffic_type || 'CHAT'} (${item.confidence ? (item.confidence * 100).toFixed(1) : '47.7'}%)</td>
                     <td><span class="badge-tag ${riskClass}">${item.risk_level} (${item.risk_score}/100)</span></td>
                     <td><a href="/report?filename=${encodeURIComponent(item.filename)}" class="btn" style="padding: 4px 10px; font-size: 11px; color: #38bdf8;">👁️ View Report Page</a></td>
                 </tr>`;
@@ -654,7 +912,7 @@
                 const res = await fetch(`/api/report-data?filename=${filename}`);
                 if (res.ok) {
                     const data = await res.json();
-                    
+
                     // 1. Update Drift Panel
                     const drift = data.drift_detection || {};
                     const driftStatusEl = document.getElementById('driftStatusText');
@@ -719,7 +977,7 @@
                         container.innerHTML = html;
                     }
                 }
-            } catch(e) {}
+            } catch (e) { }
         }
 
         function askAiAboutCard(title, details) {
@@ -760,15 +1018,15 @@
 
             const aiDiv = document.createElement('div');
             aiDiv.className = 'chat-msg msg-ai';
-            aiDiv.innerHTML = `<div class="msg-bubble" style="color:#38bdf8;">🧠 Cyber Sentinel AI is analyzing...</div>`;
+            aiDiv.innerHTML = `<div class="msg-bubble" style="color:#38bdf8;">🧠 Privcomm AI is analyzing...</div>`;
             msgs.appendChild(aiDiv);
             msgs.scrollTop = msgs.scrollHeight;
 
             try {
                 const res = await fetch('/api/chat', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({message: txt})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: txt })
                 });
                 if (res.ok) {
                     const data = await res.json();
@@ -776,12 +1034,12 @@
                     reply = reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
                     aiDiv.innerHTML = `<div class="msg-bubble">${reply}</div>`;
                 }
-            } catch(e) {
+            } catch (e) {
                 aiDiv.innerHTML = `<div class="msg-bubble" style="color:#fca5a5;">⚠️ Assistant notice: Unable to connect to server.</div>`;
             }
             msgs.scrollTop = msgs.scrollHeight;
         }
     </script>
 </body>
-</html>
 
+</html>
