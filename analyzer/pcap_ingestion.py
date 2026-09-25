@@ -9,6 +9,7 @@ from analyzer.ike_parser import parse_ike_scapy, parse_ike_tshark_json
 from analyzer.esp_parser import parse_esp_scapy, parse_esp_tshark_json
 from analyzer.ipsec_parser import synthesize_ipsec_config
 from analyzer.flow_extractor import extract_flow_features_scapy
+from analyzer.metadata_exposure import analyze_metadata_exposure
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,11 @@ def ingest_and_parse_pcap(pcap_path: str) -> Dict[str, Any]:
             "message": msg,
             "ipsec": {"detected": False},
             "flow_features": {},
-            "packet_count": 0
+            "packet_count": 0,
+            "source_ip": None,
+            "destination_ip": None,
+            "ip_version": "IPv4",
+            "metadata_exposure": {}
         }
 
     # Attempt Scapy parsing for direct feature extraction and packet analysis
@@ -54,6 +59,7 @@ def ingest_and_parse_pcap(pcap_path: str) -> Dict[str, Any]:
 
     # Check TShark availability
     tshark_bin = find_tshark_path()
+    tshark_json = None
 
     if tshark_bin:
         logger.info(f"Using TShark at {tshark_bin} for dissection...")
@@ -78,11 +84,22 @@ def ingest_and_parse_pcap(pcap_path: str) -> Dict[str, Any]:
                 "message": "Neither TShark nor Scapy could parse the PCAP file.",
                 "ipsec": {"detected": False},
                 "flow_features": {},
-                "packet_count": 0
+                "packet_count": 0,
+                "source_ip": None,
+                "destination_ip": None,
+                "ip_version": "IPv4",
+                "metadata_exposure": {}
             }
 
     ipsec_config = synthesize_ipsec_config(ike_info, esp_info)
     flow_features = extract_flow_features_scapy(scapy_pkts) if scapy_pkts else {}
+    meta_exposure = analyze_metadata_exposure(
+        packets=scapy_pkts,
+        tshark_packets=tshark_json,
+        ike_info=ike_info,
+        esp_info=esp_info,
+        ipsec_config=ipsec_config
+    )
 
     return {
         "status": "success",
@@ -90,5 +107,9 @@ def ingest_and_parse_pcap(pcap_path: str) -> Dict[str, Any]:
         "filepath": os.path.abspath(pcap_path),
         "packet_count": packet_count,
         "ipsec": ipsec_config,
-        "flow_features": flow_features
+        "flow_features": flow_features,
+        "source_ip": meta_exposure.get("source_ip"),
+        "destination_ip": meta_exposure.get("destination_ip"),
+        "ip_version": meta_exposure.get("ip_version", "IPv4"),
+        "metadata_exposure": meta_exposure
     }

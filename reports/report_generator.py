@@ -20,7 +20,8 @@ def build_unified_analysis_report(
 ) -> Dict[str, Any]:
     """Build standardized unified analysis dictionary matching PRD Section 12."""
     ipsec_info = ingest_res.get("ipsec", {})
-    explanations = generate_plain_english_explanations(ipsec_info, traffic_res)
+    meta_exposure = ingest_res.get("metadata_exposure", {})
+    explanations = generate_plain_english_explanations(ipsec_info, traffic_res, meta_exposure)
     drift_res = detect_configuration_drift(ipsec_info)
     policy_rules_res = evaluate_policy_as_code_rules(ipsec_info)
     pqc_res = evaluate_post_quantum_readiness(ipsec_info)
@@ -33,13 +34,15 @@ def build_unified_analysis_report(
         },
         "ipsec": ipsec_info,
         "traffic_classification": traffic_res,
+        "metadata_exposure": meta_exposure,
         "security_assessment": {
             "risk_score": risk_res.get("score", 0),
             "risk_level": risk_res.get("level", "SECURE"),
             "methodology": risk_res.get("method"),
             "findings_count": len(findings),
             "findings": [f.to_dict() if hasattr(f, "to_dict") else f for f in findings],
-            "recommendations": recommendations
+            "recommendations": recommendations,
+            "metadata_exposure": meta_exposure
         },
         "explainability": explanations,
         "drift_detection": drift_res,

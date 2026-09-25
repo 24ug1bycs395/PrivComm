@@ -336,6 +336,39 @@
             </div>
         </div>
 
+        <!-- Observable Metadata Exposure Intelligence Card -->
+        <div class="card-box" style="margin-bottom: 24px;">
+            <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>📡 Observable Metadata Exposure Intelligence</span>
+                <span class="badge-tag bg-secure" id="dashMetaExposureBadge">EXPOSURE: LOW (0/100)</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 12px;">
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">VISIBLE ENDPOINT IPS</div>
+                    <strong id="dashSrcDstIp" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #38bdf8;">192.168.1.10 → 10.0.0.1</strong>
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Outer IP Pair (IPv4)</div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">IKE IDENTITY PAYLOADS (IDi / IDr)</div>
+                    <strong id="dashIdentityStatus" style="font-size: 13px; color: #4ade80;">ENCRYPTED / ABSENT</strong>
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">No Plaintext Leakage</div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">SPI SESSION LINKABILITY</div>
+                    <strong id="dashSpiRisk" style="font-size: 13px; color: #fde047;">MEDIUM TRACKING RISK</strong>
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">ESP SPI Headers Observed</div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">HEADER EXPOSURE (MODE)</div>
+                    <strong id="dashModeExposure" style="font-size: 13px; color: #4ade80;">Tunnel Mode (0 B/pkt)</strong>
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Full Envelope Encapsulation</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Recent Ingestion History & VM Stream Table -->
         <div class="card-box" style="margin-bottom: 24px;">
             <div class="card-title">📂 Recent Capture Ingestions & Analysis History</div>
