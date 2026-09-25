@@ -78,6 +78,24 @@ class TestbedJobStatus(BaseModel):
 
 # Standard Scenarios Library
 PRESET_SCENARIOS: List[ScenarioDefinition] = [
+    # ── Multi-Tunnel / Hub & Spoke ──────────────────────────────────────────
+    ScenarioDefinition(
+        id="multi-tunnel-hub-spoke-mesh",
+        name="Multi-Tunnel Hub & Spoke Mesh (HQ ↔ Branch Alpha & Beta)",
+        description="Concurrent multi-tunnel execution orchestrating 2 parallel IPsec SAs: Tunnel 1 (Compliant IKEv2 / AES-256-GCM) and Tunnel 2 (Legacy IKEv1 / 3DES Drift). Demonstrates multi-SA audit.",
+        ike_version="IKEv2 + IKEv1",
+        encryption="AES-256-GCM / 3DES-CBC",
+        integrity="None (AEAD) / MD5",
+        dh_group="19 (ECP-256) / Group 2",
+        pfs=True,
+        auth_method="PSK",
+        ipsec_mode="tunnel",
+        ip_version="IPv4",
+        traffic_profile="HTTP_GET",
+        traffic_duration_sec=8,
+        packet_count=55,
+        is_weak_compliance=False
+    ),
     # ── Tunnel Mode / IPv4 ──────────────────────────────────────────────────
     ScenarioDefinition(
         id="ikev2-aes-gcm-compliant",
