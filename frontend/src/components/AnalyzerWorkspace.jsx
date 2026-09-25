@@ -105,15 +105,48 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
     return {
       ipsec_detected: true,
       ike_version: isStrong ? 'IKEv2' : 'IKEv1 (Aggressive Mode)',
-      mode: 'Tunnel Mode',
+      mode: isStrong ? 'Tunnel' : 'Transport',
       encryption: isStrong ? 'AES-256-GCM' : '3DES-CBC',
       integrity: isStrong ? 'AEAD' : 'HMAC-MD5-96',
       dh_group: isStrong ? '19' : '2',
+      source_ip: '192.168.1.10',
+      destination_ip: '10.0.0.1',
+      ip_version: 'IPv4',
       initiator_spi: isStrong ? '0xa9f4e28174b081c2' : '0x812fa910bb421109',
       responder_spi: isStrong ? '0x981255e1a3bc47d0' : '0x12c4ea55781290aa',
       esp_detected: true,
       ah_detected: false,
       packet_count: isStrong ? 1482 : 844,
+      metadata_exposure: {
+        source_ip: '192.168.1.10',
+        destination_ip: '10.0.0.1',
+        ip_version: 'IPv4',
+        exposure_score: isStrong ? 0 : 70,
+        exposure_rating: isStrong ? 'LOW' : 'HIGH',
+        visible_endpoints: {
+          source_ip: '192.168.1.10',
+          destination_ip: '10.0.0.1',
+          outer_header_exposure: 'FULL_IP_PAIR_VISIBLE'
+        },
+        identity_exposure: {
+          plaintext_identity_leak: !isStrong,
+          identity_protection_status: isStrong ? 'ENCRYPTED_OR_ABSENT' : 'PLAINTEXT_EXPOSED',
+          exposed_identity_type: isStrong ? null : 'ID_FQDN'
+        },
+        spi_correlation: {
+          initiator_spi: isStrong ? '0xa9f4e28174b081c2' : '0x812fa910bb421109',
+          responder_spi: isStrong ? '0x981255e1a3bc47d0' : '0x12c4ea55781290aa',
+          esp_spis: ['0x00001000'],
+          spi_linkability_risk: isStrong ? 'LOW' : 'MEDIUM',
+          session_tracking_vulnerability: true
+        },
+        transport_mode_exposure: {
+          encapsulation_mode: isStrong ? 'Tunnel' : 'Transport',
+          inner_header_exposed: !isStrong,
+          exposed_metadata_bytes_per_pkt: isStrong ? 0 : 20,
+          exposure_risk: isStrong ? 'LOW' : 'HIGH'
+        }
+      },
       traffic_classification: {
         traffic_type: isStrong ? 'CHAT / MESSAGING' : 'REMOTE-DESKTOP',
         confidence: isStrong ? 0.954 : 0.887,
@@ -147,6 +180,14 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                 observed: 'HMAC-MD5-96',
                 expected: 'HMAC-SHA2-256 or AEAD Cipher',
                 recommendation: 'Upgrade integrity hashing to SHA-256 or AEAD mode per RFC 8221.',
+              },
+              {
+                finding_id: 'IPSEC-META-001',
+                title: 'Plaintext IKE Identity Payload Exposed',
+                severity: 'HIGH',
+                observed: 'Unencrypted ID_FQDN detected',
+                expected: 'Encrypted Identity Payloads (IKEv2 IKE_AUTH)',
+                recommendation: 'Avoid IKEv1 Aggressive Mode or plaintext identity exchanges to prevent identity exposure.',
               },
             ],
       },
@@ -297,9 +338,16 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                 <h3 style={{ fontFamily: 'JetBrains Mono', fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
                   {activeFilename}
                 </h3>
-                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                  Parsed {analysisResult.packet_count || 1482} frames &bull; Scapy/TShark Engine &bull; XGBoost Classifier Validated
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                  <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                    Parsed {analysisResult.packet_count || 1482} frames &bull; Scapy/TShark Engine
+                  </span>
+                  {analysisResult.source_ip && analysisResult.destination_ip && (
+                    <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.75rem', background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.3)', color: '#38bdf8', padding: '2px 8px', borderRadius: '4px' }}>
+                      IP Pair: {analysisResult.source_ip} &rarr; {analysisResult.destination_ip} ({analysisResult.ip_version || 'IPv4'})
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -383,6 +431,71 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
             </div>
           </div>
 
+          {/* Observable Metadata Exposure Summary Card */}
+          <div className="matrix-card" style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#38bdf8' }}>
+                <Activity size={18} />
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff' }}>
+                  Observable Metadata Exposure Intelligence
+                </h4>
+              </div>
+              <span className={`status-badge ${analysisResult.metadata_exposure?.exposure_rating === 'LOW' || !analysisResult.metadata_exposure ? 'compliant' : (analysisResult.metadata_exposure?.exposure_rating === 'MEDIUM' ? 'warning' : 'danger')}`}>
+                EXPOSURE: {analysisResult.metadata_exposure?.exposure_rating || 'LOW'} ({analysisResult.metadata_exposure?.exposure_score || 0}/100)
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '16px' }}>
+              <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'JetBrains Mono', display: 'block', marginBottom: '4px' }}>
+                  VISIBLE ENDPOINT IPS
+                </span>
+                <strong style={{ fontFamily: 'JetBrains Mono', fontSize: '0.86rem', color: '#38bdf8' }}>
+                  {analysisResult.source_ip || 'N/A'} &rarr; {analysisResult.destination_ip || 'N/A'}
+                </strong>
+                <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '4px' }}>
+                  Outer IP Pair ({analysisResult.ip_version || 'IPv4'})
+                </span>
+              </div>
+
+              <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'JetBrains Mono', display: 'block', marginBottom: '4px' }}>
+                  IKE IDENTITY PAYLOADS ($ID_i$ / $ID_r$)
+                </span>
+                <strong style={{ fontSize: '0.86rem', color: analysisResult.metadata_exposure?.identity_exposure?.plaintext_identity_leak ? '#fca5a5' : '#4ade80' }}>
+                  {analysisResult.metadata_exposure?.identity_exposure?.plaintext_identity_leak ? 'PLAINTEXT EXPOSED' : 'ENCRYPTED / ABSENT'}
+                </strong>
+                <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '4px' }}>
+                  {analysisResult.metadata_exposure?.identity_exposure?.exposed_identity_type || 'No Plaintext Leakage'}
+                </span>
+              </div>
+
+              <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'JetBrains Mono', display: 'block', marginBottom: '4px' }}>
+                  SPI SESSION LINKABILITY
+                </span>
+                <strong style={{ fontSize: '0.86rem', color: analysisResult.metadata_exposure?.spi_correlation?.spi_linkability_risk === 'HIGH' ? '#fca5a5' : '#fde047' }}>
+                  {analysisResult.metadata_exposure?.spi_correlation?.spi_linkability_risk || 'LOW'} TRACKING RISK
+                </strong>
+                <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '4px' }}>
+                  {analysisResult.metadata_exposure?.spi_correlation?.esp_spis?.length || 0} ESP SPI(s) Observed
+                </span>
+              </div>
+
+              <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'JetBrains Mono', display: 'block', marginBottom: '4px' }}>
+                  HEADER EXPOSURE (MODE)
+                </span>
+                <strong style={{ fontSize: '0.86rem', color: analysisResult.mode === 'Transport' ? '#fde047' : '#4ade80' }}>
+                  {analysisResult.mode || 'Tunnel'} Mode ({analysisResult.metadata_exposure?.transport_mode_exposure?.exposed_metadata_bytes_per_pkt || 0} B/pkt)
+                </strong>
+                <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '4px' }}>
+                  {analysisResult.mode === 'Transport' ? 'Exposes Inner IP Header' : 'Full Envelope Encapsulation'}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Dual Column: 3x3 Threat Matrix + Cryptographic Parameters */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.35fr', gap: '24px', marginBottom: '24px' }}>
             {/* 3x3 Threat Matrix */}
@@ -435,6 +548,14 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                     </tr>
                   </thead>
                   <tbody>
+                    {analysisResult.source_ip && analysisResult.destination_ip && (
+                      <tr>
+                        <td><strong>Endpoint IP Pair</strong></td>
+                        <td><code>{analysisResult.source_ip} &rarr; {analysisResult.destination_ip}</code></td>
+                        <td>Observable Outer IP Headers</td>
+                        <td><span className="status-badge compliant">EXTRACTED</span></td>
+                      </tr>
+                    )}
                     <tr>
                       <td><strong>IKE Version</strong></td>
                       <td><code>{analysisResult.ike_version || 'IKEv2'}</code></td>

@@ -71,6 +71,10 @@ async def health_check():
 
 react_dist = os.path.join(os.path.dirname(__file__), "frontend", "dist")
 
+react_dist = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend", "dist")
+if os.path.exists(os.path.join(react_dist, "assets")):
+    app.mount("/assets", StaticFiles(directory=os.path.join(react_dist, "assets")), name="assets")
+
 # Serve homepage (index.html), dashboard (dashboard.html), and executive report (report.html)
 @app.get("/", include_in_schema=False)
 async def serve_homepage():
@@ -110,6 +114,10 @@ async def serve_spa(full_path: str):
     react_index = os.path.join(react_dist, "index.html")
     if os.path.exists(react_index):
         return FileResponse(react_index)
+    if os.path.exists(full_path) and os.path.isfile(full_path):
+        return FileResponse(full_path)
+    if os.path.exists("index.html"):
+        return FileResponse("index.html")
     raise HTTPException(status_code=404, detail="Not found")
 
 

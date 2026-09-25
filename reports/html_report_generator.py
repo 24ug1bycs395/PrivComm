@@ -224,7 +224,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <div class="header">
             <div>
                 <h1>🛡 IPsec VPN Executive Security Report</h1>
-                <p>Generated for: <strong>{{ report.capture.filename }}</strong> | Packets: {{ report.capture.packet_count }}</p>
+                <p>Generated for: <strong>{{ report.capture.filename }}</strong> | Packets: {{ report.capture.packet_count }}
+                {% if report.metadata_exposure and report.metadata_exposure.get('source_ip') %}
+                | Outer IP Pair: <strong>{{ report.metadata_exposure.source_ip }} &rarr; {{ report.metadata_exposure.destination_ip }}</strong> ({{ report.metadata_exposure.get('ip_version', 'IPv4') }})
+                {% endif %}
+                </p>
             </div>
             <div>
                 <span class="badge badge-{{ report.security_assessment.risk_level.lower() }}">

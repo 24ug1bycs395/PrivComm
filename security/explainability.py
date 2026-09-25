@@ -12,11 +12,12 @@ from security.llm_explainer import query_gemini_explainer
 
 def generate_plain_english_explanations(
     ipsec_info: Dict[str, Any],
-    traffic_res: Dict[str, Any] = None
+    traffic_res: Dict[str, Any] = None,
+    metadata_exposure: Dict[str, Any] = None
 ) -> List[Dict[str, Any]]:
     """
     Generates a list of plain-English rationale cards for each technical component
-    observed in the IPsec configuration and AI traffic classification.
+    observed in the IPsec configuration, AI traffic classification, and metadata exposure assessment.
     """
     explanations = []
 
@@ -382,6 +383,30 @@ def generate_plain_english_explanations(
                 f"Even though your VPN tunnel scrambles 100% of your data packets into unreadable noise, different applications leave distinct physical signatures in how they communicate. "
                 f"Our trained XGBoost Machine Learning model analyzed 28 non-encrypted flow characteristics—such as packet size variations, transmission timing intervals, and bandwidth burst ratios. "
                 f"Like a detective identifying a person by the cadence of their footsteps without seeing their face, the AI correctly identified your tunnel activity as '{predicted_label}' with {conf_pct}% statistical confidence, zero decryption required."
+            )
+        })
+
+    # 7. Observable Metadata Exposure Intelligence (if present)
+    if metadata_exposure:
+        rating = metadata_exposure.get("exposure_rating", "LOW")
+        score = metadata_exposure.get("exposure_score", 0)
+        src_ip = metadata_exposure.get("source_ip", "N/A")
+        dst_ip = metadata_exposure.get("destination_ip", "N/A")
+        
+        status_map = {"LOW": "SECURE", "MEDIUM": "INFO", "HIGH": "WEAK", "CRITICAL": "OBSOLETE"}
+        card_status = status_map.get(rating, "INFO")
+        
+        explanations.append({
+            "parameter": "Observable Metadata Exposure",
+            "observed_value": f"{rating} Risk (Score {score}/100)",
+            "status": card_status,
+            "icon": "📡",
+            "title": f"Observable Network Metadata Analysis ({src_ip or 'Endpoint'} -> {dst_ip or 'Endpoint'})",
+            "plain_english_summary": f"Assessed outer IP header visibility, unencrypted IKE identity payloads, SPI correlation risk, and Transport mode exposure (Rating: {rating}).",
+            "detailed_explanation": (
+                f"Even when payload content is encrypted, eavesdroppers can perform side-channel traffic analysis using unencrypted metadata. "
+                f"Our metadata analyzer inspected outer endpoint IP pairs ({src_ip} -> {dst_ip}), verified whether identity payloads ($ID_i$/$ID_r$) were transmitted in cleartext, "
+                f"and evaluated cleartext ESP Security Parameter Index (SPI) linkability risks. Current exposure score is {score}/100."
             )
         })
 
