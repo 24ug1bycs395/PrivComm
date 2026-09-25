@@ -165,14 +165,6 @@ Process all `.pcap` / `.pcapng` files in a directory and generate individual rep
 python main.py batch --input samples/ --output results/
 ```
 
-### Launch Streamlit Analytics Dashboard
-```bash
-python main.py dashboard
-```
-* **Streamlit Dashboard URL**: [http://localhost:8501](http://localhost:8501)
-
----
-
 ## 🔬 Testing & Validation
 
 ```bash
