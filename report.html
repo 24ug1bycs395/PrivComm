@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Sentinel — Executive IPsec VPN Security Report</title>
+    <title>Privcomm — Executive IPsec VPN Security Report</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --bg-color: #070b14;
@@ -131,9 +134,23 @@
             letter-spacing: 1px;
         }
 
-        .badge-secure { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid #22c55e; }
-        .badge-medium { background: rgba(234, 179, 8, 0.15); color: #fde047; border: 1px solid #eab308; }
-        .badge-high { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid #ef4444; }
+        .badge-secure {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid #22c55e;
+        }
+
+        .badge-medium {
+            background: rgba(234, 179, 8, 0.15);
+            color: #fde047;
+            border: 1px solid #eab308;
+        }
+
+        .badge-high {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid #ef4444;
+        }
 
         .metrics-grid {
             display: grid;
@@ -184,7 +201,8 @@
             border: 1px solid var(--card-border);
         }
 
-        th, td {
+        th,
+        td {
             padding: 12px 16px;
             text-align: left;
             border-bottom: 1px solid var(--card-border);
@@ -222,9 +240,23 @@
             font-size: 12px;
         }
 
-        .matrix-low { background: rgba(34, 197, 94, 0.12); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); }
-        .matrix-med { background: rgba(234, 179, 8, 0.12); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.25); }
-        .matrix-high { background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.25); }
+        .matrix-low {
+            background: rgba(34, 197, 94, 0.12);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        .matrix-med {
+            background: rgba(234, 179, 8, 0.12);
+            color: #fde047;
+            border: 1px solid rgba(234, 179, 8, 0.25);
+        }
+
+        .matrix-high {
+            background: rgba(239, 68, 68, 0.12);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
 
         .finding-card {
             background: var(--card-bg);
@@ -237,9 +269,17 @@
             border-bottom: 1px solid var(--card-border);
         }
 
-        .finding-card.HIGH { border-left-color: var(--accent-red); }
-        .finding-card.MEDIUM { border-left-color: var(--accent-yellow); }
-        .finding-card.LOW { border-left-color: var(--accent-green); }
+        .finding-card.HIGH {
+            border-left-color: var(--accent-red);
+        }
+
+        .finding-card.MEDIUM {
+            border-left-color: var(--accent-yellow);
+        }
+
+        .finding-card.LOW {
+            border-left-color: var(--accent-green);
+        }
 
         .finding-header {
             display: flex;
@@ -254,31 +294,65 @@
         }
 
         @media print {
-            .top-action-bar { display: none !important; }
-            body { background-color: #fff; color: #000; padding: 0; }
-            .container { max-width: 100%; margin: 0; padding: 15px; }
-            .report-header, .metric-card, table, .matrix-container, .finding-card {
+            .top-action-bar {
+                display: none !important;
+            }
+
+            body {
+                background-color: #fff;
+                color: #000;
+                padding: 0;
+            }
+
+            .container {
+                max-width: 100%;
+                margin: 0;
+                padding: 15px;
+            }
+
+            .report-header,
+            .metric-card,
+            table,
+            .matrix-container,
+            .finding-card {
                 background: #fff !important;
                 border-color: #ccc !important;
                 color: #000 !important;
             }
-            .metric-value { color: #000 !important; }
-            th, td { border-color: #ccc !important; color: #000 !important; }
-            th { background-color: #f1f5f9 !important; }
-            .section-title { color: #000 !important; border-left-color: #000 !important; }
+
+            .metric-value {
+                color: #000 !important;
+            }
+
+            th,
+            td {
+                border-color: #ccc !important;
+                color: #000 !important;
+            }
+
+            th {
+                background-color: #f1f5f9 !important;
+            }
+
+            .section-title {
+                color: #000 !important;
+                border-left-color: #000 !important;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <!-- Top Sticky Action Bar -->
     <div class="top-action-bar">
         <div class="brand-group">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <path d="M9 12l2 2 4-4"/>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="M9 12l2 2 4-4" />
             </svg>
-            <span class="brand-title">CYBER SENTINEL</span>
+            <span class="brand-title">Privcomm</span>
             <span style="font-size: 12px; color: var(--text-secondary);">/ Executive Security Report</span>
         </div>
         <div class="action-buttons">
@@ -398,32 +472,41 @@
                     <span class="finding-title">📞 Modern Tunnel Negotiator (IKEv2)</span>
                     <span class="badge badge-secure">SECURE</span>
                 </div>
-                <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> Establishes and manages the secure VPN connection with speed, auto-reconnect, and multi-network stability.</p>
-                <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">IKEv2 handles connection negotiation and roaming seamlessly (switching from Wi-Fi to mobile data without dropping your tunnel).</p>
+                <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> Establishes and manages
+                    the secure VPN connection with speed, auto-reconnect, and multi-network stability.</p>
+                <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">IKEv2 handles connection
+                    negotiation and roaming seamlessly (switching from Wi-Fi to mobile data without dropping your
+                    tunnel).</p>
             </div>
             <div class="finding-card LOW">
                 <div class="finding-header">
                     <span class="finding-title">🔒 Bank-Grade Vault Lock (AES-256-GCM)</span>
                     <span class="badge badge-secure">SECURE</span>
                 </div>
-                <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> High-speed encryption that scrambles your data so hackers cannot read it, with built-in tamper detection.</p>
-                <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">AEAD mode ensures that any altered or forged packets are rejected immediately before decryption.</p>
+                <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> High-speed encryption
+                    that scrambles your data so hackers cannot read it, with built-in tamper detection.</p>
+                <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">AEAD mode ensures that any
+                    altered or forged packets are rejected immediately before decryption.</p>
             </div>
             <div class="finding-card LOW">
                 <div class="finding-header">
                     <span class="finding-title">🤝 Elliptic Curve Secret Handshake (DH Group 19)</span>
                     <span class="badge badge-secure">SECURE</span>
                 </div>
-                <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> Allows two servers to agree on secret encryption keys across the open internet without anyone overhearing.</p>
-                <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">Elliptic Curve math (ECP-256) provides 256-bit cryptographic strength with minimal CPU overhead.</p>
+                <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> Allows two servers to
+                    agree on secret encryption keys across the open internet without anyone overhearing.</p>
+                <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">Elliptic Curve math
+                    (ECP-256) provides 256-bit cryptographic strength with minimal CPU overhead.</p>
             </div>
             <div class="finding-card LOW">
                 <div class="finding-header">
                     <span class="finding-title">🔑 Temporary One-Time Keys (PFS Enforced)</span>
                     <span class="badge badge-secure">SECURE</span>
                 </div>
-                <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> Generates fresh session keys constantly so compromising today's key leaves past and future traffic completely safe.</p>
-                <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">Even if a long-term master key is compromised in the future, past recorded sessions cannot be retroactively decrypted.</p>
+                <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> Generates fresh session
+                    keys constantly so compromising today's key leaves past and future traffic completely safe.</p>
+                <p style="color: var(--text-secondary); font-size: 13px; margin: 4px 0 0 0;">Even if a long-term master
+                    key is compromised in the future, past recorded sessions cannot be retroactively decrypted.</p>
             </div>
         </div>
 
@@ -434,7 +517,8 @@
                     <span class="finding-title">✓ No Policy Violations Detected</span>
                     <span class="badge badge-secure">COMPLIANT</span>
                 </div>
-                <p style="font-size: 13px; margin: 4px 0 0 0;">The IPsec configuration meets all corporate security baselines. No weak ciphers or deprecated DH groups observed.</p>
+                <p style="font-size: 13px; margin: 4px 0 0 0;">The IPsec configuration meets all corporate security
+                    baselines. No weak ciphers or deprecated DH groups observed.</p>
             </div>
         </div>
     </div>
@@ -521,4 +605,5 @@
 
     </script>
 </body>
+
 </html>

@@ -23,7 +23,7 @@ export default function Overview({ onStartAnalysis }) {
         </div>
 
         <h1 style={{ fontSize: '2.8rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: '18px' }}>
-          Cyber Sentinel Intelligence
+          Privcomm Intelligence
         </h1>
 
         <p style={{ fontSize: '1.1rem', color: '#94a3b8', lineHeight: 1.7, marginBottom: '28px' }}>

@@ -16,6 +16,12 @@ env/
 .venv/
 
 models/random_forest_model.joblib
+consolidated_traffic_data.csv
+traffic-classifier/
+tests/
+docs/
+Vagrantfile
+.vagrant/
 
 results/*.pcap
 results/*.html

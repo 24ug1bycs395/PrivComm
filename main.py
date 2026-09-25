@@ -42,9 +42,9 @@ async def lifespan(app: FastAPI):
         logger.info("Supabase not configured or unreachable; operating in local storage fallback mode.")
     yield
 
-# FastAPI App Instance for Cyber Sentinel Web Platform
+# FastAPI App Instance for Privcomm Web Platform
 app = FastAPI(
-    title="Cyber Sentinel — AI-Assisted IPsec VPN Security Intelligence Platform",
+    title="Privcomm — AI-Assisted IPsec VPN Security Intelligence Platform",
     description="Full IPsec VPN protocol dissection, XGBoost traffic classification, and compliance audit engine.",
     version="2.0",
     lifespan=lifespan
@@ -61,6 +61,7 @@ app.add_middleware(
 app.include_router(protocol_router)
 app.include_router(testbed_router)
 
+@app.head("/health", tags=["System"])
 @app.get("/health", tags=["System"])
 async def health_check():
     return {
@@ -69,13 +70,12 @@ async def health_check():
         "storage_mode": "supabase" if is_supabase_enabled() else "local"
     }
 
-react_dist = os.path.join(os.path.dirname(__file__), "frontend", "dist")
-
 react_dist = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend", "dist")
 if os.path.exists(os.path.join(react_dist, "assets")):
     app.mount("/assets", StaticFiles(directory=os.path.join(react_dist, "assets")), name="assets")
 
 # Serve homepage (index.html), dashboard (dashboard.html), and executive report (report.html)
+@app.head("/", include_in_schema=False)
 @app.get("/", include_in_schema=False)
 async def serve_homepage():
     react_index = os.path.join(react_dist, "index.html")
@@ -245,9 +245,9 @@ def run_dashboard():
         logger.info("Dashboard stopped.")
 
 def run_server():
-    """Launch Cyber Sentinel FastAPI Server serving Web App and APIs."""
+    """Launch Privcomm FastAPI Server serving Web App and APIs."""
     import uvicorn
-    logger.info("Launching Cyber Sentinel Platform Server at http://localhost:8000...")
+    logger.info("Launching Privcomm Platform Server at http://localhost:8000...")
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
 
 def main():
@@ -269,7 +269,7 @@ def main():
     batch_parser.add_argument("--output", type=str, default="results", help="Output directory for reports and summary CSV")
 
     subparsers.add_parser("dashboard", help="Launch Streamlit Web Dashboard UI")
-    subparsers.add_parser("server", help="Launch Cyber Sentinel FastAPI Platform Server (Web UI + APIs)")
+    subparsers.add_parser("server", help="Launch Privcomm FastAPI Platform Server (Web UI + APIs)")
 
     args = parser.parse_args()
 

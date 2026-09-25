@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Cyber Sentinel — multi-stage image (Vite SPA + FastAPI/Uvicorn)
+# Privcomm — multi-stage image (Vite SPA + FastAPI/Uvicorn)
 
 # -----------------------------------------------------------------------------
 # Stage 1: Frontend builder
@@ -30,14 +30,14 @@ WORKDIR /app
 
 RUN echo "wireshark-common wireshark-common/install-setuid boolean false" | debconf-set-selections \
     && apt-get update && apt-get install -y --no-install-recommends \
-        tshark \
-        wireshark-common \
-        tcpdump \
-        libpcap-dev \
-        libgomp1 \
-        gcc \
-        python3-dev \
-        curl \
+    tshark \
+    wireshark-common \
+    tcpdump \
+    libpcap-dev \
+    libgomp1 \
+    gcc \
+    python3-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

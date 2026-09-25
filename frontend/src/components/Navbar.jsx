@@ -1,8 +1,9 @@
 import React from 'react';
-import { Shield, Activity, Layers, FileCheck, Server, Database } from 'lucide-react';
+import { Shield, Activity, Layers, FileCheck, Server, Database, LayoutDashboard } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab }) {
   const tabs = [
+    { id: 'dashboard', label: 'Telemetry Dashboard', icon: LayoutDashboard },
     { id: 'analyzer', label: 'Live PCAP Analyzer', icon: Activity },
     { id: 'testbed', label: 'strongSwan Testbed', icon: Server },
     { id: 'vault', label: 'Analysis Vault', icon: Database },
@@ -19,7 +20,7 @@ export default function Navbar({ activeTab, setActiveTab }) {
             <Shield size={22} />
           </div>
           <div className="brand-title-group">
-            <span className="brand-title">CYBER SENTINEL</span>
+            <span className="brand-title">Privcomm</span>
             <span className="brand-subtitle">AI-ASSISTED IPSEC INTELLIGENCE</span>
           </div>
         </div>

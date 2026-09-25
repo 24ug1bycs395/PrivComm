@@ -1,5 +1,5 @@
 /**
- * Cyber Sentinel - Interactive Topology & Platform Features
+ * Privcomm - Interactive Topology & Platform Features
  * Integrated with AI Encrypted Traffic Classifier & Security Policy Assessment Engine.
  */
 
@@ -311,7 +311,7 @@ function renderAnalysisResults(data, filename) {
   const resConsole = document.getElementById('resConsole');
 
   resTitle.textContent = `Analyzed: ${filename}`;
-  
+
   const sec = data.security_assessment || {};
   const riskLevel = sec.risk_level || (data.ipsec_detected ? "SECURE" : "UNKNOWN");
   const riskScore = sec.risk_score || 0;
@@ -455,7 +455,7 @@ function renderSampleFallback(scenarioType) {
 }
 
 /* --------------------------------------------------------------------------
-   Interactive Cyber Sentinel AI Assistant Chatbot Logic
+   Interactive Privcomm AI Assistant Chatbot Logic
    -------------------------------------------------------------------------- */
 function toggleChatbot() {
   const windowEl = document.getElementById('chatbotWindow');
@@ -497,7 +497,7 @@ async function sendChatMessage() {
   // Append AI Thinking bubble
   const aiMsgDiv = document.createElement('div');
   aiMsgDiv.className = 'chat-msg msg-ai';
-  aiMsgDiv.innerHTML = `<div class="msg-bubble" style="color: #38bdf8;">🧠 Cyber Sentinel AI is analyzing...</div>`;
+  aiMsgDiv.innerHTML = `<div class="msg-bubble" style="color: #38bdf8;">🧠 Privcomm AI is analyzing...</div>`;
   messagesEl.appendChild(aiMsgDiv);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 
@@ -507,10 +507,10 @@ async function sendChatMessage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: msgText })
     });
-    
+
     if (!res.ok) throw new Error("Assistant unavailable");
     const data = await res.json();
-    
+
     let replyText = data.reply || "I am analyzing your IPsec VPN security posture.";
     replyText = replyText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     replyText = replyText.replace(/\n/g, '<br>');
