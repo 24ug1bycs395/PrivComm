@@ -1,5 +1,5 @@
 from dataclasses import dataclass, asdict
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 @dataclass
 class SecurityFinding:
@@ -10,6 +10,7 @@ class SecurityFinding:
     observed: str
     expected: str
     recommendation: str
+    status: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

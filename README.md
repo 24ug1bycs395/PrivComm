@@ -64,11 +64,18 @@ docker compose down
 # Build the Docker image
 docker build -t ipsec-analyzer:latest .
 
-# Run the container mapping port 8000
+# Linux / macOS / Git Bash
 docker run --rm -p 8000:8000 \
   --name ipsec-analyzer-app \
   -v ./results:/app/results \
   -v ./captures:/app/captures \
+  ipsec-analyzer:latest
+
+# Windows (PowerShell)
+docker run --rm -p 8000:8000 `
+  --name ipsec-analyzer-app `
+  -v ${PWD}/results:/app/results `
+  -v ${PWD}/captures:/app/captures `
   ipsec-analyzer:latest
 ```
 

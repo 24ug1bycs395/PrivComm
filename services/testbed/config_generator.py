@@ -6,33 +6,65 @@ class StrongSwanConfigGenerator:
     """
     Generates strongSwan configuration artifacts (swanctl.conf or ipsec.conf / ipsec.secrets)
     for Initiator (VM1) and Responder (VM2).
+
+    Supports:
+    - Tunnel Mode and Transport Mode
+    - IPv4 and IPv6 endpoint addresses
+    - PFS enabled (DH group in ESP proposals) and PFS disabled (no DH group in ESP proposals)
+    - AES-GCM (AEAD), AES-CBC + HMAC, 3DES, and other cipher suites
     """
 
     @staticmethod
-    def _map_crypto_proposals(scenario: ScenarioDefinition) -> Tuple[str, str]:
-        """
-        Maps scenario parameters to strongSwan proposal strings: (ike_proposals, esp_proposals)
-        """
+    def _map_ike_proposal(scenario: ScenarioDefinition) -> str:
+        """Maps scenario parameters to a strongSwan IKE proposal string."""
         enc = scenario.encryption.lower()
         if "gcm" in enc:
-            # AEAD (GCM doesn't use standalone integrity in proposal)
             if "256" in enc:
-                ike_p = "aes256gcm16-prfsha384-ecp384,aes256gcm16-prfsha256-ecp256"
-                esp_p = "aes256gcm16-ecp384,aes256gcm16"
+                return "aes256gcm16-prfsha384-ecp384,aes256gcm16-prfsha256-ecp256"
             else:
-                ike_p = "aes128gcm16-prfsha256-ecp256"
-                esp_p = "aes128gcm16"
+                return "aes128gcm16-prfsha256-ecp256"
         elif "3des" in enc:
-            ike_p = "3des-md5-modp1024"
-            esp_p = "3des-md5"
+            return "3des-md5-modp1024"
         elif "128" in enc:
-            ike_p = "aes128-sha256-modp2048"
-            esp_p = "aes128-sha256-modp2048"
+            return "aes128-sha256-modp2048"
         else:
-            ike_p = "aes256-sha384-modp2048"
-            esp_p = "aes256-sha384"
+            return "aes256-sha384-modp2048"
 
-        return ike_p, esp_p
+    @staticmethod
+    def _map_esp_proposal(scenario: ScenarioDefinition) -> str:
+        """
+        Maps scenario parameters to a strongSwan ESP proposal string.
+
+        PFS control:
+          - PFS enabled  → include a DH group in the proposal so strongSwan
+                           performs a CREATE_CHILD_SA rekeying with a new DH exchange.
+          - PFS disabled → omit the DH group; strongSwan derives CHILD SA keys
+                           from existing IKE SA material (no new DH exchange).
+        """
+        enc = scenario.encryption.lower()
+
+        if "gcm" in enc:
+            base = "aes256gcm16" if "256" in enc else "aes128gcm16"
+        elif "3des" in enc:
+            base = "3des-md5"
+        elif "128" in enc:
+            base = "aes128-sha256"
+        else:
+            base = "aes256-sha384"
+
+        if scenario.pfs:
+            # Append DH group to enable PFS rekeying
+            if "gcm" in enc and "256" in enc:
+                return f"{base}-ecp384,{base}"
+            elif "gcm" in enc:
+                return f"{base}-ecp256,{base}"
+            elif "3des" in enc:
+                return base  # 3DES weak scenarios don't benefit from ECP
+            else:
+                return f"{base}-modp2048,{base}"
+        else:
+            # No DH group → PFS is explicitly disabled
+            return base
 
     @classmethod
     def generate_swanctl_conf(
@@ -43,19 +75,45 @@ class StrongSwanConfigGenerator:
     ) -> str:
         """
         Generates modern swanctl.conf configuration for strongSwan.
+        Respects ipsec_mode (tunnel/transport), ip_version (IPv4/IPv6), and pfs flag.
         """
-        ike_prop, esp_prop = cls._map_crypto_proposals(scenario)
+        ike_prop = cls._map_ike_proposal(scenario)
+        esp_prop = cls._map_esp_proposal(scenario)
         ike_version_num = 1 if "ikev1" in scenario.ike_version.lower() else 2
 
         local_ip = topology.initiator.host if is_initiator else topology.responder.host
         remote_ip = topology.responder.host if is_initiator else topology.initiator.host
         psk = scenario.pre_shared_key
 
+        # IPv6 addresses must be wrapped in brackets for swanctl.conf
+        is_ipv6 = scenario.ip_version.upper() == "IPV6"
+        local_addr = f"[{local_ip}]" if is_ipv6 else local_ip
+        remote_addr = f"[{remote_ip}]" if is_ipv6 else remote_ip
+
         rekey_time = "60s" if "rekey" in scenario.id else "1h"
         start_action = "start" if is_initiator else "none"
+        mode = scenario.ipsec_mode.lower()  # "tunnel" or "transport"
+
+        # Traffic selectors differ by mode:
+        # - Tunnel mode:    subnets (e.g. 10.0.1.0/24 ↔ 10.0.2.0/24)
+        # - Transport mode: host-to-host (%any ↔ %any covers all host traffic)
+        if mode == "transport":
+            local_ts = "%any"
+            remote_ts = "%any"
+        elif is_ipv6:
+            local_ts = "fd00:10:0:1::/64"
+            remote_ts = "fd00:10:0:2::/64"
+        else:
+            local_ts = "10.0.1.0/24"
+            remote_ts = "10.0.2.0/24"
+
+        pfs_comment = "# PFS enabled: DH group included in ESP proposal" if scenario.pfs \
+            else "# PFS disabled: no DH group in ESP proposal — keys derived from IKE SA"
 
         conf = f"""# strongSwan swanctl.conf — Generated for {scenario.name}
 # Role: {"Initiator (VM1)" if is_initiator else "Responder (VM2)"}
+# IPsec Mode: {mode.capitalize()} | IP Version: {scenario.ip_version}
+# {pfs_comment}
 
 connections {{
     site-to-site {{
@@ -76,9 +134,9 @@ connections {{
 
         children {{
             net-tunnel {{
-                mode = tunnel
-                local_ts = 10.0.1.0/24
-                remote_ts = 10.0.2.0/24
+                mode = {mode}
+                local_ts = {local_ts}
+                remote_ts = {remote_ts}
                 esp_proposals = {esp_prop}
                 start_action = {start_action}
                 rekey_time = {rekey_time}
@@ -107,16 +165,29 @@ secrets {{
         Generates legacy ipsec.conf and ipsec.secrets for strongSwan starter daemon.
         Returns: (ipsec_conf_content, ipsec_secrets_content)
         """
-        ike_prop, esp_prop = cls._map_crypto_proposals(scenario)
+        ike_prop = cls._map_ike_proposal(scenario)
+        esp_prop = cls._map_esp_proposal(scenario)
         ike_keyexchange = "ikev1" if "ikev1" in scenario.ike_version.lower() else "ikev2"
         aggressive = "yes" if "aggressive" in scenario.ike_version.lower() or scenario.is_weak_compliance else "no"
+        mode = scenario.ipsec_mode.lower()  # "tunnel" or "transport"
 
         left_ip = topology.initiator.host if is_initiator else topology.responder.host
         right_ip = topology.responder.host if is_initiator else topology.initiator.host
         psk = scenario.pre_shared_key
         auto_action = "start" if is_initiator else "add"
 
+        # Traffic selectors for legacy ipsec.conf
+        if mode == "transport":
+            leftsubnet = ""
+            rightsubnet = ""
+            subnet_lines = ""
+        elif scenario.ip_version.upper() == "IPV6":
+            subnet_lines = "    leftsubnet=fd00:10:0:1::/64\n    rightsubnet=fd00:10:0:2::/64"
+        else:
+            subnet_lines = "    leftsubnet=10.0.1.0/24\n    rightsubnet=10.0.2.0/24"
+
         ipsec_conf = f"""# strongSwan ipsec.conf — Scenario: {scenario.name}
+# IPsec Mode: {mode.capitalize()} | IP Version: {scenario.ip_version} | PFS: {"Enabled" if scenario.pfs else "Disabled"}
 config setup
     charondebug="ike 2, knl 2, cfg 2, net 2, esp 2"
 
@@ -128,14 +199,13 @@ conn %default
     ikelifetime=3600s
     keylife=1800s
     rekeymargin=180s
-    type=tunnel
+    type={mode}
 
 conn s2s-tunnel
     left={left_ip}
-    leftsubnet=10.0.1.0/24
+{subnet_lines}
     leftauth=psk
     right={right_ip}
-    rightsubnet=10.0.2.0/24
     rightauth=psk
     auto={auto_action}
 """

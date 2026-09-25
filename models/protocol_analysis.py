@@ -8,6 +8,7 @@ class ProtocolAnalysisResult(BaseModel):
     esp_detected: bool = Field(default=False, description="True if ESP (Encapsulating Security Payload, IP proto 50) is detected")
     ah_detected: bool = Field(default=False, description="True if AH (Authentication Header, IP proto 51) is detected")
     mode: Optional[str] = Field(default=None, description="IPsec encapsulation mode ('Tunnel' or 'Transport')")
+    mode_confidence: Optional[str] = Field(default=None, description="Confidence in inferred IPsec mode: high, medium, or low")
     encryption: Optional[str] = Field(default=None, description="Identified encryption cipher algorithm (e.g. 'AES-256-GCM', 'AES-CBC-256', '3DES-CBC')")
     integrity: Optional[str] = Field(default=None, description="Identified integrity / PRF / HMAC algorithm (e.g. 'HMAC-SHA2-256', 'AEAD', 'MD5')")
     dh_group: Optional[str] = Field(default=None, description="Diffie-Hellman Group identifier (e.g. '14', '19', '2')")

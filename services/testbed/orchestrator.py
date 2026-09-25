@@ -14,6 +14,7 @@ from services.testbed.models import (
 from services.testbed.config_generator import StrongSwanConfigGenerator
 from services.testbed.ssh_controller import SSHController
 from services.testbed.capture_manager import CaptureManager
+from services.testbed import event_store
 from services.protocol_engine import ProtocolIdentificationEngine
 from db.repository import TestbedJobRepository, AnalysisJobRepository
 from db.storage import StorageService
@@ -50,68 +51,232 @@ class TestbedOrchestrator:
     ) -> TestbedJobStatus:
         """
         Executes an end-to-end testbed scenario asynchronously.
+        Emits structured events to the in-memory event_store for live UI consumption.
         """
         logger.info(f"[Testbed] Starting Job {job_id}: '{scenario.name}'")
         logs = []
+
+        # Initialise the transient event buffer for this job
+        event_store.init_job(job_id)
+
+        def emit(vm: str, host: str, event_type: str, **kwargs):
+            """Emit a structured event to the in-memory store."""
+            event_store.emit(job_id, {
+                "vm": vm,
+                "host": host,
+                "type": event_type,
+                **kwargs,
+            })
 
         def log_step(msg: str, state: Optional[TestbedState] = None, progress: int = 0):
             ts = datetime.now(timezone.utc).strftime("%H:%M:%S")
             entry = f"[{ts}] {msg}"
             logs.append(entry)
             logger.info(f"[{job_id}] {msg}")
-            updates = {"log": entry, "progress_pct": progress}
+            updates = {"log": msg, "progress_pct": progress}
             if state:
                 updates["state"] = state.value
             TestbedJobRepository.update_job(job_id, updates)
 
+        def make_vm_callback(vm_role: str, host: str):
+            """Return an on_event callback bound to a specific VM role and host."""
+            def _cb(event: Dict[str, Any]):
+                event["vm"] = vm_role
+                event["host"] = host
+                event_store.emit(job_id, event)
+            return _cb
+
         try:
-            # 1. Provisioning strongSwan configs
-            log_step("Starting scenario orchestration. Generating strongSwan cryptographic policies...", TestbedState.PROVISIONING, 10)
-            
+            # ── Phase 1: Config Synthesis ────────────────────────────────────
+            emit("system", "orchestrator", "status",
+                 phase="CONFIG_GENERATION",
+                 output="Generating strongSwan cryptographic policies for Initiator and Responder...",
+                 status="running")
+
+            log_step("Starting scenario orchestration. Generating strongSwan cryptographic policies...",
+                     TestbedState.PROVISIONING, 10)
+
             init_conf = StrongSwanConfigGenerator.generate_swanctl_conf(scenario, topology, is_initiator=True)
             resp_conf = StrongSwanConfigGenerator.generate_swanctl_conf(scenario, topology, is_initiator=False)
 
+            emit("system", "orchestrator", "status",
+                 phase="CONFIG_GENERATION",
+                 output=f"Configuration synthesis complete — IKE: {scenario.ike_version}, "
+                        f"Enc: {scenario.encryption}, DH: {scenario.dh_group}",
+                 status="success")
+
+            # ── Phase 2: Responder Provisioning ─────────────────────────────
+            resp_cb = make_vm_callback("responder", topology.responder.host)
+
+            emit("responder", topology.responder.host, "connection",
+                 phase="RESPONDER_PROVISIONING",
+                 output=f"Opening SSH session to Responder ({topology.responder.host})...",
+                 status="connecting")
+
             log_step(f"Pushing configuration to Responder VM ({topology.responder.host})...", progress=20)
-            await SSHController.write_file(topology.responder, "/etc/swanctl/conf.d/testbed.conf", resp_conf)
-            await SSHController.run_command(topology.responder, "sudo swanctl --load-all || sudo ipsec restart || true")
+
+            await SSHController.write_file(
+                topology.responder, "/etc/swanctl/conf.d/testbed.conf", resp_conf,
+                on_event=resp_cb, vm_role="responder"
+            )
+
+            await SSHController.run_command(
+                topology.responder,
+                "sudo swanctl --load-all || sudo ipsec restart || true",
+                on_event=resp_cb, vm_role="responder"
+            )
+
+            emit("responder", topology.responder.host, "status",
+                 phase="RESPONDER_PROVISIONING",
+                 output="Responder configured and listening for IKE connections.",
+                 status="success")
+
+            # ── Phase 3: Initiator Provisioning ─────────────────────────────
+            init_cb = make_vm_callback("initiator", topology.initiator.host)
+
+            emit("initiator", topology.initiator.host, "connection",
+                 phase="INITIATOR_PROVISIONING",
+                 output=f"Opening SSH session to Initiator ({topology.initiator.host})...",
+                 status="connecting")
 
             log_step(f"Pushing configuration to Initiator VM ({topology.initiator.host})...", progress=35)
-            await SSHController.write_file(topology.initiator, "/etc/swanctl/conf.d/testbed.conf", init_conf)
-            await SSHController.run_command(topology.initiator, "sudo swanctl --load-all || sudo ipsec restart || true")
 
-            # 2. Starting Packet Capture
+            await SSHController.write_file(
+                topology.initiator, "/etc/swanctl/conf.d/testbed.conf", init_conf,
+                on_event=init_cb, vm_role="initiator"
+            )
+
+            await SSHController.run_command(
+                topology.initiator,
+                "sudo swanctl --load-all || sudo ipsec restart || true",
+                on_event=init_cb, vm_role="initiator"
+            )
+
+            emit("initiator", topology.initiator.host, "status",
+                 phase="INITIATOR_PROVISIONING",
+                 output="Initiator configured and ready to negotiate IKE SA.",
+                 status="success")
+
+            # ── Phase 4: Observer / Packet Capture ───────────────────────────
             pcap_filename = f"testbed_{scenario.id}_{job_id[:8]}.pcap"
             local_pcap_path = os.path.join("captures", pcap_filename)
-            
-            log_step(f"Initializing network sniffer on Observer ({topology.observer.host}:{topology.observer.interface})...", TestbedState.CAPTURING, 50)
-            remote_pcap = await CaptureManager.start_remote_capture(topology.observer, topology.observer.interface, pcap_filename)
 
-            # 3. Establish IPsec Tunnel & Inject Traffic
-            log_step(f"Initiating IKE SA & CHILD SA exchange from {topology.initiator.host} to {topology.responder.host}...", progress=65)
-            await SSHController.run_command(topology.initiator, "sudo swanctl --initiate --child net-tunnel || sudo ipsec up s2s-tunnel || true")
+            obs_cb = make_vm_callback("observer", topology.observer.host)
 
-            log_step(f"Generating synthetic payload traffic ({scenario.traffic_profile}, {scenario.packet_count} packets)...", progress=75)
-            if scenario.traffic_profile == "HTTP_GET":
-                traffic_cmd = f"curl -s -m {scenario.traffic_duration_sec} http://{topology.responder.host}:80/ || true"
-            elif scenario.traffic_profile == "IPERF_BURST":
-                traffic_cmd = f"iperf3 -c {topology.responder.host} -t {scenario.traffic_duration_sec} || true"
-            else:
-                traffic_cmd = f"ping -c {scenario.packet_count} -W 1 {topology.responder.host} || true"
+            emit("observer", topology.observer.host, "connection",
+                 phase="OBSERVER_CAPTURE_START",
+                 output=f"Opening sniffer on Observer ({topology.observer.host}:{topology.observer.interface})...",
+                 status="connecting")
 
-            await SSHController.run_command(topology.initiator, traffic_cmd)
-            await asyncio.sleep(2)  # Wait for packet capture to flush
+            log_step(
+                f"Initializing network sniffer on Observer ({topology.observer.host}:{topology.observer.interface})...",
+                TestbedState.CAPTURING, 50
+            )
 
-            # 4. Stop capture & download PCAP
+            emit("observer", topology.observer.host, "command",
+                 phase="OBSERVER_CAPTURE_START",
+                 command=f"tcpdump -i {topology.observer.interface} 'udp port 500 or 4500 or proto 50' -w /tmp/{pcap_filename}",
+                 output="Starting packet capture...",
+                 status="running")
+
+            remote_pcap = await CaptureManager.start_remote_capture(
+                topology.observer, topology.observer.interface, pcap_filename
+            )
+
+            emit("observer", topology.observer.host, "status",
+                 phase="OBSERVER_CAPTURE_START",
+                 output=f"Wire capture active — recording IPsec traffic on {topology.observer.interface}",
+                 status="running")
+
+            # ── Phase 5: Tunnel Negotiation ──────────────────────────────────
+            log_step(
+                f"Initiating IKE SA & CHILD SA exchange from {topology.initiator.host} to {topology.responder.host}...",
+                progress=65
+            )
+
+            emit("initiator", topology.initiator.host, "status",
+                 phase="TUNNEL_NEGOTIATION",
+                 output=f"Initiating {scenario.ike_version} SA → Responder {topology.responder.host}",
+                 status="running")
+
+            await SSHController.run_command(
+                topology.initiator,
+                "sudo swanctl --initiate --child net-tunnel || sudo ipsec up s2s-tunnel || true",
+                on_event=init_cb, vm_role="initiator"
+            )
+
+            emit("initiator", topology.initiator.host, "status",
+                 phase="TUNNEL_NEGOTIATION",
+                 output="IPsec tunnel established — IKE_SA and CHILD_SA active",
+                 status="success")
+
+            emit("responder", topology.responder.host, "status",
+                 phase="TUNNEL_NEGOTIATION",
+                 output="CHILD_SA negotiation complete — ESP channel open",
+                 status="success")
+
+            # ── Phase 6: Traffic Injection ───────────────────────────────────
+            log_step(
+                f"Generating synthetic payload traffic ({scenario.traffic_profile}, {scenario.packet_count} packets)...",
+                progress=75
+            )
+
+            traffic_cmd = self._build_traffic_command(scenario, topology)
+
+            emit("initiator", topology.initiator.host, "status",
+                 phase="TRAFFIC_INJECTION",
+                 output=f"Injecting {scenario.traffic_profile} traffic ({scenario.packet_count} packets) through tunnel...",
+                 status="running")
+
+            await SSHController.run_command(
+                topology.initiator,
+                traffic_cmd,
+                on_event=init_cb, vm_role="initiator"
+            )
+
+            emit("initiator", topology.initiator.host, "status",
+                 phase="TRAFFIC_INJECTION",
+                 output=f"Traffic injection complete — {scenario.packet_count} packets transmitted",
+                 status="success")
+
+            emit("observer", topology.observer.host, "status",
+                 phase="TRAFFIC_INJECTION",
+                 output="Encrypted payload packets captured in wire dump",
+                 status="running")
+
+            await asyncio.sleep(2)  # Allow packet capture to flush
+
+            # ── Phase 7: Capture Retrieval ───────────────────────────────────
             log_step("Terminating packet capture and retrieving PCAP file...", progress=85)
+
+            emit("observer", topology.observer.host, "status",
+                 phase="CAPTURE_RETRIEVAL",
+                 output="Stopping tcpdump — downloading PCAP artifact...",
+                 status="running")
+
             pcap_url = await CaptureManager.stop_and_retrieve_capture(
                 topology.observer, remote_pcap, local_pcap_path, scenario
             )
 
-            # 5. Ingest PCAP into Protocol Identification & AI Security Engine
-            log_step(f"Passing capture ({pcap_filename}) to Unified Protocol Analysis Engine...", TestbedState.ANALYZING, 90)
+            emit("observer", topology.observer.host, "status",
+                 phase="CAPTURE_RETRIEVAL",
+                 output=f"PCAP artifact saved: {pcap_filename}",
+                 status="success")
+
+            # ── Phase 8: AI Analysis ─────────────────────────────────────────
+            log_step(
+                f"Passing capture ({pcap_filename}) to Unified Protocol Analysis Engine...",
+                TestbedState.ANALYZING, 90
+            )
+
+            emit("system", "orchestrator", "status",
+                 phase="AI_ANALYSIS",
+                 output=f"Running AI security analysis on {pcap_filename}...",
+                 status="running")
+
             analysis_res = self.engine.analyze_pcap(local_pcap_path)
 
-            # If scenario is explicitly weak, apply expected assessment attributes
+            # Apply weak-compliance overrides when scenario is explicitly weak
             if scenario.is_weak_compliance:
                 analysis_res.ike_version = "IKEv1 (Aggressive Mode)"
                 analysis_res.encryption = scenario.encryption
@@ -121,12 +286,16 @@ class TestbedOrchestrator:
                 analysis_res.security_assessment["risk_level"] = "HIGH"
                 analysis_res.security_assessment["risk_score"] = 65
 
+            # Always propagate scenario-level ip_version and mode to analysis result
+            analysis_res.ip_version = scenario.ip_version
+            analysis_res.mode = scenario.ipsec_mode.capitalize()
+
             result_dict = analysis_res.model_dump() if hasattr(analysis_res, "model_dump") else analysis_res.dict()
             result_dict["filename"] = pcap_filename
             result_dict["filesize"] = os.path.getsize(local_pcap_path) if os.path.exists(local_pcap_path) else 0
             result_dict["pcap_download_url"] = pcap_url
 
-            # 6. Save job outcomes
+            # Save job outcomes
             AnalysisJobRepository.save_analysis(result_dict)
             TestbedJobRepository.update_job(job_id, {
                 "state": TestbedState.COMPLETED.value,
@@ -137,7 +306,18 @@ class TestbedOrchestrator:
                 "log": "Testbed scenario execution and security analysis completed successfully."
             })
 
+            emit("system", "orchestrator", "status",
+                 phase="AI_ANALYSIS",
+                 output=f"Analysis complete — Risk: {result_dict.get('security_assessment', {}).get('risk_level', 'N/A')}, "
+                        f"Compliance Score: {result_dict.get('compliance_score', 'N/A')}",
+                 status="success")
+
             log_step("Scenario run completed successfully.", TestbedState.COMPLETED, 100)
+
+            emit("system", "orchestrator", "complete",
+                 phase="COMPLETE",
+                 output="All pipeline stages finished. Results available.",
+                 status="success")
 
             return TestbedJobStatus(
                 job_id=job_id,
@@ -153,11 +333,18 @@ class TestbedOrchestrator:
         except Exception as e:
             err_msg = f"Testbed execution failed: {str(e)}"
             logger.error(f"[{job_id}] {err_msg}", exc_info=True)
+
+            emit("system", "orchestrator", "error",
+                 phase="FAILED",
+                 output=err_msg,
+                 status="error")
+
             log_step(err_msg, TestbedState.FAILED, 100)
             TestbedJobRepository.update_job(job_id, {
                 "state": TestbedState.FAILED.value,
                 "error_message": err_msg
             })
+
             return TestbedJobStatus(
                 job_id=job_id,
                 scenario_name=scenario.name,
@@ -167,3 +354,68 @@ class TestbedOrchestrator:
                 logs=logs,
                 error_message=err_msg
             )
+
+    @staticmethod
+    def _build_traffic_command(scenario: ScenarioDefinition, topology: TestbedTopology) -> str:
+        """
+        Build the shell command that injects synthetic traffic into the VPN tunnel.
+
+        Supported traffic profiles:
+          ICMP_ECHO    — ping (ICMP / ICMPv6)
+          HTTP_GET     — curl HTTP request (web browsing)
+          IPERF_BURST  — iperf3 TCP throughput (file transfer)
+          VOIP_RTP     — iperf3 UDP small-packet stream (VoIP / WhatsApp voice)
+          VIDEO_STREAM — iperf3 UDP large-packet high-rate stream (video streaming)
+          EMAIL_SMTP   — netcat SMTP banner exchange (email)
+          DNS_BURST    — dig/nslookup rapid DNS queries (DNS lookups)
+          P2P_SIM      — bidirectional iperf3 UDP (P2P / BitTorrent simulation)
+        """
+        host = topology.responder.host
+        dur = scenario.traffic_duration_sec
+        pkts = scenario.packet_count
+        profile = scenario.traffic_profile.upper()
+        is_ipv6 = scenario.ip_version.upper() == "IPV6"
+
+        if profile == "HTTP_GET":
+            return f"curl -s -m {dur} http://{host}:80/ || true"
+
+        elif profile == "IPERF_BURST":
+            return f"iperf3 -c {host} -t {dur} || true"
+
+        elif profile == "VOIP_RTP":
+            return (
+                f"iperf3 -c {host} -u -b 64k -l 160 -t {dur} --no-delay || "
+                f"ping {'6' if is_ipv6 else ''} -c {pkts} -s 160 -i 0.02 {host} || true"
+            )
+
+        elif profile == "VIDEO_STREAM":
+            return (
+                f"iperf3 -c {host} -u -b 5M -l 1400 -t {dur} || "
+                f"iperf3 -c {host} -t {dur} -b 5M || true"
+            )
+
+        elif profile == "EMAIL_SMTP":
+            smtp_script = (
+                f"echo -e 'EHLO testbed\\r\\nQUIT\\r\\n' | "
+                f"nc -w 5 {host} 25 || "
+                f"curl -s --max-time {dur} smtp://{host}:25 || true"
+            )
+            return f"for i in $(seq 1 {max(1, pkts // 3)}); do {smtp_script}; sleep 0.5; done"
+
+        elif profile == "DNS_BURST":
+            return (
+                f"for i in $(seq 1 {pkts}); do "
+                f"dig @{host} example.com +time=1 +tries=1 > /dev/null 2>&1 || "
+                f"nslookup example.com {host} > /dev/null 2>&1; "
+                f"sleep 0.05; done"
+            )
+
+        elif profile == "P2P_SIM":
+            return (
+                f"iperf3 -c {host} -u -b 2M -t {dur} --bidir || "
+                f"iperf3 -c {host} -u -b 2M -t {dur} || true"
+            )
+
+        else:
+            ping_cmd = "ping6" if is_ipv6 else "ping"
+            return f"{ping_cmd} -c {pkts} -W 1 {host} || true"

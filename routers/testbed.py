@@ -2,6 +2,7 @@ import os
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, BackgroundTasks, status, Query
 from fastapi.responses import FileResponse, JSONResponse
+from services.testbed import event_store
 
 from services.testbed.models import (
     ScenarioDefinition,
@@ -74,11 +75,26 @@ async def list_testbed_jobs(limit: int = Query(50, ge=1, le=100)):
 
 
 @router.get("/jobs/{job_id}", summary="Get testbed execution job status and logs")
-async def get_testbed_job_status(job_id: str):
-    """GET /api/testbed/jobs/{job_id}: Poll current state, live log output, and completed results."""
+async def get_testbed_job_status(
+    job_id: str,
+    since_id: Optional[int] = Query(
+        None,
+        description="Only return terminal events with id > since_id (avoids duplicate events on each poll)."
+    )
+):
+    """GET /api/testbed/jobs/{job_id}: Poll current state, live log output, and completed results.
+    
+    Merges transient in-memory terminal_events (keyed by VM role) into the response.
+    Use ?since_id=<last_event_id> to fetch only new events and avoid re-sending the full list.
+    """
     job = TestbedJobRepository.get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail=f"Testbed job '{job_id}' not found.")
+
+    # Merge live terminal events from the in-memory ring-buffer
+    terminal_events = event_store.get_events(job_id, since_id=since_id)
+    job["terminal_events"] = terminal_events
+
     return job
 
 

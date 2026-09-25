@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Server,
   Play,
@@ -13,7 +13,14 @@ import {
   Cpu,
   ArrowRight,
   Clock,
-  Radio
+  Radio,
+  Wifi,
+  WifiOff,
+  ChevronDown,
+  ChevronRight,
+  Activity,
+  Eye,
+  Send
 } from 'lucide-react';
 
 export default function TestbedTab({ onNavigateToAnalysis }) {
@@ -46,7 +53,14 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
   const [activeJob, setActiveJob] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
   const [jobHistory, setJobHistory] = useState([]);
-  const logContainerRef = useRef(null);
+  // In-memory event accumulator — merges events from each poll
+  const [terminalEvents, setTerminalEvents] = useState([]);
+  const lastEventIdRef = useRef(0);
+  const [pollError, setPollError] = useState(false);
+  const [expandedEvents, setExpandedEvents] = useState({});
+  const activeJobIdRef = useRef(null);
+  const feedRef = useRef(null);
+  const isNearBottomRef = useRef(true);
 
   // Fetch scenarios and recent jobs on mount
   useEffect(() => {
@@ -54,37 +68,61 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
     fetchJobHistory();
   }, []);
 
-  // Poll active job status
-  useEffect(() => {
-    let interval = null;
-    if (activeJob && (activeJob.state === 'QUEUED' || activeJob.state === 'PROVISIONING' || activeJob.state === 'CAPTURING' || activeJob.state === 'ANALYZING')) {
-      interval = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/testbed/jobs/${activeJob.id}`);
-          if (res.ok) {
-            const data = await res.json();
-            setActiveJob(data);
-            if (data.state === 'COMPLETED' || data.state === 'FAILED') {
-              setIsRunning(false);
-              fetchJobHistory();
-            }
-          }
-        } catch (err) {
-          console.error('Failed to poll testbed status:', err);
-        }
-      }, 1200);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [activeJob]);
+  // Smart auto-scroll: only scroll if already near the bottom
+  const handleFeedScroll = useCallback(() => {
+    if (!feedRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = feedRef.current;
+    isNearBottomRef.current = scrollHeight - scrollTop - clientHeight < 80;
+  }, []);
 
-  // Scroll terminal logs to bottom automatically
   useEffect(() => {
-    if (logContainerRef.current) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    if (feedRef.current && isNearBottomRef.current) {
+      feedRef.current.scrollTop = feedRef.current.scrollHeight;
     }
-  }, [activeJob?.logs]);
+  }, [terminalEvents]);
+
+  // Poll active job status — uses since_id to only fetch new events
+  useEffect(() => {
+    const TERMINAL_STATES = ['COMPLETED', 'FAILED'];
+    if (!activeJob || TERMINAL_STATES.includes(activeJob.state)) return;
+
+    activeJobIdRef.current = activeJob.id;
+
+    const interval = setInterval(async () => {
+      try {
+        const sinceId = lastEventIdRef.current;
+        const url = `/api/testbed/jobs/${activeJob.id}?since_id=${sinceId}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setPollError(false);
+
+        // Merge new events into local accumulator
+        const newEvents = data.terminal_events || [];
+        if (newEvents.length > 0) {
+          setTerminalEvents(prev => {
+            const merged = [...prev, ...newEvents];
+            // Cap to 200 locally too
+            return merged.slice(-200);
+          });
+          lastEventIdRef.current = newEvents[newEvents.length - 1].id;
+        }
+
+        // Update job state (without overwriting local events)
+        setActiveJob(prev => ({ ...prev, ...data, terminal_events: undefined }));
+
+        if (data.state === 'COMPLETED' || data.state === 'FAILED') {
+          setIsRunning(false);
+          fetchJobHistory();
+        }
+      } catch (err) {
+        console.error('Failed to poll testbed status:', err);
+        setPollError(true);
+      }
+    }, 1200);
+
+    return () => clearInterval(interval);
+  }, [activeJob?.id, activeJob?.state]);
 
   const fetchScenarios = async () => {
     try {
@@ -146,6 +184,11 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
       }
 
       const data = await res.json();
+      // Reset event accumulator for the new job
+      setTerminalEvents([]);
+      lastEventIdRef.current = 0;
+      setExpandedEvents({});
+      setPollError(false);
       setActiveJob({
         id: data.job_id,
         scenario_name: data.scenario_name,
@@ -384,85 +427,102 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
           </div>
         </div>
 
-        {/* Right Column: Execution Console & Live Pipeline */}
+        {/* Right Column: VM Activity HUD & Pipeline */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
-          {/* Live Pipeline Stepper */}
+
+          {/* VM Activity Dashboard Card */}
           <div className="glass-card" style={{ padding: '1.25rem' }}>
+            {/* Header Row */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Pipeline Execution State
-              </span>
-              {activeJob && (
-                <span className={`badge ${activeJob.state === 'COMPLETED' ? 'badge-green' : activeJob.state === 'FAILED' ? 'badge-red' : 'badge-cyan'}`}>
-                  {activeJob.state}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Activity size={16} color="#38bdf8" />
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Live Execution Dashboard
                 </span>
-              )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {pollError && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.72rem', color: '#f59e0b' }}>
+                    <WifiOff size={12} /> Reconnecting...
+                  </span>
+                )}
+                {activeJob && (
+                  <span className={`badge ${
+                    activeJob.state === 'COMPLETED' ? 'badge-green' :
+                    activeJob.state === 'FAILED' ? 'badge-red' : 'badge-cyan'
+                  }`}>
+                    {activeJob.state}
+                  </span>
+                )}
+              </div>
             </div>
 
-            {/* Stepper Steps */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '1rem' }}>
+            {/* Substep Pipeline Strip */}
+            {activeJob && (
+              <SubstepPipeline events={terminalEvents} state={activeJob.state} />
+            )}
+
+            {/* VM Node Status Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', margin: '1rem 0' }}>
               {[
-                { title: 'Provision', state: 'PROVISIONING' },
-                { title: 'Capture Wire', state: 'CAPTURING' },
-                { title: 'AI Analysis', state: 'ANALYZING' },
-                { title: 'Complete', state: 'COMPLETED' }
-              ].map((step, idx) => {
-                const isPassed = activeJob?.state === 'COMPLETED' || 
-                  (activeJob?.state === 'ANALYZING' && idx < 2) ||
-                  (activeJob?.state === 'CAPTURING' && idx < 1);
-                const isCurrent = activeJob?.state === step.state;
+                { role: 'initiator', label: 'Initiator VM', icon: Send, host: topology.initiator_ip, color: '#38bdf8' },
+                { role: 'responder', label: 'Responder VM', icon: Server, host: topology.responder_ip, color: '#a78bfa' },
+                { role: 'observer', label: 'Observer', icon: Eye, host: topology.observer_ip, color: '#34d399' },
+              ].map(({ role, label, icon: Icon, host, color }) => {
+                const roleEvents = terminalEvents.filter(e => e.vm === role);
+                const lastEvent = roleEvents[roleEvents.length - 1];
+                const vmState = lastEvent?.status || (activeJob ? 'pending' : 'idle');
                 return (
-                  <div
-                    key={step.title}
-                    style={{
-                      padding: '8px',
-                      borderRadius: '6px',
-                      textAlign: 'center',
-                      background: isCurrent ? 'rgba(56, 189, 248, 0.15)' : isPassed ? 'rgba(52, 211, 153, 0.1)' : 'rgba(15, 23, 42, 0.5)',
-                      border: isCurrent ? '1px solid #38bdf8' : isPassed ? '1px solid #34d399' : '1px solid rgba(255, 255, 255, 0.05)'
-                    }}
-                  >
-                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: isCurrent ? '#38bdf8' : isPassed ? '#34d399' : '#64748b' }}>
-                      STEP {idx + 1}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: isCurrent || isPassed ? '#fff' : '#94a3b8', fontWeight: 600 }}>
-                      {step.title}
-                    </div>
-                  </div>
+                  <VMNodeCard
+                    key={role}
+                    label={label}
+                    icon={Icon}
+                    host={host}
+                    color={color}
+                    vmState={vmState}
+                    lastEvent={lastEvent}
+                    hasActivity={roleEvents.length > 0}
+                  />
                 );
               })}
             </div>
 
-            {/* Terminal Log Console */}
+            {/* Command Activity Feed */}
             <div
-              ref={logContainerRef}
+              ref={feedRef}
+              onScroll={handleFeedScroll}
               style={{
-                background: '#090d16',
-                border: '1px solid rgba(56, 189, 248, 0.2)',
-                borderRadius: '8px',
-                padding: '1rem',
-                height: '240px',
+                maxHeight: '280px',
                 overflowY: 'auto',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.78rem',
-                lineHeight: 1.6,
-                color: '#cbd5e1'
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                scrollbarWidth: 'thin',
               }}
             >
-              <div style={{ color: '#38bdf8', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Terminal size={14} />
-                <span>strongSwan Orchestrator Output Terminal</span>
-              </div>
-              {(!activeJob?.logs || activeJob.logs.length === 0) && (
-                <div style={{ color: '#475569', fontStyle: 'italic', marginTop: '1rem' }}>
-                  No active execution. Select a scenario on the left and click "Deploy & Run Testbed Scenario".
+              {terminalEvents.length === 0 && (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '2rem',
+                  color: '#334155',
+                  gap: '8px'
+                }}>
+                  <Terminal size={32} style={{ opacity: 0.3 }} />
+                  <span style={{ fontSize: '0.82rem', fontStyle: 'italic' }}>
+                    {activeJob ? 'Waiting for pipeline to start...' : 'Select a scenario and deploy to see live VM activity here.'}
+                  </span>
                 </div>
               )}
-              {activeJob?.logs?.map((l, i) => (
-                <div key={i} style={{ color: l.includes('failed') || l.includes('FAILED') ? '#f87171' : l.includes('completed') || l.includes('COMPLETED') ? '#4ade80' : '#cbd5e1' }}>
-                  {l}
-                </div>
+              {terminalEvents.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  expanded={!!expandedEvents[event.id]}
+                  onToggle={() => setExpandedEvents(prev => ({ ...prev, [event.id]: !prev[event.id] }))}
+                />
               ))}
             </div>
 
@@ -483,7 +543,8 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                   className="btn-primary"
                   style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '0.5rem 0.85rem' }}
                   onClick={() => {
-                    if (onNavigateToAnalysis) onNavigateToAnalysis(activeJob.analysis_result);
+                    const analysisResult = activeJob.analysis_result || activeJob.result_json;
+                    if (onNavigateToAnalysis && analysisResult) onNavigateToAnalysis(analysisResult);
                   }}
                 >
                   <ArrowRight size={15} />
@@ -558,6 +619,319 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
 
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Sub-components
+═══════════════════════════════════════════════════════════════ */
+
+const VM_ROLE_COLORS = {
+  initiator: '#38bdf8',
+  responder: '#a78bfa',
+  observer: '#34d399',
+  system: '#94a3b8',
+};
+
+const VM_ROLE_LABELS = {
+  initiator: 'Initiator',
+  responder: 'Responder',
+  observer: 'Observer',
+  system: 'Orchestrator',
+};
+
+/** Animated status dot */
+function StatusDot({ status }) {
+  const color =
+    status === 'success' ? '#34d399' :
+    status === 'error' ? '#f87171' :
+    status === 'running' ? '#38bdf8' :
+    status === 'connecting' ? '#f59e0b' :
+    '#475569';
+
+  return (
+    <span style={{
+      display: 'inline-block',
+      width: 8,
+      height: 8,
+      borderRadius: '50%',
+      background: color,
+      flexShrink: 0,
+      boxShadow: (status === 'running' || status === 'connecting')
+        ? `0 0 6px ${color}` : 'none',
+      animation: (status === 'running' || status === 'connecting')
+        ? 'pulse-glow 1.4s ease-in-out infinite' : 'none',
+    }} />
+  );
+}
+
+/** VM node status card — lights up when a VM becomes active */
+function VMNodeCard({ label, icon: Icon, host, color, vmState, lastEvent, hasActivity }) {
+  const isDim = !hasActivity;
+
+  const stateLabel =
+    vmState === 'running' ? 'ACTIVE' :
+    vmState === 'success' ? 'DONE' :
+    vmState === 'error' ? 'ERROR' :
+    vmState === 'connecting' ? 'CONNECTING' :
+    vmState === 'pending' ? 'WAITING' : 'IDLE';
+
+  const stateBadgeColor =
+    vmState === 'success' ? { bg: 'rgba(52, 211, 153, 0.12)', border: '#34d399', text: '#34d399' } :
+    vmState === 'error'   ? { bg: 'rgba(248, 113, 113, 0.12)', border: '#f87171', text: '#f87171' } :
+    vmState === 'running' || vmState === 'connecting'
+                          ? { bg: `rgba(56,189,248,0.10)`, border: '#38bdf8', text: '#38bdf8' } :
+    { bg: 'rgba(15,23,42,0.4)', border: 'rgba(255,255,255,0.06)', text: '#475569' };
+
+  return (
+    <div style={{
+      padding: '0.85rem',
+      borderRadius: '10px',
+      background: hasActivity ? `${stateBadgeColor.bg}` : 'rgba(10,15,28,0.5)',
+      border: `1px solid ${hasActivity ? stateBadgeColor.border : 'rgba(255,255,255,0.06)'}`,
+      opacity: isDim ? 0.5 : 1,
+      transition: 'all 0.4s ease',
+    }}>
+      {/* Icon + Label Row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+        <Icon size={14} color={hasActivity ? color : '#475569'} />
+        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: hasActivity ? color : '#475569', letterSpacing: '0.04em' }}>
+          {label.toUpperCase()}
+        </span>
+      </div>
+
+      {/* Host */}
+      <div style={{ fontSize: '0.68rem', color: '#64748b', marginBottom: '8px', fontFamily: 'monospace' }}>
+        {host}
+      </div>
+
+      {/* Status Badge */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <StatusDot status={vmState} />
+        <span style={{ fontSize: '0.68rem', fontWeight: 700, color: stateBadgeColor.text }}>
+          {stateLabel}
+        </span>
+      </div>
+
+      {/* Last activity snippet */}
+      {lastEvent?.output && (
+        <div style={{
+          marginTop: '6px',
+          fontSize: '0.65rem',
+          color: '#64748b',
+          fontFamily: 'monospace',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}>
+          {lastEvent.output}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Collapsible activity card for a single event */
+function EventCard({ event, expanded, onToggle }) {
+  const vmColor = VM_ROLE_COLORS[event.vm] || '#94a3b8';
+  const vmLabel = VM_ROLE_LABELS[event.vm] || event.vm;
+  const hasOutput = event.output && event.output.trim().length > 0;
+
+  const typeIcon =
+    event.type === 'complete' ? '✓' :
+    event.type === 'error'    ? '✗' :
+    event.type === 'connection' ? '⟳' :
+    event.type === 'status'   ? '●' :
+    event.type === 'command'  ? '$' : '·';
+
+  const cardBg =
+    event.status === 'error'   ? 'rgba(248,113,113,0.07)' :
+    event.status === 'success' ? 'rgba(52,211,153,0.06)' :
+    'rgba(15,23,42,0.35)';
+
+  const borderColor =
+    event.status === 'error'   ? 'rgba(248,113,113,0.3)' :
+    event.status === 'success' ? 'rgba(52,211,153,0.2)' :
+    event.status === 'running' ? 'rgba(56,189,248,0.15)' :
+    'rgba(255,255,255,0.05)';
+
+  return (
+    <div style={{
+      background: cardBg,
+      border: `1px solid ${borderColor}`,
+      borderRadius: '7px',
+      padding: '0.6rem 0.75rem',
+      transition: 'background 0.2s ease',
+      animation: 'slide-in-up 0.2s ease',
+    }}>
+      {/* Main row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+        {/* Status dot */}
+        <StatusDot status={event.status} />
+
+        {/* VM badge */}
+        <span style={{
+          fontSize: '0.6rem',
+          fontWeight: 700,
+          color: vmColor,
+          background: `${vmColor}18`,
+          border: `1px solid ${vmColor}40`,
+          borderRadius: '4px',
+          padding: '1px 5px',
+          letterSpacing: '0.04em',
+          flexShrink: 0,
+        }}>
+          {vmLabel.toUpperCase()}
+        </span>
+
+        {/* Type chip */}
+        <span style={{
+          fontSize: '0.6rem',
+          color: '#64748b',
+          fontFamily: 'monospace',
+          flexShrink: 0,
+        }}>
+          {typeIcon}
+        </span>
+
+        {/* Primary text */}
+        <span style={{
+          fontSize: '0.75rem',
+          color: event.status === 'error' ? '#fca5a5' : event.status === 'success' ? '#6ee7b7' : '#cbd5e1',
+          fontFamily: event.type === 'command' || event.type === 'output' ? 'monospace' : 'inherit',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          flex: 1,
+          minWidth: 0,
+        }}>
+          {event.command || event.output || '—'}
+        </span>
+
+        {/* Timestamp */}
+        <span style={{ fontSize: '0.62rem', color: '#475569', flexShrink: 0 }}>
+          {event.timestamp}
+        </span>
+
+        {/* Expand toggle if there's extra output */}
+        {hasOutput && event.type !== 'output' && (
+          <button
+            type="button"
+            onClick={onToggle}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: '#64748b', padding: '0 2px', flexShrink: 0,
+            }}
+          >
+            {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          </button>
+        )}
+      </div>
+
+      {/* Expanded output */}
+      {expanded && hasOutput && event.type !== 'output' && (
+        <div style={{
+          marginTop: '6px',
+          padding: '6px 8px',
+          background: 'rgba(0,0,0,0.3)',
+          borderRadius: '5px',
+          fontFamily: 'monospace',
+          fontSize: '0.7rem',
+          color: '#94a3b8',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-all',
+        }}>
+          {event.output}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Detailed 8-step substep pipeline strip */
+const PHASES = [
+  { id: 'CONFIG_GENERATION',       label: 'Config',     short: '1' },
+  { id: 'RESPONDER_PROVISIONING',  label: 'Responder',  short: '2' },
+  { id: 'INITIATOR_PROVISIONING',  label: 'Initiator',  short: '3' },
+  { id: 'OBSERVER_CAPTURE_START',  label: 'Capture',    short: '4' },
+  { id: 'TUNNEL_NEGOTIATION',      label: 'Tunnel',     short: '5' },
+  { id: 'TRAFFIC_INJECTION',       label: 'Traffic',    short: '6' },
+  { id: 'CAPTURE_RETRIEVAL',       label: 'PCAP',       short: '7' },
+  { id: 'AI_ANALYSIS',             label: 'AI',         short: '8' },
+];
+
+function SubstepPipeline({ events, state }) {
+  // Determine which phases have appeared in the event stream
+  const seenPhases = new Set(events.map(e => e.phase).filter(Boolean));
+  const activePhase = [...seenPhases].pop(); // last seen phase
+
+  // All phases up-to-but-not-including active are "done"
+  const activeIdx = PHASES.findIndex(p => p.id === activePhase);
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '2px',
+      padding: '8px 0 6px',
+      overflowX: 'auto',
+      scrollbarWidth: 'none',
+    }}>
+      {PHASES.map((phase, idx) => {
+        const isDone = (activeIdx > idx) || state === 'COMPLETED';
+        const isActive = idx === activeIdx && state !== 'COMPLETED' && state !== 'FAILED';
+        const isFailed = state === 'FAILED' && idx === activeIdx;
+
+        const bg =
+          isFailed ? 'rgba(248,113,113,0.2)' :
+          isDone    ? 'rgba(52,211,153,0.15)' :
+          isActive  ? 'rgba(56,189,248,0.15)' :
+          'rgba(15,23,42,0.5)';
+
+        const border =
+          isFailed ? '#f87171' :
+          isDone    ? '#34d399' :
+          isActive  ? '#38bdf8' :
+          'rgba(255,255,255,0.06)';
+
+        const textColor =
+          isFailed ? '#f87171' :
+          isDone    ? '#34d399' :
+          isActive  ? '#38bdf8' :
+          '#475569';
+
+        return (
+          <React.Fragment key={phase.id}>
+            <div style={{
+              minWidth: 52,
+              padding: '4px 6px',
+              borderRadius: '5px',
+              background: bg,
+              border: `1px solid ${border}`,
+              textAlign: 'center',
+              transition: 'all 0.3s ease',
+              animation: isActive ? 'pulse-glow 1.4s ease-in-out infinite' : 'none',
+            }}>
+              <div style={{ fontSize: '0.58rem', fontWeight: 800, color: textColor }}>
+                {isDone ? '✓' : isFailed ? '✗' : phase.short}
+              </div>
+              <div style={{ fontSize: '0.6rem', color: textColor, fontWeight: 600 }}>
+                {phase.label}
+              </div>
+            </div>
+            {idx < PHASES.length - 1 && (
+              <div style={{
+                width: 12,
+                height: 1,
+                background: isDone ? '#34d399' : 'rgba(255,255,255,0.08)',
+                flexShrink: 0,
+                transition: 'background 0.3s ease',
+              }} />
+            )}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 }

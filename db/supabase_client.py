@@ -23,6 +23,7 @@ def get_supabase_client():
     key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_ANON_KEY")
 
     if not url or not key:
+        print("[DB] Supabase credentials not found in environment. Using local file/JSON storage fallback.")
         logger.info("[DB] Supabase credentials not found in environment. Using local file/JSON storage fallback.")
         _supabase_client = None
         return None
@@ -30,9 +31,11 @@ def get_supabase_client():
     try:
         from supabase import create_client, Client
         _supabase_client = create_client(url, key)
+        print(f"[DB] Connected to Supabase at {url}")
         logger.info(f"[DB] Connected to Supabase at {url}")
         return _supabase_client
     except Exception as e:
+        print(f"[DB] Failed to initialize Supabase client ({e}). Operating in local fallback mode.")
         logger.warning(f"[DB] Failed to initialize Supabase client ({e}). Operating in local fallback mode.")
         _supabase_client = None
         return None

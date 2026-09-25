@@ -87,3 +87,7 @@ risk_weights:
   HIGH: 30
   MEDIUM: 15
   LOW: 5
+
+sa_lifetime:
+  max_seconds: 28800
+  warn_if_unknown: true
