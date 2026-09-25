@@ -144,7 +144,9 @@ class TestbedJobRepository:
                     "cipher_suite": job["cipher_suite"],
                     "auth_method": job["auth_method"],
                     "state": job["state"],
-                    "config_json": job["config_json"]
+                    "progress_pct": 0,
+                    "config_json": job["config_json"],
+                    "logs": job.get("logs", [])
                 }
                 client.table("testbed_jobs").insert(db_record).execute()
             except Exception as e:
@@ -173,7 +175,9 @@ class TestbedJobRepository:
         client = get_supabase_client()
         if client:
             try:
-                db_updates = {k: v for k, v in updates.items() if k not in ("log", "logs")}
+                db_updates = {k: v for k, v in updates.items() if k != "log"}
+                if updated_job and "logs" in updated_job:
+                    db_updates["logs"] = updated_job["logs"]
                 client.table("testbed_jobs").update(db_updates).eq("id", job_id).execute()
             except Exception as e:
                 logger.warning(f"[DB] Failed to update testbed job in Supabase: {e}")

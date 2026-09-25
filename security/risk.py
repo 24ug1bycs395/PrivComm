@@ -12,6 +12,8 @@ def calculate_security_risk(findings: List[SecurityFinding], policy_path: str = 
 
     raw_score = 0
     for f in findings:
+        if getattr(f, "status", None) == "not_observable":
+            continue
         sev = f.severity.upper()
         raw_score += weights.get(sev, 10)
 

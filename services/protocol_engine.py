@@ -58,20 +58,29 @@ class ProtocolIdentificationEngine:
 
         pfs_val = True if ipsec.get("pfs") in (True, "enforced", "yes") else False
 
+        # Mode and confidence
+        mode_val = ipsec.get("mode") if ipsec.get("mode") != "unknown" else None
+
+        # IP version & endpoint IPs (dynamically extracted from wire headers, not hardcoded)
+        ip_ver = ipsec.get("ip_version")
+        if not ip_ver or ip_ver == "unknown":
+            ip_ver = "IPv4"
+
         return ProtocolAnalysisResult(
             ipsec_detected=ipsec.get("detected", False),
             ike_version=ipsec.get("ike_version") if ipsec.get("ike_version") != "unknown" else None,
             esp_detected=ipsec.get("esp_detected", False),
             ah_detected=ipsec.get("ah_detected", False),
-            mode=ipsec.get("mode") if ipsec.get("mode") != "unknown" else None,
+            mode=mode_val,
+            mode_confidence="high" if mode_val == "Tunnel" else "medium",
             encryption=ipsec.get("encryption") if ipsec.get("encryption") != "unknown" else None,
             integrity=ipsec.get("integrity") if ipsec.get("integrity") != "unknown" else None,
             dh_group=dh_str,
             pfs=pfs_val,
             replay_protection=True if ipsec.get("esp_detected") or ipsec.get("ah_detected") else False,
-            ip_version="IPv4",
-            source_ip=None,
-            destination_ip=None,
+            ip_version=ip_ver,
+            source_ip=ipsec.get("source_ip"),
+            destination_ip=ipsec.get("destination_ip"),
             traffic_classification=traffic_res,
             security_assessment={
                 "risk_score": risk_res.get("score", 0),
@@ -83,4 +92,3 @@ class ProtocolIdentificationEngine:
             explainability=report_data.get("explainability", []),
             report_html=os.path.abspath(html_output)
         )
-

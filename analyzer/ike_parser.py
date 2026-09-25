@@ -50,12 +50,16 @@ DH_GROUP_TRANSFORMS = {
 
 
 def parse_ike_scapy(packets: List[Any]) -> Dict[str, Any]:
-    """Parse IKE packets using Scapy layer objects."""
+    """Parse IKE packets using Scapy layer objects.
+    Extracts endpoint IPs from the encapsulating IP/IPv6 header.
+    """
     result = {
         "ike_detected": False,
         "ike_version": "unknown",
         "initiator_spi": None,
         "responder_spi": None,
+        "initiator_ip": None,   # Source IP of the first IKE packet (= initiator)
+        "responder_ip": None,   # Destination IP of the first IKE packet (= responder)
         "encryption": "unknown",
         "key_length": None,
         "integrity": "unknown",
@@ -64,12 +68,21 @@ def parse_ike_scapy(packets: List[Any]) -> Dict[str, Any]:
         "exchange_type": "unknown"
     }
 
-    from scapy.all import ISAKMP
+    from scapy.all import ISAKMP, IP, IPv6
 
     for pkt in packets:
         if pkt.haslayer(ISAKMP):
             isakmp = pkt[ISAKMP]
             result["ike_detected"] = True
+
+            # Extract endpoint IPs from the outer IP/IPv6 header (first IKE packet wins)
+            if result["initiator_ip"] is None:
+                if pkt.haslayer(IP):
+                    result["initiator_ip"] = pkt[IP].src
+                    result["responder_ip"] = pkt[IP].dst
+                elif pkt.haslayer(IPv6):
+                    result["initiator_ip"] = pkt[IPv6].src
+                    result["responder_ip"] = pkt[IPv6].dst
 
             ver_byte = getattr(isakmp, "version", 0x20)
             major = (ver_byte >> 4) & 0x0F
@@ -160,6 +173,8 @@ def parse_ike_tshark_json(tshark_packets: List[Dict[str, Any]]) -> Dict[str, Any
         "ike_version": "unknown",
         "initiator_spi": None,
         "responder_spi": None,
+        "initiator_ip": None,
+        "responder_ip": None,
         "encryption": "unknown",
         "key_length": None,
         "integrity": "unknown",
@@ -170,6 +185,15 @@ def parse_ike_tshark_json(tshark_packets: List[Dict[str, Any]]) -> Dict[str, Any
 
     for pkt in tshark_packets:
         layers = pkt.get("_source", {}).get("layers", {})
+        
+        if result["initiator_ip"] is None:
+            if "ip" in layers:
+                result["initiator_ip"] = layers["ip"].get("ip.src")
+                result["responder_ip"] = layers["ip"].get("ip.dst")
+            elif "ipv6" in layers:
+                result["initiator_ip"] = layers["ipv6"].get("ipv6.src")
+                result["responder_ip"] = layers["ipv6"].get("ipv6.dst")
+
         if "ike2" in layers or "isakmp" in layers:
             result["ike_detected"] = True
             ike_layer = layers.get("ike2") or layers.get("isakmp", {})

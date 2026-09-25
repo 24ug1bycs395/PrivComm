@@ -25,7 +25,7 @@ def extract_flow_features_scapy(packets: List[Any]) -> Dict[str, float]:
 
     first_src = None
 
-    from scapy.all import IP
+    from scapy.all import IP, IPv6
 
     for pkt in packets:
         t = float(getattr(pkt, "time", 0.0))
@@ -33,13 +33,20 @@ def extract_flow_features_scapy(packets: List[Any]) -> Dict[str, float]:
         sz = len(pkt)
         sizes.append(sz)
 
+        # Determine source address — supports both IPv4 and IPv6
         if pkt.haslayer(IP):
             src = pkt[IP].src
             if first_src is None:
                 first_src = src
             directions.append(src == first_src)
+        elif pkt.haslayer(IPv6):
+            src = pkt[IPv6].src
+            if first_src is None:
+                first_src = src
+            directions.append(src == first_src)
         else:
             directions.append(True)
+
 
     if not timestamps:
         return {}

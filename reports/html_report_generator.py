@@ -185,6 +185,32 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             font-weight: bold;
         }
 
+        .known-limitations {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 20px 0 30px 0;
+        }
+
+        .known-limitations summary {
+            cursor: pointer;
+            color: var(--accent-blue);
+            font-weight: bold;
+        }
+
+        .limitation-item {
+            border-top: 1px solid var(--border-color);
+            margin-top: 12px;
+            padding-top: 12px;
+        }
+
+        .limitation-status {
+            color: var(--accent-yellow);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
         @media print {
             body { background-color: #fff; color: #000; }
             .metric-card, table, .matrix-container, .finding-card { background: #fff; border-color: #ccc; color: #000; }
@@ -330,6 +356,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </div>
                 <p>The IPsec configuration meets all corporate security baselines. No weak ciphers or deprecated DH groups observed.</p>
             </div>
+        {% endif %}
+
+        {% if report.known_limitations %}
+        <details class="known-limitations">
+            <summary>Known observability limitations</summary>
+            {% for limitation in report.known_limitations %}
+            <div class="limitation-item">
+                <strong>{{ limitation.field }}</strong>
+                <span class="limitation-status">{{ limitation.status }}</span>
+                <p>{{ limitation.reason }}</p>
+            </div>
+            {% endfor %}
+        </details>
         {% endif %}
     </div>
 </body>

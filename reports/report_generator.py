@@ -6,6 +6,24 @@ from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
+KNOWN_LIMITATIONS = [
+    {
+        "field": "sa_lifetime",
+        "reason": "IKEv2 SA lifetime is negotiated in IKE_AUTH payloads which are encrypted after the IKE_SA_INIT exchange. It cannot be extracted from a PCAP without the pre-shared key or private key for decryption.",
+        "status": "not_observable_without_decryption",
+    },
+    {
+        "field": "pfs",
+        "reason": "Perfect Forward Secrecy can only be confirmed by observing a CREATE_CHILD_SA exchange with a Diffie-Hellman KE payload. If the capture does not include a rekeying event, PFS status remains unverifiable.",
+        "status": "not_observable_without_rekey_capture",
+    },
+    {
+        "field": "replay_protection",
+        "reason": "Anti-replay sequence numbers are inside the ESP header which is encrypted. The window size configuration is not visible in a standard capture.",
+        "status": "not_observable_without_esp_decryption",
+    },
+]
+
 from security.explainability import generate_plain_english_explanations
 from security.drift_detector import detect_configuration_drift
 from security.policy_engine import evaluate_policy_as_code_rules
@@ -44,7 +62,8 @@ def build_unified_analysis_report(
         "explainability": explanations,
         "drift_detection": drift_res,
         "policy_as_code": policy_rules_res,
-        "post_quantum_readiness": pqc_res
+        "post_quantum_readiness": pqc_res,
+        "known_limitations": [dict(item) for item in KNOWN_LIMITATIONS],
     }
 
     return report

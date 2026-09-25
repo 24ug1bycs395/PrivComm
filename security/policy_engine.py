@@ -1,4 +1,5 @@
 import os
+import math
 import yaml
 import logging
 from typing import Dict, Any, List, Optional
@@ -28,8 +29,49 @@ def load_security_policy(policy_path: str = DEFAULT_POLICY_PATH) -> Dict[str, An
         "integrity": {"approved": ["AEAD", "HMAC-SHA2-256", "HMAC-SHA2-384"], "forbidden": ["MD5", "SHA1"]},
         "prf": {"approved": ["HMAC-SHA2-256", "HMAC-SHA2-384", "HMAC-SHA2-512"], "forbidden": ["MD5", "SHA1"]},
         "protocol": {"approved_versions": ["IKEv2"], "disapproved_versions": ["IKEv1"]},
-        "risk_weights": {"HIGH": 30, "MEDIUM": 15, "LOW": 5}
+        "risk_weights": {"HIGH": 30, "MEDIUM": 15, "LOW": 5},
+        "sa_lifetime": {"max_seconds": 28800, "warn_if_unknown": False}
     }
+
+
+def _evaluate_sa_lifetime(ipsec_config: Dict[str, Any], policy: Dict[str, Any]) -> List[SecurityFinding]:
+    """Assess SA lifetime while keeping encrypted IKE_AUTH values unverifiable."""
+    lifetime_policy = policy.get("sa_lifetime", {})
+    max_seconds = lifetime_policy.get("max_seconds", 28800)
+    warn_if_unknown = lifetime_policy.get("warn_if_unknown", True)
+    lifetime = ipsec_config.get("sa_lifetime")
+
+    is_numeric = isinstance(lifetime, (int, float)) and not isinstance(lifetime, bool)
+    if is_numeric:
+        is_numeric = math.isfinite(float(lifetime))
+
+    if not is_numeric:
+        if not warn_if_unknown:
+            return []
+        return [SecurityFinding(
+            finding_id="IPSEC-LIFE-001",
+            category="SA Lifetime",
+            severity="MEDIUM",
+            title="SA lifetime is not observable",
+            observed="unknown",
+            expected=f"At most {max_seconds} seconds",
+            recommendation="Verify the configured lifetime from the endpoint policy or an authenticated/decrypted IKE_AUTH exchange.",
+            status="not_observable",
+        )]
+
+    if float(lifetime) <= float(max_seconds):
+        return []
+
+    return [SecurityFinding(
+        finding_id="IPSEC-LIFE-001",
+        category="SA Lifetime",
+        severity="MEDIUM",
+        title="SA lifetime exceeds policy maximum",
+        observed=f"{lifetime} seconds",
+        expected=f"At most {max_seconds} seconds",
+        recommendation="Reduce the IKE/IPsec SA lifetime to the configured policy maximum.",
+        status="violation",
+    )]
 
 def evaluate_ipsec_security(
     ipsec_config: Dict[str, Any],
@@ -45,6 +87,8 @@ def evaluate_ipsec_security(
 
     if not ipsec_config.get("detected", False):
         return findings
+
+    findings.extend(_evaluate_sa_lifetime(ipsec_config, policy))
 
     # 1. Protocol Version Evaluation
     ike_version = ipsec_config.get("ike_version", "unknown")

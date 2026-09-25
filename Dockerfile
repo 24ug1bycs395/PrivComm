@@ -56,7 +56,6 @@ COPY db ./db
 COPY models ./models
 COPY utils ./utils
 COPY config ./config
-COPY dashboard ./dashboard
 COPY samples ./samples
 
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist

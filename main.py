@@ -24,17 +24,30 @@ from security.recommendations import generate_recommendations
 from security.risk import calculate_security_risk
 from routers.protocol import router as protocol_router
 from routers.testbed import router as testbed_router
+from db.supabase_client import get_supabase_client, is_supabase_enabled
+from contextlib import asynccontextmanager
 
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 logger = logging.getLogger("main")
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize DB connection on server startup
+    sb = get_supabase_client()
+    if sb:
+        logger.info(f"Connected to Supabase cloud storage & database at {os.getenv('SUPABASE_URL')}")
+    else:
+        logger.info("Supabase not configured or unreachable; operating in local storage fallback mode.")
+    yield
+
 # FastAPI App Instance for Cyber Sentinel Web Platform
 app = FastAPI(
     title="Cyber Sentinel — AI-Assisted IPsec VPN Security Intelligence Platform",
     description="Full IPsec VPN protocol dissection, XGBoost traffic classification, and compliance audit engine.",
-    version="2.0"
+    version="2.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -46,6 +59,17 @@ app.add_middleware(
 )
 
 app.include_router(protocol_router)
+app.include_router(testbed_router)
+
+@app.get("/health", tags=["System"])
+async def health_check():
+    return {
+        "status": "healthy",
+        "supabase_connected": is_supabase_enabled(),
+        "storage_mode": "supabase" if is_supabase_enabled() else "local"
+    }
+
+react_dist = os.path.join(os.path.dirname(__file__), "frontend", "dist")
 
 # Serve homepage (index.html), dashboard (dashboard.html), and executive report (report.html)
 @app.get("/", include_in_schema=False)
