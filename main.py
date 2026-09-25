@@ -61,6 +61,7 @@ app.add_middleware(
 app.include_router(protocol_router)
 app.include_router(testbed_router)
 
+@app.head("/health", tags=["System"])
 @app.get("/health", tags=["System"])
 async def health_check():
     return {
@@ -69,13 +70,12 @@ async def health_check():
         "storage_mode": "supabase" if is_supabase_enabled() else "local"
     }
 
-react_dist = os.path.join(os.path.dirname(__file__), "frontend", "dist")
-
 react_dist = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend", "dist")
 if os.path.exists(os.path.join(react_dist, "assets")):
     app.mount("/assets", StaticFiles(directory=os.path.join(react_dist, "assets")), name="assets")
 
 # Serve homepage (index.html), dashboard (dashboard.html), and executive report (report.html)
+@app.head("/", include_in_schema=False)
 @app.get("/", include_in_schema=False)
 async def serve_homepage():
     react_index = os.path.join(react_dist, "index.html")
