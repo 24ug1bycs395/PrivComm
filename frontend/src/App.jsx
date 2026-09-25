@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
+import TelemetryDashboard from './components/TelemetryDashboard';
 import AnalyzerWorkspace from './components/AnalyzerWorkspace';
 import TestbedTab from './components/TestbedTab';
 import HistoryVaultTab from './components/HistoryVaultTab';
@@ -9,12 +10,12 @@ import ComplianceTab from './components/ComplianceTab';
 import { Shield } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('analyzer');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [inspectedAnalysis, setInspectedAnalysis] = useState(null);
 
   const handleNavigateToAnalysis = (analysisData) => {
     setInspectedAnalysis(analysisData);
-    setActiveTab('analyzer');
+    setActiveTab('dashboard');
   };
 
   return (
@@ -29,6 +30,13 @@ export default function App() {
 
       {/* Main Tab Content */}
       <main className="main-content">
+        {activeTab === 'dashboard' && (
+          <TelemetryDashboard
+            externalAnalysis={inspectedAnalysis}
+            onNavigateToTestbed={() => setActiveTab('testbed')}
+            onNavigateToAnalyzer={() => setActiveTab('analyzer')}
+          />
+        )}
         {activeTab === 'analyzer' && <AnalyzerWorkspace externalAnalysis={inspectedAnalysis} />}
         {activeTab === 'testbed' && <TestbedTab onNavigateToAnalysis={handleNavigateToAnalysis} />}
         {activeTab === 'vault' && <HistoryVaultTab onSelectAnalysis={handleNavigateToAnalysis} />}
