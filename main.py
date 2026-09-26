@@ -24,6 +24,7 @@ from security.recommendations import generate_recommendations
 from security.risk import calculate_security_risk
 from routers.protocol import router as protocol_router
 from routers.testbed import router as testbed_router
+from anomaly.routes import router as anomaly_router
 from db.supabase_client import get_supabase_client, is_supabase_enabled
 from contextlib import asynccontextmanager
 
@@ -62,6 +63,7 @@ app.add_middleware(
 
 app.include_router(protocol_router)
 app.include_router(testbed_router)
+app.include_router(anomaly_router)
 
 @app.head("/health", tags=["System"])
 @app.get("/health", tags=["System"])

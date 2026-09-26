@@ -22,6 +22,7 @@ import {
   Eye,
   Send
 } from 'lucide-react';
+import AttackSimulator from './AttackSimulator';
 
 export default function TestbedTab({ onNavigateToAnalysis }) {
   const [scenarios, setScenarios] = useState([]);
@@ -389,6 +390,15 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
               </div>
             </div>
           </div>
+
+          <AttackSimulator
+            isTestbedConnected={Boolean(nodeStatus?.all_online)}
+            topology={{
+              initiator: { host: topology.initiator_ip, interface: 'eth1' },
+              responder: { host: topology.responder_ip, interface: 'eth1' },
+              observer: { host: topology.observer_ip, interface: 'eth1' }
+            }}
+          />
 
           {/* Scenario Selector Card */}
           <div className="glass-card" style={{ padding: '1.25rem' }}>
@@ -866,8 +876,8 @@ function EventCard({ event, expanded, onToggle }) {
   const hasOutput = event.output && event.output.trim().length > 0;
 
   const typeIcon =
-    event.type === 'complete' ? '✓' :
-    event.type === 'error'    ? '✗' :
+    event.type === 'complete' ? '' :
+    event.type === 'error'    ? '' :
     event.type === 'connection' ? '⟳' :
     event.type === 'status'   ? '●' :
     event.type === 'command'  ? '$' : '·';
@@ -1042,7 +1052,7 @@ function SubstepPipeline({ events, state }) {
               animation: isActive ? 'pulse-glow 1.4s ease-in-out infinite' : 'none',
             }}>
               <div style={{ fontSize: '0.58rem', fontWeight: 800, color: textColor }}>
-                {isDone ? '✓' : isFailed ? '✗' : phase.short}
+                {isDone ? '' : isFailed ? '' : phase.short}
               </div>
               <div style={{ fontSize: '0.6rem', color: textColor, fontWeight: 600 }}>
                 {phase.label}

@@ -38,6 +38,34 @@ class ProtocolIdentificationEngine:
         traffic_res = predict_traffic_class(flow_feats)
         predicted_type = traffic_res.get("traffic_type") if traffic_res.get("status") == "success" else None
 
+        # 2b. Evaluate VPN Behavioral Anomaly Detection
+        anomaly_res = None
+        try:
+            from anomaly import service as anomaly_service
+            pcap_anom = anomaly_service.analyze_pcap_windows(pcap_path)
+            anomaly_res = pcap_anom.model_dump() if hasattr(pcap_anom, "model_dump") else pcap_anom.dict()
+        except Exception as anom_err:
+            logger.warning(f"VPN Behavioral Anomaly analysis encountered an issue: {anom_err}")
+            try:
+                from anomaly.feature_adapter import adapt_flow_features_to_behavioral
+                from anomaly import service as anomaly_service
+                adapted_feats = adapt_flow_features_to_behavioral(flow_feats)
+                single_pred = anomaly_service.predict_sample(adapted_feats)
+                dumped = single_pred.model_dump() if hasattr(single_pred, "model_dump") else single_pred.dict()
+                anomaly_res = {
+                    "status": "success",
+                    "filename": pcap_path,
+                    "total_windows": 1,
+                    "anomalous_windows": 1 if dumped.get("prediction") == "anomalous" else 0,
+                    "overall_anomaly_score": dumped.get("anomaly_score", 0.0),
+                    "overall_prediction": dumped.get("prediction", "normal"),
+                    "overall_severity": dumped.get("severity", "LOW"),
+                    "window_results": [dumped],
+                    "top_deviations": dumped.get("top_contributing_features", []),
+                }
+            except Exception:
+                anomaly_res = None
+
         # 3. Context-Aware Security Policy Audit & Observable Metadata Exposure
         findings = evaluate_ipsec_security(ipsec, traffic_type=predicted_type)
 
@@ -96,6 +124,7 @@ class ProtocolIdentificationEngine:
             source_ip=ingest_res.get("source_ip"),
             destination_ip=ingest_res.get("destination_ip"),
             traffic_classification=traffic_res,
+            behavioral_anomaly=anomaly_res,
             metadata_exposure=meta_exposure,
             security_assessment={
                 "risk_score": risk_res.get("score", 0),

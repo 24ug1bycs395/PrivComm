@@ -1,0 +1,41 @@
+{
+  "schema_version": "vpn-behavior-v1",
+  "feature_columns": [
+    "duration_sec",
+    "packet_count",
+    "byte_count",
+    "packets_per_second",
+    "bytes_per_second",
+    "mean_packet_size",
+    "std_packet_size",
+    "min_packet_size",
+    "max_packet_size",
+    "mean_inter_arrival_time",
+    "std_inter_arrival_time",
+    "forward_packet_count",
+    "backward_packet_count",
+    "forward_byte_count",
+    "backward_byte_count",
+    "flow_count",
+    "new_flows_per_minute",
+    "concurrent_flows",
+    "unique_source_count",
+    "unique_destination_count",
+    "peer_count",
+    "inbound_outbound_byte_ratio",
+    "inbound_outbound_packet_ratio",
+    "tcp_packet_count",
+    "udp_packet_count",
+    "icmp_packet_count",
+    "other_packet_count",
+    "esp_packet_count",
+    "ike_packet_count",
+    "sa_establishment_frequency",
+    "session_duration_mean",
+    "session_duration_std"
+  ],
+  "label_mapping": {
+    "0": "normal",
+    "1": "anomalous"
+  }
+}

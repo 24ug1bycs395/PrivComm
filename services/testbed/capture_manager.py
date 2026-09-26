@@ -64,7 +64,7 @@ class CaptureManager:
         remote_pcap = f"/tmp/{pcap_filename}"
         # Filter for ISAKMP (500), IPsec NAT-T (4500), and ESP (protocol 50)
         capture_cmd = (
-            f"nohup sudo tcpdump -i {interface} 'udp port 500 or udp port 4500 or proto 50' "
+            f"nohup sudo tcpdump -i {interface} 'udp port 500 or udp port 4500 or ip proto 50' "
             f"-w {remote_pcap} > /dev/null 2>&1 & echo $!"
         )
         code, stdout, stderr = await SSHController.run_command(observer_vm, capture_cmd)
@@ -88,6 +88,29 @@ class CaptureManager:
         await asyncio.sleep(0.5)
 
         os.makedirs(os.path.dirname(local_pcap_path), exist_ok=True)
+
+        # Dataset generation can require an actual observer capture. In that
+        # mode, never silently replace an unavailable capture with a sample.
+        if not observer_vm.is_simulated:
+            try:
+                downloaded = await SSHController.download_file(
+                    observer_vm, remote_pcap_path, local_pcap_path
+                )
+                if downloaded:
+                    filename = os.path.basename(local_pcap_path)
+                    return StorageService.upload_pcap_capture(filename, local_pcap_path)
+            except Exception as exc:
+                logger.warning(f"[CaptureManager] Real PCAP retrieval failed: {exc}")
+                if os.getenv("TESTBED_REQUIRE_REAL_CAPTURE", "0") == "1":
+                    raise RuntimeError(
+                        "Real strongSwan PCAP capture was required but could not be retrieved "
+                        f"from {observer_vm.host}: {exc}"
+                    ) from exc
+
+        if os.getenv("TESTBED_REQUIRE_REAL_CAPTURE", "0") == "1":
+            raise RuntimeError(
+                "Real strongSwan PCAP capture was required, but the observer capture was unavailable or empty."
+            )
 
         # In simulated / offline mode or if remote fetch not available, copy appropriate sample capture
         profile = str(getattr(scenario, "traffic_profile", "") or "").upper()

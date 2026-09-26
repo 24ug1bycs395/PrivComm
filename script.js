@@ -344,7 +344,7 @@ function renderAnalysisResults(data, filename) {
     });
   } else {
     findingsHtml = `<div style="margin-top:8px; padding:8px; background:rgba(34, 197, 94, 0.1); border-left:3px solid #22c55e; border-radius:4px; color:#4ade80;">
-      ✓ Configuration complies with security policy baselines. No vulnerabilities observed.
+       Configuration complies with security policy baselines. No vulnerabilities observed.
     </div>`;
   }
 
@@ -362,7 +362,7 @@ function renderAnalysisResults(data, filename) {
           <strong style="font-size:0.85rem; color:#38bdf8;">${item.icon} ${item.title}</strong>
           <div style="display:flex; align-items:center; gap:6px;">
             <button onclick="askAiAboutCard('${safeTitle}', '${safeDetail}')" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; padding:2px 8px; font-size:0.7rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:3px;" title="Ask AI about this component">
-              ✨ Ask AI
+               Ask AI
             </button>
             <span style="font-size:0.7rem; padding:2px 6px; border-radius:4px; font-weight:bold; background:${badgeBg}; color:${badgeColor};">${item.status}</span>
           </div>
@@ -395,7 +395,7 @@ function renderAnalysisResults(data, filename) {
 
     ${explainHtml ? `
     <div style="margin-top:12px;">
-      <span class="console-highlight" style="color:#e0f2fe;">💡 PLAIN-ENGLISH COMPONENT RATIONALE</span>
+      <span class="console-highlight" style="color:#e0f2fe;"> PLAIN-ENGLISH COMPONENT RATIONALE</span>
       ${explainHtml}
     </div>` : ''}
 
@@ -406,13 +406,13 @@ function renderAnalysisResults(data, filename) {
 
     <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
       <a href="/report?filename=${encodeURIComponent(filename)}" target="_blank" class="btn btn-primary-sm" style="text-decoration:none; background:#2563eb; color:#fff;">
-        👁️ View Executive Report Page
+         View Executive Report Page
       </a>
       <a href="/reports/download-html?filename=${encodeURIComponent(filename)}" target="_blank" class="btn btn-secondary-sm" style="text-decoration:none;">
-        🌐 Download HTML
+         Download HTML
       </a>
       <a href="/reports/download-json?filename=${encodeURIComponent(filename)}" target="_blank" class="btn btn-secondary-sm" style="text-decoration:none;">
-        📄 Technical JSON
+         Technical JSON
       </a>
     </div>
   `;
@@ -497,7 +497,7 @@ async function sendChatMessage() {
   // Append AI Thinking bubble
   const aiMsgDiv = document.createElement('div');
   aiMsgDiv.className = 'chat-msg msg-ai';
-  aiMsgDiv.innerHTML = `<div class="msg-bubble" style="color: #38bdf8;">🧠 Privcomm AI is analyzing...</div>`;
+  aiMsgDiv.innerHTML = `<div class="msg-bubble" style="color: #38bdf8;"> Privcomm AI is analyzing...</div>`;
   messagesEl.appendChild(aiMsgDiv);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 
@@ -517,7 +517,7 @@ async function sendChatMessage() {
 
     aiMsgDiv.innerHTML = `<div class="msg-bubble">${replyText}</div>`;
   } catch (err) {
-    aiMsgDiv.innerHTML = `<div class="msg-bubble" style="color:#fca5a5;">⚠️ Assistant notice: Unable to connect to backend server. Ensure server is running with <code>python main.py server</code>.</div>`;
+    aiMsgDiv.innerHTML = `<div class="msg-bubble" style="color:#fca5a5;"> Assistant notice: Unable to connect to backend server. Ensure server is running with <code>python main.py server</code>.</div>`;
   }
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }

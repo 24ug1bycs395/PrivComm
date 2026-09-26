@@ -3,11 +3,15 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install strongSwan, networking, capture tools, and OpenSSH server
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Configure wireshark permissions non-interactively
+RUN echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections
+
+# Install strongSwan, TShark/Wireshark, networking, and OpenSSH server
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     strongswan \
     strongswan-swanctl \
     strongswan-pki \
+    libstrongswan-standard-plugins \
     libcharon-extra-plugins \
     iptables \
     iproute2 \
@@ -16,13 +20,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     iperf3 \
     tcpdump \
     tshark \
+    wireshark-common \
     libpcap-dev \
     openssh-server \
     sudo \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure SSH server & create default 'vagrant' user with sudo
-RUN mkdir /var/run/sshd \
+RUN mkdir -p /var/run/sshd \
     && useradd -m -s /bin/bash vagrant \
     && echo "vagrant:vagrant" | chpasswd \
     && usermod -aG sudo vagrant \
