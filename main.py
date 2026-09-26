@@ -27,7 +27,9 @@ from routers.testbed import router as testbed_router
 from db.supabase_client import get_supabase_client, is_supabase_enabled
 from contextlib import asynccontextmanager
 
-load_dotenv()
+for env_file in [".env", "/etc/secrets/.env", os.path.join(os.getcwd(), ".env")]:
+    if os.path.exists(env_file):
+        load_dotenv(env_file)
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 logger = logging.getLogger("main")

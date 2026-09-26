@@ -49,11 +49,11 @@ def ingest_and_parse_pcap(pcap_path: str) -> Dict[str, Any]:
             "metadata_exposure": {}
         }
 
-    # Attempt Scapy parsing for direct feature extraction and packet analysis
+    # Attempt Scapy parsing for direct feature extraction and packet analysis (cap to 5000 pkts to prevent memory spikes)
     scapy_pkts = None
     try:
         from scapy.all import rdpcap
-        scapy_pkts = rdpcap(pcap_path)
+        scapy_pkts = rdpcap(pcap_path, count=5000)
     except Exception as e:
         logger.warning(f"Scapy failed to parse '{pcap_path}': {e}")
 
@@ -63,7 +63,7 @@ def ingest_and_parse_pcap(pcap_path: str) -> Dict[str, Any]:
 
     if tshark_bin:
         logger.info(f"Using TShark at {tshark_bin} for dissection...")
-        tshark_json = run_tshark_json(pcap_path)
+        tshark_json = run_tshark_json(pcap_path, display_filter="isakmp or esp or ah")
         if tshark_json:
             ike_info = parse_ike_tshark_json(tshark_json)
             esp_info = parse_esp_tshark_json(tshark_json)

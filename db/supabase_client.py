@@ -3,7 +3,10 @@ import logging
 from typing import Optional
 from dotenv import load_dotenv
 
-load_dotenv()
+for env_file in [".env", "/etc/secrets/.env", os.path.join(os.getcwd(), ".env")]:
+    if os.path.exists(env_file):
+        load_dotenv(env_file)
+
 logger = logging.getLogger("db.supabase_client")
 
 _supabase_client = None

@@ -334,7 +334,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         border: '1px solid var(--border-subtle)',
         borderRadius: '12px',
         padding: '12px 20px',
-        marginBottom: '20px',
+        marginBottom: '16px',
         flexWrap: 'wrap',
         gap: '12px'
       }}>
@@ -370,6 +370,71 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
               <span>Launch Testbed VM</span>
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Multi-Tunnel Selector & Global Network Mesh Bar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justify: 'space-between',
+        background: 'rgba(15, 23, 42, 0.85)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: '10px',
+        padding: '10px 16px',
+        marginBottom: '20px',
+        flexWrap: 'wrap',
+        gap: '10px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Layers size={16} color="#38bdf8" />
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Multi-Tunnel Hub & Spoke Mesh:
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => loadHistoryItem('ikev2_s2s_ipsec_vpn_aes_gcm.pcapng')}
+            style={{
+              background: (!selectedFilename.toLowerCase().includes('des') && !selectedFilename.toLowerCase().includes('ikev1')) ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.04)',
+              border: (!selectedFilename.toLowerCase().includes('des') && !selectedFilename.toLowerCase().includes('ikev1')) ? '1px solid #38bdf8' : '1px solid var(--border-subtle)',
+              color: (!selectedFilename.toLowerCase().includes('des') && !selectedFilename.toLowerCase().includes('ikev1')) ? '#38bdf8' : '#94a3b8',
+              borderRadius: '6px',
+              padding: '6px 12px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span style={{ width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%', boxShadow: '0 0 6px #22c55e' }} />
+            <span>Tunnel 1: HQ ↔ Branch Alpha (AES-256-GCM)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => loadHistoryItem('IKEv1_Aggressive_DES_MD5.pcap')}
+            style={{
+              background: (selectedFilename.toLowerCase().includes('des') || selectedFilename.toLowerCase().includes('ikev1')) ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.04)',
+              border: (selectedFilename.toLowerCase().includes('des') || selectedFilename.toLowerCase().includes('ikev1')) ? '1px solid #ef4444' : '1px solid var(--border-subtle)',
+              color: (selectedFilename.toLowerCase().includes('des') || selectedFilename.toLowerCase().includes('ikev1')) ? '#fca5a5' : '#94a3b8',
+              borderRadius: '6px',
+              padding: '6px 12px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span style={{ width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%', boxShadow: '0 0 6px #ef4444' }} />
+            <span>Tunnel 2: HQ ↔ Branch Beta (3DES Drift)</span>
+          </button>
         </div>
       </div>
 

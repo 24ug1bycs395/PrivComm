@@ -86,8 +86,15 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
       });
 
       if (!res.ok) {
-        const errJson = await res.json().catch(() => ({ detail: 'Analysis failed' }));
-        throw new Error(errJson.detail || `Server returned HTTP ${res.status}`);
+        let errorMsg = `Server returned HTTP ${res.status}`;
+        try {
+          const errJson = await res.json();
+          if (errJson?.detail) errorMsg = errJson.detail;
+        } catch (_) {
+          const errText = await res.text().catch(() => '');
+          if (errText) errorMsg = `${errorMsg} - ${errText.slice(0, 120)}`;
+        }
+        throw new Error(errorMsg);
       }
 
       const data = await res.json();
