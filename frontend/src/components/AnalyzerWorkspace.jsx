@@ -212,14 +212,14 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
     <div className="analyzer-workspace-container">
       {/* Header Pretitle */}
       <div style={{ marginBottom: '28px' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '9999px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', color: '#38bdf8', fontFamily: 'JetBrains Mono', fontSize: '0.74rem', fontWeight: 600, marginBottom: '10px' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '9999px', background: 'var(--accent-cyan-dim)', border: '1px solid var(--border-default)', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontSize: '0.74rem', fontWeight: 600, marginBottom: '10px' }}>
           <Activity size={14} />
-          <span>LIVE PROTOCOL DISSECTION & XGBOOST INFERENCE</span>
+          <span>LIVE PROTOCOL DISSECTION &amp; XGBOOST INFERENCE</span>
         </div>
-        <h2 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', marginBottom: '8px' }}>
+        <h2 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '8px' }}>
           IPsec VPN Security Intelligence Platform
         </h2>
-        <p style={{ color: '#94a3b8', fontSize: '0.95rem', maxWidth: '820px' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', maxWidth: '820px' }}>
           Upload live packet captures (.pcap, .pcapng) or inspect reference cryptographic handshakes to run deterministic policy checks and AI traffic classification.
         </p>
       </div>
@@ -240,10 +240,10 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
             <UploadCloud size={28} />
           </div>
           <div>
-            <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>
-              Drag & Drop PCAP Capture Files
+            <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+              Drag &amp; Drop PCAP Capture Files
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
               Supports .pcap, .pcapng &bull; Local in-memory parsing
             </div>
           </div>
@@ -262,22 +262,22 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
         {/* Reference Presets */}
         <div className="samples-panel">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.72rem', color: '#38bdf8', fontWeight: 600 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-cyan)', fontWeight: 600 }}>
               REFERENCE SCENARIOS
             </span>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>1-Click Audit</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>1-Click Audit</span>
           </div>
 
           <div className="sample-row-card" onClick={() => handleLoadSample('ikev2-strong')}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: 'var(--accent-green-dim)', color: 'var(--accent-green)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Shield size={18} />
               </div>
               <div>
-                <strong style={{ fontFamily: 'JetBrains Mono', fontSize: '0.84rem', color: '#fff', display: 'block' }}>
+                <strong style={{ fontFamily: 'var(--font-mono)', fontSize: '0.84rem', color: 'var(--text-primary)', display: 'block' }}>
                   IKEv2_SuiteB_GCM256.pcap
                 </strong>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                   Compliant IKEv2 &bull; AES-256-GCM &bull; DH Group 19 &bull; Clean Policy
                 </span>
               </div>
@@ -287,14 +287,14 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
 
           <div className="sample-row-card" onClick={() => handleLoadSample('ikev1-weak')}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: 'rgba(220, 38, 38, 0.1)', color: 'var(--accent-red)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <AlertTriangle size={18} />
               </div>
               <div>
-                <strong style={{ fontFamily: 'JetBrains Mono', fontSize: '0.84rem', color: '#fff', display: 'block' }}>
+                <strong style={{ fontFamily: 'var(--font-mono)', fontSize: '0.84rem', color: 'var(--text-primary)', display: 'block' }}>
                   IKEv1_Aggressive_DES_MD5.pcap
                 </strong>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                   Vulnerable &bull; 3DES-CBC &bull; DH Group 2 &bull; PSK Hash Exposure
                 </span>
               </div>
@@ -309,15 +309,15 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
         <div className="console-box">
           <div className="console-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span className="live-dot" style={{ background: '#38bdf8', boxShadow: '0 0 8px #38bdf8' }}></span>
-              <span style={{ color: '#fff', fontWeight: 600 }}>Executing Intelligence Pipeline...</span>
+              <span className="live-dot" style={{ background: 'var(--accent-cyan)', boxShadow: '0 0 8px var(--accent-cyan)' }}></span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Executing Intelligence Pipeline...</span>
             </div>
-            <span style={{ color: '#38bdf8', fontSize: '0.72rem', background: 'rgba(56, 189, 248, 0.1)', padding: '2px 8px', borderRadius: '4px' }}>
-              DISSECTION & INFERENCE ACTIVE
+            <span style={{ color: 'var(--accent-cyan)', fontSize: '0.72rem', background: 'var(--accent-cyan-dim)', padding: '2px 8px', borderRadius: '4px' }}>
+              DISSECTION &amp; INFERENCE ACTIVE
             </span>
           </div>
           {pipelineLogs.map((log, idx) => (
-            <div key={idx} style={{ color: idx === pipelineLogs.length - 1 ? '#38bdf8' : '#94a3b8' }}>
+            <div key={idx} style={{ color: idx === pipelineLogs.length - 1 ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}>
               {log}
             </div>
           ))}
@@ -326,7 +326,7 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
 
       {/* Error Banner */}
       {errorNotice && (
-        <div style={{ padding: '14px 18px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ padding: '14px 18px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: 'var(--accent-red)', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <AlertOctagon size={18} />
           <span>{errorNotice}</span>
         </div>
@@ -338,19 +338,19 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
           {/* Top File Banner */}
           <div className="file-banner">
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div style={{ width: '44px', height: '44px', borderRadius: '8px', background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '44px', height: '44px', borderRadius: '8px', background: 'var(--accent-cyan-dim)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <FileCheck size={24} />
               </div>
               <div>
-                <h3 style={{ fontFamily: 'JetBrains Mono', fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
+                <h3 style={{ fontFamily: 'var(--font-mono)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                   {activeFilename}
                 </h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                  <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                     Parsed {analysisResult.packet_count || 1482} frames &bull; Scapy/TShark Engine
                   </span>
                   {analysisResult.source_ip && analysisResult.destination_ip && (
-                    <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.75rem', background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.3)', color: '#38bdf8', padding: '2px 8px', borderRadius: '4px' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: 'var(--accent-cyan-dim)', border: '1px solid var(--border-default)', color: 'var(--accent-cyan)', padding: '2px 8px', borderRadius: '4px' }}>
                       IP Pair: {analysisResult.source_ip} &rarr; {analysisResult.destination_ip} ({analysisResult.ip_version || 'IPv4'})
                     </span>
                   )}
@@ -413,37 +413,37 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
 
             <div className="metric-box">
               <div className="metric-title-bar">
-                <span>CIPHER & INTEGRITY SUITE</span>
-                <Lock size={16} color="#22c55e" />
+                <span>CIPHER &amp; INTEGRITY SUITE</span>
+                <Lock size={16} color="var(--accent-green)" />
               </div>
               <div className="metric-big-val" style={{ fontSize: '1.25rem' }}>
                 {analysisResult.encryption || 'AES-256-GCM'}
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '6px' }}>
-                Integrity / PRF: <strong style={{ color: '#fff' }}>{analysisResult.integrity || 'AEAD'}</strong>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-subtle)', paddingTop: '6px' }}>
+                Integrity / PRF: <strong style={{ color: 'var(--text-primary)' }}>{analysisResult.integrity || 'AEAD'}</strong>
               </div>
             </div>
 
             <div className="metric-box">
               <div className="metric-title-bar">
-                <span>KEY EXCHANGE & MODE</span>
-                <Zap size={16} color="#eab308" />
+                <span>KEY EXCHANGE &amp; MODE</span>
+                <Zap size={16} color="var(--accent-yellow)" />
               </div>
               <div className="metric-big-val" style={{ fontSize: '1.25rem' }}>
                 Group {analysisResult.dh_group || '19'}
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '6px' }}>
-                Mode: <strong style={{ color: '#fff' }}>{analysisResult.ike_version || 'IKEv2'} ({analysisResult.mode || 'Tunnel'})</strong>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-subtle)', paddingTop: '6px' }}>
+                Mode: <strong style={{ color: 'var(--text-primary)' }}>{analysisResult.ike_version || 'IKEv2'} ({analysisResult.mode || 'Tunnel'})</strong>
               </div>
             </div>
           </div>
 
           {/* Observable Metadata Exposure Summary Card */}
           <div className="matrix-card" style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#38bdf8' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid var(--border-subtle)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--accent-cyan)' }}>
                 <Activity size={18} />
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff' }}>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                   Observable Metadata Exposure Intelligence
                 </h4>
               </div>
@@ -453,50 +453,50 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '16px' }}>
-              <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'JetBrains Mono', display: 'block', marginBottom: '4px' }}>
+              <div style={{ background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>
                   VISIBLE ENDPOINT IPS
                 </span>
-                <strong style={{ fontFamily: 'JetBrains Mono', fontSize: '0.86rem', color: '#38bdf8' }}>
+                <strong style={{ fontFamily: 'var(--font-mono)', fontSize: '0.86rem', color: 'var(--accent-cyan)' }}>
                   {analysisResult.source_ip || 'N/A'} &rarr; {analysisResult.destination_ip || 'N/A'}
                 </strong>
-                <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '4px' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', display: 'block', marginTop: '4px' }}>
                   Outer IP Pair ({analysisResult.ip_version || 'IPv4'})
                 </span>
               </div>
 
-              <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'JetBrains Mono', display: 'block', marginBottom: '4px' }}>
+              <div style={{ background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>
                   IKE IDENTITY PAYLOADS ($ID_i$ / $ID_r$)
                 </span>
-                <strong style={{ fontSize: '0.86rem', color: analysisResult.metadata_exposure?.identity_exposure?.plaintext_identity_leak ? '#fca5a5' : '#4ade80' }}>
+                <strong style={{ fontSize: '0.86rem', color: analysisResult.metadata_exposure?.identity_exposure?.plaintext_identity_leak ? 'var(--accent-red)' : 'var(--accent-green)' }}>
                   {analysisResult.metadata_exposure?.identity_exposure?.plaintext_identity_leak ? 'PLAINTEXT EXPOSED' : 'ENCRYPTED / ABSENT'}
                 </strong>
-                <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '4px' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', display: 'block', marginTop: '4px' }}>
                   {analysisResult.metadata_exposure?.identity_exposure?.exposed_identity_type || 'No Plaintext Leakage'}
                 </span>
               </div>
 
-              <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'JetBrains Mono', display: 'block', marginBottom: '4px' }}>
+              <div style={{ background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>
                   SPI SESSION LINKABILITY
                 </span>
-                <strong style={{ fontSize: '0.86rem', color: analysisResult.metadata_exposure?.spi_correlation?.spi_linkability_risk === 'HIGH' ? '#fca5a5' : '#fde047' }}>
+                <strong style={{ fontSize: '0.86rem', color: analysisResult.metadata_exposure?.spi_correlation?.spi_linkability_risk === 'HIGH' ? 'var(--accent-red)' : 'var(--accent-yellow)' }}>
                   {analysisResult.metadata_exposure?.spi_correlation?.spi_linkability_risk || 'LOW'} TRACKING RISK
                 </strong>
-                <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '4px' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', display: 'block', marginTop: '4px' }}>
                   {analysisResult.metadata_exposure?.spi_correlation?.esp_spis?.length || 0} ESP SPI(s) Observed
                 </span>
               </div>
 
-              <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'JetBrains Mono', display: 'block', marginBottom: '4px' }}>
+              <div style={{ background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>
                   HEADER EXPOSURE (MODE)
                 </span>
-                <strong style={{ fontSize: '0.86rem', color: analysisResult.mode === 'Transport' ? '#fde047' : '#4ade80' }}>
+                <strong style={{ fontSize: '0.86rem', color: analysisResult.mode === 'Transport' ? 'var(--accent-yellow)' : 'var(--accent-green)' }}>
                   {analysisResult.mode || 'Tunnel'} Mode ({analysisResult.metadata_exposure?.transport_mode_exposure?.exposed_metadata_bytes_per_pkt || 0} B/pkt)
                 </strong>
-                <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '4px' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', display: 'block', marginTop: '4px' }}>
                   {analysisResult.mode === 'Transport' ? 'Exposes Inner IP Header' : 'Full Envelope Encapsulation'}
                 </span>
               </div>
@@ -507,24 +507,24 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.35fr', gap: '24px', marginBottom: '24px' }}>
             {/* 3x3 Threat Matrix */}
             <div className="matrix-card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#38bdf8', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--accent-cyan)', paddingBottom: '12px', borderBottom: '1px solid var(--border-subtle)' }}>
                 <Shield size={18} />
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff' }}>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                   3x3 Threat Matrix (Severity vs Likelihood)
                 </h4>
               </div>
               <div className="matrix-grid-3x3">
                 <div></div>
-                <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.7rem', color: '#64748b' }}>Low Impact</div>
-                <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.7rem', color: '#64748b' }}>Med Impact</div>
-                <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.7rem', color: '#64748b' }}>High Impact</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>Low Impact</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>Med Impact</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>High Impact</div>
 
-                <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.7rem', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>High L-hood</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>High L-hood</div>
                 <div className={`matrix-cell matrix-med ${riskLevel === 'MEDIUM' ? 'active-risk' : ''}`}>Medium</div>
                 <div className="matrix-cell matrix-high">High</div>
                 <div className={`matrix-cell matrix-crit ${riskLevel === 'HIGH' ? 'active-risk' : ''}`}>Critical</div>
 
-                <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.7rem', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Med L-hood</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Med L-hood</div>
                 <div className={`matrix-cell matrix-low ${riskLevel === 'LOW' || riskLevel === 'SECURE' ? 'active-risk' : ''}`}>Low</div>
                 <div className="matrix-cell matrix-med">Medium</div>
                 <div className="matrix-cell matrix-high">High</div>
@@ -538,10 +538,10 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
 
             {/* Cryptographic Baseline Table */}
             <div className="matrix-card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#38bdf8', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--accent-cyan)', paddingBottom: '12px', borderBottom: '1px solid var(--border-subtle)' }}>
                 <Terminal size={18} />
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff' }}>
-                  Cryptographic Parameters & Baseline Verification
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Cryptographic Parameters &amp; Baseline Verification
                 </h4>
               </div>
               <div className="table-responsive">
@@ -617,20 +617,20 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
 
           {/* Security Findings & Actionable Remediations */}
           <div className="matrix-card" style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#38bdf8', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--accent-cyan)', paddingBottom: '12px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
               <AlertOctagon size={18} />
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff' }}>
-                Security Audit Findings & Explainable Remediation Directives
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                Security Audit Findings &amp; Explainable Remediation Directives
               </h4>
             </div>
 
             {findings.length === 0 ? (
               <div className="finding-box LOW">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 700, color: '#4ade80' }}>✓ Zero Cryptographic Policy Violations</span>
+                  <span style={{ fontWeight: 700, color: 'var(--accent-green)' }}>✓ Zero Cryptographic Policy Violations</span>
                   <span className="status-badge compliant">NIST COMPLIANT</span>
                 </div>
-                <p style={{ fontSize: '0.84rem', color: '#94a3b8' }}>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
                   The capture matches corporate baselines, FIPS 140-3 primitives, and NSA Commercial Solutions for Classified guidelines. No weak transforms or deprecated DH groups observed.
                 </p>
               </div>
@@ -638,17 +638,17 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
               findings.map((f, i) => (
                 <div key={i} className={`finding-box ${f.severity || 'HIGH'}`}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 700, color: '#fff', fontSize: '0.92rem' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.92rem' }}>
                       [{f.finding_id || `AUDIT-${i + 1}`}] {f.title}
                     </span>
                     <span className={`status-badge ${f.severity === 'HIGH' ? 'danger' : 'warning'}`}>
                       {f.severity} SEVERITY
                     </span>
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                    Observed: <code style={{ color: '#7dd3fc', background: 'rgba(255,255,255,0.08)', padding: '2px 6px', borderRadius: '4px' }}>{f.observed}</code> &bull; Expected: <code style={{ color: '#7dd3fc', background: 'rgba(255,255,255,0.08)', padding: '2px 6px', borderRadius: '4px' }}>{f.expected}</code>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    Observed: <code style={{ color: 'var(--accent-cyan)', background: 'var(--accent-cyan-dim)', padding: '2px 6px', borderRadius: '4px' }}>{f.observed}</code> &bull; Expected: <code style={{ color: 'var(--accent-cyan)', background: 'var(--accent-cyan-dim)', padding: '2px 6px', borderRadius: '4px' }}>{f.expected}</code>
                   </div>
-                  <div style={{ fontSize: '0.84rem', color: '#38bdf8', background: 'rgba(56, 189, 248, 0.08)', padding: '8px 12px', borderRadius: '6px', borderLeft: '3px solid #38bdf8' }}>
+                  <div style={{ fontSize: '0.84rem', color: 'var(--accent-cyan)', background: 'var(--accent-cyan-dim)', padding: '8px 12px', borderRadius: '6px', borderLeft: '3px solid var(--accent-cyan)' }}>
                     <strong>Actionable Directive:</strong> {f.recommendation}
                   </div>
                 </div>
@@ -659,10 +659,10 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
           {/* Export Toolbar */}
           <div className="export-card">
             <div>
-              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>
-                Export Formal Reports & Telemetry
+              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                Export Formal Reports &amp; Telemetry
               </h4>
-              <p style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
                 Download standalone executive printable HTML report or technical JSON format for SIEM ingestion.
               </p>
             </div>

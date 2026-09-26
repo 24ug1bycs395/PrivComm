@@ -1,7 +1,10 @@
 import React, { useEffect, useRef } from 'react';
+import { useTheme } from '../ThemeContext';
 
 export default function TopologyCanvas() {
   const canvasRef = useRef(null);
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -16,16 +19,19 @@ export default function TopologyCanvas() {
     resize();
     window.addEventListener('resize', resize);
 
+    const primaryColor = isLight ? '#0284c7' : '#38bdf8';
+    const greenColor = isLight ? '#16a34a' : '#34d399';
+    const blueColor = isLight ? '#2563eb' : '#3b82f6';
+
     // Particles for flowing ESP/AH encrypted packets
     const particles = [];
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 28; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         progress: Math.random(),
         speed: 0.003 + Math.random() * 0.004,
         size: 2 + Math.random() * 2.5,
-        alpha: 0.3 + Math.random() * 0.7,
-        color: Math.random() > 0.3 ? '#38bdf8' : '#22c55e',
+        color: Math.random() > 0.35 ? primaryColor : greenColor,
       });
     }
 
@@ -40,7 +46,7 @@ export default function TopologyCanvas() {
 
       // Connecting Tunnel Mesh Lines
       ctx.lineWidth = 2;
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+      ctx.strokeStyle = isLight ? 'rgba(2, 132, 199, 0.22)' : 'rgba(56, 189, 248, 0.2)';
       ctx.setLineDash([6, 6]);
 
       // Path Alpha -> Center
@@ -76,21 +82,21 @@ export default function TopologyCanvas() {
         ctx.arc(px, py, p.size, 0, Math.PI * 2);
         ctx.fillStyle = p.color;
         ctx.shadowColor = p.color;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 6;
         ctx.fill();
         ctx.shadowBlur = 0;
       });
 
       // Nodes
       [
-        { ...nodeA, label: 'GATEWAY ALPHA', sub: 'Site-01 Initiator', color: '#38bdf8' },
-        { ...nodeCenter, label: 'SENTINEL CORE', sub: 'ESP/AH Inspector', color: '#6366f1' },
-        { ...nodeB, label: 'GATEWAY BETA', sub: 'Site-02 Responder', color: '#22c55e' },
+        { ...nodeA, label: 'GATEWAY ALPHA', sub: 'Site-01 Initiator', color: primaryColor },
+        { ...nodeCenter, label: 'SENTINEL CORE', sub: 'ESP/AH Inspector', color: blueColor },
+        { ...nodeB, label: 'GATEWAY BETA', sub: 'Site-02 Responder', color: greenColor },
       ].forEach((node) => {
-        // Outer glow circle
+        // Outer circle
         ctx.beginPath();
         ctx.arc(node.x, node.y, 20, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(16, 26, 46, 0.9)';
+        ctx.fillStyle = isLight ? '#ffffff' : 'rgba(16, 26, 46, 0.9)';
         ctx.strokeStyle = node.color;
         ctx.lineWidth = 2;
         ctx.fill();
@@ -101,18 +107,18 @@ export default function TopologyCanvas() {
         ctx.arc(node.x, node.y, 6, 0, Math.PI * 2);
         ctx.fillStyle = node.color;
         ctx.shadowColor = node.color;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = isLight ? 4 : 8;
         ctx.fill();
         ctx.shadowBlur = 0;
 
         // Text
-        ctx.font = 'bold 11px Plus Jakarta Sans, sans-serif';
-        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 11px Inter, sans-serif';
+        ctx.fillStyle = isLight ? '#0f172a' : '#f8fafc';
         ctx.textAlign = 'center';
         ctx.fillText(node.label, node.x, node.y + 36);
 
         ctx.font = '10px JetBrains Mono, monospace';
-        ctx.fillStyle = '#94a3b8';
+        ctx.fillStyle = isLight ? '#475569' : '#94a3b8';
         ctx.fillText(node.sub, node.x, node.y + 50);
       });
 
@@ -125,15 +131,30 @@ export default function TopologyCanvas() {
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [isLight]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', borderRadius: '12px', background: 'rgba(10, 16, 28, 0.7)', border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-      <div style={{ padding: '12px 20px', display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(16,26,46,0.6)' }}>
-        <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.72rem', color: '#38bdf8', fontWeight: 600 }}>
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      borderRadius: 'var(--radius-lg)',
+      background: 'var(--bg-card)',
+      border: '1px solid var(--border-default)',
+      boxShadow: 'var(--shadow-sm)',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        padding: '12px 20px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottom: '1px solid var(--border-subtle)',
+        background: 'var(--bg-secondary)',
+      }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-cyan)', fontWeight: 600, letterSpacing: '0.05em' }}>
           TOPOLOGY_RECON // SECURE SITE-TO-SITE TUNNEL MESH
         </span>
-        <span style={{ fontFamily: 'JetBrains Mono', fontSize: '0.72rem', color: '#4ade80' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-green)', fontWeight: 600 }}>
           ● LIVE TELEMETRY
         </span>
       </div>

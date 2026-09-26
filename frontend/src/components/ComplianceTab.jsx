@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileCheck, ShieldCheck, Award, Check } from 'lucide-react';
+import { FileCheck, Award, Check } from 'lucide-react';
 
 export default function ComplianceTab() {
   const standards = [
@@ -24,16 +24,22 @@ export default function ComplianceTab() {
   ];
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto', animation: 'fade-in 0.35s ease' }}>
       <div style={{ marginBottom: '32px' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '9999px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', color: '#38bdf8', fontFamily: 'JetBrains Mono', fontSize: '0.74rem', fontWeight: 600, marginBottom: '10px' }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: '8px',
+          padding: '5px 14px', borderRadius: '9999px',
+          background: 'var(--accent-cyan-dim)', border: '1px solid var(--border-default)',
+          color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)',
+          fontSize: '0.74rem', fontWeight: 600, marginBottom: '12px'
+        }}>
           <FileCheck size={14} />
-          <span>GOVERNMENT & ENTERPRISE COMPLIANCE</span>
+          <span>GOVERNMENT &amp; ENTERPRISE COMPLIANCE</span>
         </div>
-        <h2 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', marginBottom: '8px' }}>
-          Cryptographic Standards & Frameworks
+        <h2 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '8px' }}>
+          Cryptographic Standards &amp; Frameworks
         </h2>
-        <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
           Deterministic baseline evaluation rules evaluated during raw PCAP stream ingestion.
         </p>
       </div>
@@ -43,13 +49,13 @@ export default function ComplianceTab() {
           <div key={i} className="card-glass" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                <Award size={20} color="#38bdf8" />
-                <h4 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#fff' }}>{std.title}</h4>
+                <Award size={20} color="var(--accent-blue)" />
+                <h4 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>{std.title}</h4>
               </div>
-              <div style={{ fontFamily: 'JetBrains Mono', fontSize: '0.76rem', color: '#7dd3fc', marginBottom: '8px' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.76rem', color: 'var(--accent-cyan)', fontWeight: 600, marginBottom: '8px' }}>
                 {std.sub}
               </div>
-              <p style={{ fontSize: '0.88rem', color: '#94a3b8', lineHeight: 1.6 }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
                 {std.desc}
               </p>
             </div>

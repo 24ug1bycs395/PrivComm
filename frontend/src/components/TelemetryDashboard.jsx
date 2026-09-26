@@ -388,7 +388,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Layers size={16} color="#38bdf8" />
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Multi-Tunnel Hub & Spoke Mesh:
           </span>
         </div>
@@ -457,49 +457,49 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
             height: '10px',
             backgroundColor: '#22c55e',
             borderRadius: '50%',
-            boxShadow: '0 0 10px #22c55e'
+            boxShadow: '0 0 10px var(--accent-green)'
           }} />
           <span>VM TUNNEL INGESTION STREAM: READY / ACTIVE</span>
         </div>
-        <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-          Active Capture: <strong style={{ color: '#fff' }}>{curr.filename}</strong> | Ingestion Stream: <strong style={{ color: '#38bdf8' }}>eBPF / TShark TAP</strong> | Air-Gapped Verification: <strong style={{ color: '#4ade80' }}>ENABLED</strong>
+        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+          Active Capture: <strong style={{ color: 'var(--text-primary)' }}>{curr.filename}</strong> | Ingestion Stream: <strong style={{ color: 'var(--accent-cyan)' }}>eBPF / TShark TAP</strong> | Air-Gapped Verification: <strong style={{ color: 'var(--accent-green)' }}>ENABLED</strong>
         </div>
       </div>
 
       {/* 4 Top Metric Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <div className="glass-card" style={{ padding: '18px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div className="card-glass" style={{ padding: '18px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Total Packets Processed
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#38bdf8', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
             {curr.packet_count || 12}
           </div>
         </div>
 
-        <div className="glass-card" style={{ padding: '18px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div className="card-glass" style={{ padding: '18px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Active IPsec SAs
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#4ade80', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent-green)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
             2 Active SAs
           </div>
         </div>
 
-        <div className="glass-card" style={{ padding: '18px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div className="card-glass" style={{ padding: '18px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             AI Traffic Classification
           </div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#a78bfa', fontFamily: 'JetBrains Mono', marginTop: '6px' }}>
+          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--accent-blue)', fontFamily: 'var(--font-mono)', marginTop: '6px' }}>
             {trafficType} ({confidencePct}%)
           </div>
         </div>
 
-        <div className="glass-card" style={{ padding: '18px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div className="card-glass" style={{ padding: '18px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             System Risk Score
           </div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: (riskScore === 0 ? '#4ade80' : riskScore < 50 ? '#fde047' : '#fca5a5'), fontFamily: 'JetBrains Mono', marginTop: '6px' }}>
+          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: (riskScore === 0 ? 'var(--accent-green)' : riskScore < 50 ? 'var(--accent-yellow)' : 'var(--accent-red)'), fontFamily: 'var(--font-mono)', marginTop: '6px' }}>
             {riskScore}/100 ({riskLevel})
           </div>
         </div>
@@ -509,49 +509,49 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px', marginBottom: '24px' }}>
         
         {/* 3x3 Security Threat Matrix Grid */}
-        <div className="glass-card" style={{ padding: '20px' }}>
-          <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Activity size={18} color="#38bdf8" />
+        <div className="card-glass" style={{ padding: '20px' }}>
+          <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Activity size={18} color="var(--accent-cyan)" />
             <span>📊 3x3 Security Threat Matrix Grid</span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
             <div></div>
-            <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Low Impact</div>
-            <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Med Impact</div>
-            <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>High Impact</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)' }}>Low Impact</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)' }}>Med Impact</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)' }}>High Impact</div>
 
-            <div style={{ fontSize: '0.68rem', color: '#94a3b8', margin: 'auto 0' }}>High Likelihood</div>
-            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(234, 179, 8, 0.12)', color: '#fde047', border: '1px solid rgba(234, 179, 8, 0.25)' }}>Medium</div>
-            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.3)' }}>High</div>
-            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 800, fontSize: '0.75rem', background: riskScore >= 60 ? 'rgba(239, 68, 68, 0.4)' : 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: riskScore >= 60 ? '2px solid #ef4444' : '1px solid rgba(239, 68, 68, 0.4)' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)', margin: 'auto 0' }}>High Likelihood</div>
+            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(217, 119, 6, 0.12)', color: 'var(--accent-yellow)', border: '1px solid rgba(217, 119, 6, 0.25)' }}>Medium</div>
+            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(220, 38, 38, 0.12)', color: 'var(--accent-red)', border: '1px solid rgba(220, 38, 38, 0.3)' }}>High</div>
+            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 800, fontSize: '0.75rem', background: riskScore >= 60 ? 'rgba(220, 38, 38, 0.3)' : 'rgba(220, 38, 38, 0.15)', color: 'var(--accent-red)', border: riskScore >= 60 ? '2px solid var(--accent-red)' : '1px solid rgba(220, 38, 38, 0.3)' }}>
               Critical {riskScore >= 60 && '⚠️'}
             </div>
 
-            <div style={{ fontSize: '0.68rem', color: '#94a3b8', margin: 'auto 0' }}>Med Likelihood</div>
-            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(34, 197, 94, 0.12)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.25)' }}>Low</div>
-            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(234, 179, 8, 0.12)', color: '#fde047', border: '1px solid rgba(234, 179, 8, 0.25)' }}>Medium</div>
-            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.3)' }}>High</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)', margin: 'auto 0' }}>Med Likelihood</div>
+            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(22, 163, 74, 0.12)', color: 'var(--accent-green)', border: '1px solid rgba(22, 163, 74, 0.25)' }}>Low</div>
+            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(217, 119, 6, 0.12)', color: 'var(--accent-yellow)', border: '1px solid rgba(217, 119, 6, 0.25)' }}>Medium</div>
+            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(220, 38, 38, 0.12)', color: 'var(--accent-red)', border: '1px solid rgba(220, 38, 38, 0.3)' }}>High</div>
 
-            <div style={{ fontSize: '0.68rem', color: '#94a3b8', margin: 'auto 0' }}>Low Likelihood</div>
-            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 800, fontSize: '0.75rem', background: riskScore === 0 ? 'rgba(34, 197, 94, 0.35)' : 'rgba(34, 197, 94, 0.12)', color: '#4ade80', border: riskScore === 0 ? '2px solid #22c55e' : '1px solid rgba(34, 197, 94, 0.25)' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)', margin: 'auto 0' }}>Low Likelihood</div>
+            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 800, fontSize: '0.75rem', background: riskScore === 0 ? 'rgba(22, 163, 74, 0.25)' : 'rgba(22, 163, 74, 0.12)', color: 'var(--accent-green)', border: riskScore === 0 ? '2px solid var(--accent-green)' : '1px solid rgba(22, 163, 74, 0.25)' }}>
               Low {riskScore === 0 && '✓'}
             </div>
-            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(34, 197, 94, 0.12)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.25)' }}>Low</div>
-            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(234, 179, 8, 0.12)', color: '#fde047', border: '1px solid rgba(234, 179, 8, 0.25)' }}>Medium</div>
+            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(22, 163, 74, 0.12)', color: 'var(--accent-green)', border: '1px solid rgba(22, 163, 74, 0.25)' }}>Low</div>
+            <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(217, 119, 6, 0.12)', color: 'var(--accent-yellow)', border: '1px solid rgba(217, 119, 6, 0.25)' }}>Medium</div>
           </div>
         </div>
 
         {/* AI Encrypted Traffic Probability Breakdown */}
-        <div className="glass-card" style={{ padding: '20px' }}>
-          <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Cpu size={18} color="#a78bfa" />
+        <div className="card-glass" style={{ padding: '20px' }}>
+          <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Cpu size={18} color="var(--accent-blue)" />
             <span>🤖 AI Encrypted Traffic Probability Breakdown</span>
           </div>
 
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: '#94a3b8', textAlign: 'left' }}>
+              <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-tertiary)', textAlign: 'left' }}>
                 <th style={{ padding: '8px 10px', fontSize: '0.7rem', textTransform: 'uppercase' }}>Traffic Category</th>
                 <th style={{ padding: '8px 10px', fontSize: '0.7rem', textTransform: 'uppercase' }}>AI Confidence Score</th>
                 <th style={{ padding: '8px 10px', fontSize: '0.7rem', textTransform: 'uppercase' }}>Status</th>
@@ -562,18 +562,18 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                 const probVal = (item.probability * 100).toFixed(1);
                 const isTop = idx === 0 || item.category === trafficType;
                 return (
-                  <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td style={{ padding: '10px', fontWeight: isTop ? 700 : 500, color: isTop ? '#38bdf8' : '#e2e8f0' }}>
+                  <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                    <td style={{ padding: '10px', fontWeight: isTop ? 700 : 500, color: isTop ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>
                       {item.category}
                     </td>
-                    <td style={{ padding: '10px', fontFamily: 'JetBrains Mono', color: '#cbd5e1' }}>
+                    <td style={{ padding: '10px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
                       {probVal}%
                     </td>
                     <td style={{ padding: '10px' }}>
                       {isTop ? (
                         <span className="badge badge-green" style={{ fontSize: '0.68rem' }}>PREDICTED CLASS</span>
                       ) : (
-                        <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Competing Class</span>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>Competing Class</span>
                       )}
                     </td>
                   </tr>
@@ -585,10 +585,10 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
       </div>
 
       {/* Observable Metadata Exposure Intelligence Card */}
-      <div className="glass-card" style={{ padding: '20px', marginBottom: '24px' }}>
+      <div className="card-glass" style={{ padding: '20px', marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-          <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Eye size={18} color="#38bdf8" />
+          <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Eye size={18} color="var(--accent-cyan)" />
             <span>📡 Observable Metadata Exposure Intelligence</span>
           </div>
           <span className={`badge ${riskScore === 0 ? 'badge-green' : 'badge-red'}`}>
@@ -597,7 +597,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '14px' }}>
+          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '14px' }}>
             <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginBottom: '4px', textTransform: 'uppercase' }}>VISIBLE ENDPOINT IPS</div>
             <strong style={{ fontFamily: 'JetBrains Mono', fontSize: '0.85rem', color: '#38bdf8' }}>
               {curr.source_ip || '192.168.1.10'} → {curr.destination_ip || '10.0.0.1'}
@@ -636,16 +636,16 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
       </div>
 
       {/* History Ingestion History Table */}
-      <div className="glass-card" style={{ padding: '20px', marginBottom: '24px' }}>
-        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Database size={18} color="#38bdf8" />
-          <span>📂 Recent Capture Ingestions & Analysis History</span>
+      <div className="card-glass" style={{ padding: '20px', marginBottom: '24px' }}>
+        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Database size={18} color="var(--accent-cyan)" />
+          <span>📂 Recent Capture Ingestions &amp; Analysis History</span>
         </div>
 
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: '#94a3b8', textAlign: 'left' }}>
+              <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-tertiary)', textAlign: 'left' }}>
                 <th style={{ padding: '8px 10px', fontSize: '0.7rem', textTransform: 'uppercase' }}>Capture Filename</th>
                 <th style={{ padding: '8px 10px', fontSize: '0.7rem', textTransform: 'uppercase' }}>Protocol / Mode</th>
                 <th style={{ padding: '8px 10px', fontSize: '0.7rem', textTransform: 'uppercase' }}>Encryption Suite</th>
@@ -664,23 +664,23 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                     key={idx}
                     onClick={() => loadHistoryItem(item.filename)}
                     style={{
-                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      borderBottom: '1px solid var(--border-subtle)',
                       cursor: 'pointer',
-                      background: isSelected ? 'rgba(56,189,248,0.08)' : 'transparent',
+                      background: isSelected ? 'var(--accent-blue-dim)' : 'transparent',
                       transition: 'background 0.2s ease'
                     }}
                     title="Click to view telemetry analysis"
                   >
-                    <td style={{ padding: '10px', fontWeight: 700, color: isSelected ? '#38bdf8' : '#f1f5f9' }}>
+                    <td style={{ padding: '10px', fontWeight: 700, color: isSelected ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>
                       {item.filename}
                     </td>
-                    <td style={{ padding: '10px', color: '#cbd5e1' }}>
+                    <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>
                       {item.ike_version || 'IKEv2'} ({item.mode || 'Tunnel'})
                     </td>
-                    <td style={{ padding: '10px', color: '#cbd5e1' }}>
+                    <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>
                       {item.encryption || 'AES-256-GCM'} (Group {item.dh_group || '19'})
                     </td>
-                    <td style={{ padding: '10px', color: '#a78bfa' }}>
+                    <td style={{ padding: '10px', color: 'var(--accent-blue)', fontWeight: 600 }}>
                       {item.traffic_type || 'CHAT'} ({item.confidence ? (item.confidence * 100).toFixed(1) : '47.7'}%)
                     </td>
                     <td style={{ padding: '10px' }}>
@@ -698,7 +698,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                         }}
                         style={{ padding: '3px 8px', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
-                        <Eye size={12} color="#38bdf8" /> Inspect
+                        <Eye size={12} color="var(--accent-cyan)" /> Inspect
                       </button>
                     </td>
                   </tr>
@@ -713,15 +713,15 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', marginBottom: '24px' }}>
         
         {/* 1. Configuration Drift Detector */}
-        <div className="glass-card" style={{ padding: '18px' }}>
+        <div className="card-glass" style={{ padding: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <RefreshCw size={16} color="#38bdf8" /> Configuration Drift Detection
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <RefreshCw size={16} color="var(--accent-cyan)" /> Configuration Drift Detection
             </span>
             <button
               type="button"
               onClick={() => askAiAboutCard('Configuration Drift Detection Audit', 'Explains current baseline alignment vs observed diffs, variance percentage, and parameter match status.')}
-              style={{ background: 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.3)', color: '#38bdf8', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              style={{ background: 'var(--accent-cyan-dim)', border: '1px solid var(--border-default)', color: 'var(--accent-cyan)', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
             >
               <Sparkles size={11} /> Explain with AI
             </button>
@@ -729,41 +729,41 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div>
-              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Baseline Alignment:</span><br />
-              <strong style={{ fontSize: '0.95rem', color: drift.drift_detected ? '#fca5a5' : '#4ade80' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>Baseline Alignment:</span><br />
+              <strong style={{ fontSize: '0.95rem', color: drift.drift_detected ? 'var(--accent-red)' : 'var(--accent-green)' }}>
                 {drift.drift_detected ? `DRIFTED (${drift.drift_count || 3} Diffs)` : 'SYNCHRONIZED (0 Diffs)'}
               </strong>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Variance Score:</span><br />
-              <strong style={{ fontSize: '0.95rem', color: '#38bdf8' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>Variance Score:</span><br />
+              <strong style={{ fontSize: '0.95rem', color: 'var(--accent-cyan)' }}>
                 {drift.variance_score || 0}% Variance
               </strong>
             </div>
           </div>
 
-          <div style={{ fontSize: '0.75rem', color: '#94a3b8', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'var(--bg-secondary)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span>IKE Version:</span>
-              <strong style={{ color: curr.ike_version?.includes('IKEv1') ? '#fca5a5' : '#4ade80' }}>
+              <strong style={{ color: curr.ike_version?.includes('IKEv1') ? 'var(--accent-red)' : 'var(--accent-green)' }}>
                 {curr.ike_version?.includes('IKEv1') ? 'Drifted (IKEv1)' : 'Matched (IKEv2)'}
               </strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span>Encryption Cipher:</span>
-              <strong style={{ color: curr.encryption?.includes('3DES') ? '#fca5a5' : '#4ade80' }}>
+              <strong style={{ color: curr.encryption?.includes('3DES') ? 'var(--accent-red)' : 'var(--accent-green)' }}>
                 {curr.encryption?.includes('3DES') ? 'Drifted (3DES)' : 'Matched (AES-256-GCM)'}
               </strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span>Diffie-Hellman Group:</span>
-              <strong style={{ color: curr.dh_group === '2' ? '#fca5a5' : '#4ade80' }}>
+              <strong style={{ color: curr.dh_group === '2' ? 'var(--accent-red)' : 'var(--accent-green)' }}>
                 {curr.dh_group === '2' ? 'Drifted (Group 2)' : 'Matched (Group 19)'}
               </strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>PFS Rekeying:</span>
-              <strong style={{ color: curr.pfs ? '#4ade80' : '#fde047' }}>
+              <strong style={{ color: curr.pfs ? 'var(--accent-green)' : 'var(--accent-yellow)' }}>
                 {curr.pfs ? 'Matched (Enforced)' : 'Warning (Disabled)'}
               </strong>
             </div>
@@ -771,15 +771,15 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         </div>
 
         {/* 2. Policy-as-Code Rulebook */}
-        <div className="glass-card" style={{ padding: '18px' }}>
+        <div className="card-glass" style={{ padding: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Shield size={16} color="#34d399" /> Policy-as-Code Rulebook
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Shield size={16} color="var(--accent-green)" /> Policy-as-Code Rulebook
             </span>
             <button
               type="button"
               onClick={() => askAiAboutCard('Policy-as-Code Compliance Rulebook', 'Explains organizational rulebook evaluation (POL-01 to POL-06), pass/fail criteria, and compliance mandates.')}
-              style={{ background: 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.3)', color: '#38bdf8', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              style={{ background: 'var(--accent-cyan-dim)', border: '1px solid var(--border-default)', color: 'var(--accent-cyan)', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
             >
               <Sparkles size={11} /> Explain with AI
             </button>
@@ -787,8 +787,8 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div>
-              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Policy Evaluation:</span><br />
-              <strong style={{ fontSize: '0.95rem', color: (pol.compliance_score || 100) >= 80 ? '#4ade80' : '#fca5a5' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>Policy Evaluation:</span><br />
+              <strong style={{ fontSize: '0.95rem', color: (pol.compliance_score || 100) >= 80 ? 'var(--accent-green)' : 'var(--accent-red)' }}>
                 {pol.compliance_score || (riskScore === 0 ? 100 : 40)}% COMPLIANT
               </strong>
             </div>
@@ -800,7 +800,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
             </div>
           </div>
 
-          <div style={{ fontSize: '0.75rem', color: '#94a3b8', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'var(--bg-secondary)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span>POL-01 Protocol Version:</span>
               <span className={`badge ${curr.ike_version?.includes('IKEv1') ? 'badge-red' : 'badge-green'}`} style={{ padding: '1px 6px', fontSize: '0.65rem' }}>
@@ -829,15 +829,15 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         </div>
 
         {/* 3. Post-Quantum Readiness Assessor */}
-        <div className="glass-card" style={{ padding: '18px' }}>
+        <div className="card-glass" style={{ padding: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Zap size={16} color="#a855f7" /> Post-Quantum Readiness
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Zap size={16} color="var(--accent-blue)" /> Post-Quantum Readiness
             </span>
             <button
               type="button"
               onClick={() => askAiAboutCard('Post-Quantum Cryptographic Readiness', 'Explains Quantum threat models (Shor\'s algorithm on ECC/DH vs Grover\'s algorithm on AES-256) and RFC 8784 hybrid post-quantum readiness.')}
-              style={{ background: 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.3)', color: '#38bdf8', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              style={{ background: 'var(--accent-cyan-dim)', border: '1px solid var(--border-default)', color: 'var(--accent-cyan)', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
             >
               <Sparkles size={11} /> Explain with AI
             </button>
@@ -845,40 +845,40 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div>
-              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Quantum Threat:</span><br />
-              <strong style={{ fontSize: '0.95rem', color: '#fde047' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>Quantum Threat:</span><br />
+              <strong style={{ fontSize: '0.95rem', color: 'var(--accent-yellow)' }}>
                 {pqc.quantum_threat_rating || 'MEDIUM RISK (Shor\'s)'}
               </strong>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Crypto-Agility:</span><br />
-              <strong style={{ fontSize: '0.95rem', color: '#4ade80' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>Crypto-Agility:</span><br />
+              <strong style={{ fontSize: '0.95rem', color: 'var(--accent-green)' }}>
                 {pqc.crypto_agility_rating || 'EXCELLENT'}
               </strong>
             </div>
           </div>
 
-          <div style={{ fontSize: '0.75rem', color: '#94a3b8', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'var(--bg-secondary)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span>Shor's Key Vulnerability:</span>
-              <strong style={{ color: '#fde047' }}>ECC (Group {curr.dh_group || '19'})</strong>
+              <strong style={{ color: 'var(--accent-yellow)' }}>ECC (Group {curr.dh_group || '19'})</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span>Grover's Cipher Security:</span>
-              <strong style={{ color: '#4ade80' }}>256-bit (Protected)</strong>
+              <strong style={{ color: 'var(--accent-green)' }}>256-bit (Protected)</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>RFC 8784 Hybrid Support:</span>
-              <strong style={{ color: '#4ade80' }}>IKEv2 Ready</strong>
+              <strong style={{ color: 'var(--accent-green)' }}>IKEv2 Ready</strong>
             </div>
           </div>
         </div>
       </div>
 
       {/* Active Tunnel Plain-English Rationale Breakdown (6 Cards) */}
-      <div className="glass-card" style={{ padding: '20px', marginBottom: '24px' }}>
-        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <HelpCircle size={18} color="#38bdf8" />
+      <div className="card-glass" style={{ padding: '20px', marginBottom: '24px' }}>
+        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <HelpCircle size={18} color="var(--accent-cyan)" />
           <span>💡 Active Tunnel Plain-English Rationale (For Non-Experts)</span>
         </div>
 
@@ -893,7 +893,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
               <div
                 key={idx}
                 style={{
-                  background: 'rgba(255,255,255,0.02)',
+                  background: 'var(--bg-secondary)',
                   border: '1px solid var(--border-subtle)',
                   borderLeft: `4px solid ${borderColor}`,
                   borderRadius: '8px',
@@ -901,7 +901,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <strong style={{ fontSize: '0.88rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <strong style={{ fontSize: '0.88rem', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>{item.icon || '🛡️'}</span>
                     <span>{item.title}</span>
                   </strong>
@@ -910,9 +910,9 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                       type="button"
                       onClick={() => askAiAboutCard(item.title, item.detailed_explanation || item.plain_english_summary)}
                       style={{
-                        background: 'rgba(56,189,248,0.15)',
-                        border: '1px solid rgba(56,189,248,0.3)',
-                        color: '#38bdf8',
+                        background: 'var(--accent-cyan-glow)',
+                        border: '1px solid var(--border-subtle)',
+                        color: 'var(--accent-cyan)',
                         borderRadius: '4px',
                         padding: '2px 8px',
                         fontSize: '0.68rem',
@@ -931,10 +931,10 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                   </div>
                 </div>
 
-                <div style={{ fontSize: '0.78rem', color: '#f1f5f9', marginBottom: '6px' }}>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-primary)', marginBottom: '6px' }}>
                   <strong>Role:</strong> {item.plain_english_summary}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8', lineHeight: '1.5' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
                   {item.detailed_explanation}
                 </div>
               </div>
@@ -945,8 +945,8 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
       {/* Console Stream Feed Log */}
       <div className="glass-card" style={{ padding: '20px', marginBottom: '24px' }}>
-        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Terminal size={18} color="#38bdf8" />
+        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Terminal size={18} color="var(--accent-cyan)" />
           <span>📡 Real-Time Telemetry Stream Log</span>
         </div>
 
@@ -977,22 +977,22 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
             type="button"
             onClick={() => setChatOpen(true)}
             style={{
-              background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
+              background: 'linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%)',
               color: '#fff',
-              border: '1px solid rgba(56, 189, 248, 0.4)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '30px',
               padding: '10px 18px',
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
               cursor: 'pointer',
-              boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
               transition: 'transform 0.2s ease',
             }}
           >
             <Bot size={20} />
             <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Cyber Sentinel AI Assistant</span>
-            <span style={{ width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%', boxShadow: '0 0 6px #22c55e' }} />
+            <span style={{ width: '8px', height: '8px', background: 'var(--accent-green)', borderRadius: '50%', boxShadow: '0 0 6px var(--accent-green)' }} />
           </button>
         )}
 
@@ -1005,35 +1005,35 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
             width: '390px',
             maxWidth: 'calc(100vw - 32px)',
             height: '520px',
-            background: '#0b111c',
+            background: 'var(--bg-card)',
             border: '1px solid var(--border-subtle)',
             borderRadius: '16px',
             zIndex: 3000,
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.6)'
+            boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
           }}>
             {/* Header */}
-            <div style={{ background: '#0f172a', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)' }}>
+            <div style={{ background: 'var(--bg-secondary)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Bot size={18} color="#38bdf8" />
+                <Bot size={18} color="var(--accent-cyan)" />
                 <div>
-                  <strong style={{ fontSize: '0.85rem', color: '#fff', display: 'block' }}>Cyber Sentinel Assistant</strong>
-                  <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Live Telemetry & Security Advisor</span>
+                  <strong style={{ fontSize: '0.85rem', color: 'var(--text-primary)', display: 'block' }}>Cyber Sentinel Assistant</strong>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>Live Telemetry & Security Advisor</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setChatOpen(false)}
-                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Messages Body */}
-            <div style={{ flexGrow: 1, padding: '14px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', background: '#070b14' }}>
+            <div style={{ flexGrow: 1, padding: '14px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', background: 'var(--bg-primary)' }}>
               {chatMessages.map((msg, idx) => {
                 const isUser = msg.sender === 'user';
                 return (
@@ -1050,8 +1050,8 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                       borderRadius: '10px',
                       fontSize: '0.78rem',
                       lineHeight: '1.5',
-                      background: isUser ? '#2563eb' : '#1e293b',
-                      color: isUser ? '#fff' : '#f8fafc',
+                      background: isUser ? 'var(--accent-blue)' : 'var(--bg-secondary)',
+                      color: isUser ? '#fff' : 'var(--text-primary)',
                       border: isUser ? 'none' : '1px solid var(--border-subtle)'
                     }}>
                       {msg.text.split('\n').map((line, lIdx) => (
@@ -1062,7 +1062,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                 );
               })}
               {chatLoading && (
-                <div style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#38bdf8' }}>
+                <div style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--accent-cyan)' }}>
                   <Sparkles size={14} className="animate-spin" />
                   <span>Cyber Sentinel AI is analyzing...</span>
                 </div>
@@ -1071,32 +1071,32 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
             </div>
 
             {/* Quick Prompt Pills */}
-            <div style={{ padding: '6px 10px', background: '#0d1322', borderTop: '1px solid var(--border-subtle)', display: 'flex', gap: '6px', overflowX: 'auto' }}>
+            <div style={{ padding: '6px 10px', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-subtle)', display: 'flex', gap: '6px', overflowX: 'auto' }}>
               <button
                 type="button"
                 onClick={() => handleSendChatMessage('Explain active live VM stream security')}
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#38bdf8', borderRadius: '12px', padding: '3px 8px', fontSize: '0.68rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)', borderRadius: '12px', padding: '3px 8px', fontSize: '0.68rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
                 💬 Active stream rationale
               </button>
               <button
                 type="button"
                 onClick={() => handleSendChatMessage('Why is 3DES or DH Group 2 weak?')}
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#38bdf8', borderRadius: '12px', padding: '3px 8px', fontSize: '0.68rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)', borderRadius: '12px', padding: '3px 8px', fontSize: '0.68rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
                 🔒 Why is 3DES weak?
               </button>
               <button
                 type="button"
                 onClick={() => handleSendChatMessage('Remediation steps for high risk tunnels')}
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#38bdf8', borderRadius: '12px', padding: '3px 8px', fontSize: '0.68rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)', borderRadius: '12px', padding: '3px 8px', fontSize: '0.68rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
                 🛡️ Remediation steps
               </button>
             </div>
 
             {/* Input Area */}
-            <div style={{ padding: '8px 10px', background: '#0f172a', borderTop: '1px solid var(--border-subtle)', display: 'flex', gap: '6px' }}>
+            <div style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-subtle)', display: 'flex', gap: '6px' }}>
               <input
                 type="text"
                 value={chatInput}
@@ -1105,11 +1105,11 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                 placeholder="Ask a question..."
                 style={{
                   flexGrow: 1,
-                  background: '#070b14',
+                  background: 'var(--bg-card)',
                   border: '1px solid var(--border-subtle)',
                   borderRadius: '6px',
                   padding: '6px 10px',
-                  color: '#fff',
+                  color: 'var(--text-primary)',
                   fontSize: '0.78rem',
                   outline: 'none'
                 }}
@@ -1118,7 +1118,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                 type="button"
                 onClick={() => handleSendChatMessage()}
                 style={{
-                  background: '#2563eb',
+                  background: 'var(--accent-blue)',
                   border: 'none',
                   color: '#fff',
                   borderRadius: '6px',
