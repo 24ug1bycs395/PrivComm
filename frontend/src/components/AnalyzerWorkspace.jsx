@@ -367,9 +367,9 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
               fontFamily: 'JetBrains Mono',
               fontSize: '0.82rem',
               fontWeight: 700,
-              background: riskLevel === 'SECURE' || riskLevel === 'LOW' ? 'rgba(56, 189, 248, 0.15)' : (riskLevel === 'MEDIUM' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(100, 116, 139, 0.15)'),
-              color: riskLevel === 'SECURE' || riskLevel === 'LOW' ? '#38bdf8' : (riskLevel === 'MEDIUM' ? '#60a5fa' : '#cbd5e1'),
-              border: `1px solid ${riskLevel === 'SECURE' || riskLevel === 'LOW' ? '#38bdf8' : (riskLevel === 'MEDIUM' ? '#3b82f6' : '#94a3b8')}`
+              background: riskLevel === 'SECURE' || riskLevel === 'LOW' ? 'var(--status-success-dim)' : (riskLevel === 'MEDIUM' ? 'var(--status-warning-dim)' : 'var(--status-danger-dim)'),
+              color: riskLevel === 'SECURE' || riskLevel === 'LOW' ? 'var(--status-success)' : (riskLevel === 'MEDIUM' ? 'var(--status-warning)' : 'var(--status-danger)'),
+              border: `1px solid ${riskLevel === 'SECURE' || riskLevel === 'LOW' ? 'var(--status-success-border)' : (riskLevel === 'MEDIUM' ? 'var(--status-warning-border)' : 'var(--status-danger-border)')}`
             }}>
               <span className="live-dot" style={{ background: 'currentColor' }}></span>
               <span>{riskLevel} RISK ({riskScore}/100)</span>
