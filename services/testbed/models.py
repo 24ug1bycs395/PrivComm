@@ -15,6 +15,9 @@ class TestbedState(str, Enum):
 class VMHostConfig(BaseModel):
     host: str = "192.168.56.10"
     port: int = 22
+    # Optional control-plane endpoint used to reach a VM through Docker port
+    # forwarding while keeping `host` as the VM's internal VPN address.
+    ssh_host: Optional[str] = None
     username: str = "vagrant"
     password: Optional[str] = "vagrant"
     key_path: Optional[str] = None

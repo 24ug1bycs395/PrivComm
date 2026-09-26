@@ -45,7 +45,7 @@ RUN pip install --no-cache-dir -r requirements.txt \
     && apt-get purge -y --auto-remove gcc python3-dev \
     && rm -rf /root/.cache/pip
 
-COPY main.py index.html style.css script.js ./
+COPY main.py index.html dashboard.html report.html style.css script.js ./
 COPY analyzer ./analyzer
 COPY ml ./ml
 COPY security ./security
@@ -57,6 +57,7 @@ COPY models ./models
 COPY utils ./utils
 COPY config ./config
 COPY samples ./samples
+COPY traffic-classifier ./traffic-classifier
 
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 

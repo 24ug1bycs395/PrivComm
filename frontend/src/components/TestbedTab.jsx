@@ -22,6 +22,7 @@ import {
   Eye,
   Send
 } from 'lucide-react';
+import AttackSimulator from './AttackSimulator';
 
 export default function TestbedTab({ onNavigateToAnalysis }) {
   const [scenarios, setScenarios] = useState([]);
@@ -245,18 +246,18 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
     <div className="tab-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '1.5rem 1rem' }}>
       {/* Header Banner */}
       <div className="section-header-badge" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
-        <Server size={18} color="#38bdf8" />
-        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#38bdf8', letterSpacing: '0.05em' }}>
+        <Server size={18} color="var(--accent-cyan)" />
+        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-cyan)', letterSpacing: '0.05em' }}>
           STRONGSWAN IPSEC VPN TESTBED
         </span>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', margin: '0 0 0.5rem 0' }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 0.5rem 0' }}>
             Multi-Node strongSwan Validation Environment
           </h1>
-          <p style={{ color: '#94a3b8', fontSize: '0.9rem', maxWidth: '800px', margin: 0 }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '800px', margin: 0 }}>
             Automated orchestration of strongSwan IPsec VPN endpoints (Initiator, Responder, and Observer).
             Deploys live cryptographic configurations, initiates IKE/ESP sessions, captures raw wire packets,
             and feeds them directly to the AI Security Engine.
@@ -273,7 +274,7 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
           {/* Topology Overview Card */}
           <div className="glass-card" style={{ padding: '1.25rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Virtual Topology (Host-Only Network)
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -289,9 +290,9 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '5px',
-                    background: 'rgba(56, 189, 248, 0.12)',
-                    border: '1px solid rgba(56, 189, 248, 0.4)',
-                    color: '#38bdf8',
+                    background: 'var(--accent-cyan-glow)',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--accent-cyan)',
                     borderRadius: '6px',
                     cursor: isCheckingNodes ? 'wait' : 'pointer',
                     fontWeight: 600,
@@ -312,8 +313,8 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                   marginBottom: '0.9rem',
                   padding: '0.6rem 0.85rem',
                   borderRadius: '6px',
-                  background: nodeStatus.all_online ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                  border: `1px solid ${nodeStatus.all_online ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                  background: nodeStatus.all_online ? 'var(--accent-green-glow)' : 'var(--accent-red-glow)',
+                  border: `1px solid ${nodeStatus.all_online ? 'var(--accent-green)' : 'var(--accent-red)'}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -322,25 +323,25 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   {nodeStatus.all_online ? (
-                    <CheckCircle size={15} color="#22c55e" />
+                    <CheckCircle size={15} color="var(--accent-green)" />
                   ) : (
-                    <AlertTriangle size={15} color="#ef4444" />
+                    <AlertTriangle size={15} color="var(--accent-red)" />
                   )}
-                  <span style={{ fontWeight: 600, color: nodeStatus.all_online ? '#4ade80' : '#f87171' }}>
+                  <span style={{ fontWeight: 600, color: nodeStatus.all_online ? 'var(--accent-green)' : 'var(--accent-red)' }}>
                     {nodeStatus.all_online
                       ? 'All 3 nodes initialized & reachable via SSH!'
                       : `${nodeStatus.online_count} / 3 nodes reachable — check Vagrant or Docker containers.`}
                   </span>
                 </div>
-                <span style={{ color: '#94a3b8', fontSize: '0.7rem' }}>Test Mode</span>
+                <span style={{ color: 'var(--text-tertiary)', fontSize: '0.7rem' }}>Test Mode</span>
               </div>
             )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', textAlign: 'center' }}>
-              <div style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '8px', padding: '0.75rem' }}>
-                <div style={{ fontSize: '0.7rem', color: '#38bdf8', fontWeight: 700 }}>VM 1 &bull; INITIATOR</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', marginTop: '4px' }}>strongSwan 5.x</div>
-                <div style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>{topology.initiator_ip}</div>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '0.75rem' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', fontWeight: 700 }}>VM 1 &bull; INITIATOR</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>strongSwan 5.x</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>{topology.initiator_ip}</div>
                 {nodeStatus?.nodes?.initiator && (
                   <div style={{ marginTop: '6px' }}>
                     <span
@@ -354,10 +355,10 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                 )}
               </div>
 
-              <div style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(168, 85, 247, 0.2)', borderRadius: '8px', padding: '0.75rem' }}>
-                <div style={{ fontSize: '0.7rem', color: '#c084fc', fontWeight: 700 }}>VM 2 &bull; RESPONDER</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', marginTop: '4px' }}>strongSwan 5.x</div>
-                <div style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>{topology.responder_ip}</div>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '0.75rem' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--accent-blue)', fontWeight: 700 }}>VM 2 &bull; RESPONDER</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>strongSwan 5.x</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>{topology.responder_ip}</div>
                 {nodeStatus?.nodes?.responder && (
                   <div style={{ marginTop: '6px' }}>
                     <span
@@ -371,10 +372,10 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                 )}
               </div>
 
-              <div style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(52, 211, 153, 0.2)', borderRadius: '8px', padding: '0.75rem' }}>
-                <div style={{ fontSize: '0.7rem', color: '#34d399', fontWeight: 700 }}>VM 3 &bull; OBSERVER</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', marginTop: '4px' }}>TShark / tcpdump</div>
-                <div style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>{topology.observer_ip}</div>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '0.75rem' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--accent-green)', fontWeight: 700 }}>VM 3 &bull; OBSERVER</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>TShark / tcpdump</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>{topology.observer_ip}</div>
                 {nodeStatus?.nodes?.observer && (
                   <div style={{ marginTop: '6px' }}>
                     <span
@@ -390,10 +391,19 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
             </div>
           </div>
 
+          <AttackSimulator
+            isTestbedConnected={Boolean(nodeStatus?.all_online)}
+            topology={{
+              initiator: { host: topology.initiator_ip, interface: 'eth1' },
+              responder: { host: topology.responder_ip, interface: 'eth1' },
+              observer: { host: topology.observer_ip, interface: 'eth1' }
+            }}
+          />
+
           {/* Scenario Selector Card */}
           <div className="glass-card" style={{ padding: '1.25rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Cryptographic Test Scenario
               </span>
               <div style={{ display: 'flex', gap: '6px' }}>
@@ -428,13 +438,13 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                         padding: '0.85rem 1rem',
                         borderRadius: '8px',
                         cursor: 'pointer',
-                        background: isSelected ? 'rgba(56, 189, 248, 0.08)' : 'rgba(15, 23, 42, 0.4)',
-                        border: isSelected ? '1px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.06)',
+                        background: isSelected ? 'var(--accent-cyan-glow)' : 'var(--bg-secondary)',
+                        border: isSelected ? '1px solid var(--accent-cyan)' : '1px solid var(--border-subtle)',
                         transition: 'all 0.2s ease'
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: 700, color: isSelected ? '#38bdf8' : '#e2e8f0', fontSize: '0.88rem' }}>
+                        <span style={{ fontWeight: 700, color: isSelected ? 'var(--accent-cyan)' : 'var(--text-primary)', fontSize: '0.88rem' }}>
                           {s.name}
                         </span>
                         {s.is_weak_compliance ? (
@@ -443,7 +453,7 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                           <span className="badge badge-green" style={{ fontSize: '0.65rem' }}>COMPLIANT</span>
                         )}
                       </div>
-                      <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: '0 0 8px 0', lineHeight: 1.4 }}>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '0 0 8px 0', lineHeight: 1.4 }}>
                         {s.description}
                       </p>
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -460,7 +470,7 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   <div>
-                    <label style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>IKE Version</label>
+                    <label style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>IKE Version</label>
                     <select
                       className="form-input"
                       value={customConfig.ike_version}
@@ -473,7 +483,7 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                     </select>
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Encryption Cipher</label>
+                    <label style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Encryption Cipher</label>
                     <select
                       className="form-input"
                       value={customConfig.encryption}
@@ -490,7 +500,7 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   <div>
-                    <label style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>DH Key Exchange</label>
+                    <label style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>DH Key Exchange</label>
                     <select
                       className="form-input"
                       value={customConfig.dh_group}
@@ -504,7 +514,7 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                     </select>
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Traffic Generator</label>
+                    <label style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Traffic Generator</label>
                     <select
                       className="form-input"
                       value={customConfig.traffic_profile}
@@ -545,7 +555,7 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                   </>
                 ) : (
                   <>
-                    <Play size={18} fill="#030712" />
+                    <Play size={18} fill="#fff" />
                     <span>Deploy & Run Testbed Scenario</span>
                   </>
                 )}
@@ -562,14 +572,14 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
             {/* Header Row */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Activity size={16} color="#38bdf8" />
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <Activity size={16} color="var(--accent-cyan)" />
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Live Execution Dashboard
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {pollError && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.72rem', color: '#f59e0b' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.72rem', color: 'var(--accent-yellow)' }}>
                     <WifiOff size={12} /> Reconnecting...
                   </span>
                 )}
@@ -592,9 +602,9 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
             {/* VM Node Status Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', margin: '1rem 0' }}>
               {[
-                { role: 'initiator', label: 'Initiator VM', icon: Send, host: topology.initiator_ip, color: '#38bdf8' },
-                { role: 'responder', label: 'Responder VM', icon: Server, host: topology.responder_ip, color: '#a78bfa' },
-                { role: 'observer', label: 'Observer', icon: Eye, host: topology.observer_ip, color: '#34d399' },
+                { role: 'initiator', label: 'Initiator VM', icon: Send, host: topology.initiator_ip, color: 'var(--accent-cyan)' },
+                { role: 'responder', label: 'Responder VM', icon: Server, host: topology.responder_ip, color: 'var(--accent-blue)' },
+                { role: 'observer', label: 'Observer', icon: Eye, host: topology.observer_ip, color: 'var(--accent-green)' },
               ].map(({ role, label, icon: Icon, host, color }) => {
                 const roleEvents = terminalEvents.filter(e => e.vm === role);
                 const lastEvent = roleEvents[roleEvents.length - 1];
@@ -634,7 +644,7 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   padding: '2rem',
-                  color: '#334155',
+                  color: 'var(--text-tertiary)',
                   gap: '8px'
                 }}>
                   <Terminal size={32} style={{ opacity: 0.3 }} />
@@ -662,7 +672,7 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                   className="btn-ghost"
                   style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '0.5rem 0.85rem' }}
                 >
-                  <Download size={15} color="#38bdf8" />
+                  <Download size={15} color="var(--accent-cyan)" />
                   <span>Download PCAP Wire Capture</span>
                 </a>
                 <button
@@ -684,7 +694,7 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
           {/* Past Executions Table */}
           <div className="glass-card" style={{ padding: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Testbed Execution Vault ({jobHistory.length})
               </span>
               <button
@@ -699,13 +709,13 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
 
             <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
               {jobHistory.length === 0 ? (
-                <div style={{ fontSize: '0.8rem', color: '#64748b', textAlign: 'center', padding: '1rem' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', textAlign: 'center', padding: '1rem' }}>
                   No previous testbed executions recorded yet.
                 </div>
               ) : (
                 <table style={{ width: '100%', fontSize: '0.78rem', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ color: '#64748b', textAlign: 'left', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                    <tr style={{ color: 'var(--text-tertiary)', textAlign: 'left', borderBottom: '1px solid var(--border-subtle)' }}>
                       <th style={{ padding: '6px 8px' }}>Time</th>
                       <th style={{ padding: '6px 8px' }}>Scenario</th>
                       <th style={{ padding: '6px 8px' }}>Status</th>
@@ -714,11 +724,11 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                   </thead>
                   <tbody>
                     {jobHistory.map((j) => (
-                      <tr key={j.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                        <td style={{ padding: '6px 8px', color: '#94a3b8' }}>
+                      <tr key={j.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '6px 8px', color: 'var(--text-secondary)' }}>
                           {j.created_at ? new Date(j.created_at).toLocaleTimeString() : 'Recent'}
                         </td>
-                        <td style={{ padding: '6px 8px', fontWeight: 600, color: '#e2e8f0' }}>
+                        <td style={{ padding: '6px 8px', fontWeight: 600, color: 'var(--text-primary)' }}>
                           {j.scenario_name || 'strongSwan Tunnel'}
                         </td>
                         <td style={{ padding: '6px 8px' }}>
@@ -805,31 +815,31 @@ function VMNodeCard({ label, icon: Icon, host, color, vmState, lastEvent, hasAct
     vmState === 'pending' ? 'WAITING' : 'IDLE';
 
   const stateBadgeColor =
-    vmState === 'success' ? { bg: 'rgba(52, 211, 153, 0.12)', border: '#34d399', text: '#34d399' } :
-    vmState === 'error'   ? { bg: 'rgba(248, 113, 113, 0.12)', border: '#f87171', text: '#f87171' } :
+    vmState === 'success' ? { bg: 'var(--accent-green-glow)', border: 'var(--accent-green)', text: 'var(--accent-green)' } :
+    vmState === 'error'   ? { bg: 'var(--accent-red-glow)', border: 'var(--accent-red)', text: 'var(--accent-red)' } :
     vmState === 'running' || vmState === 'connecting'
-                          ? { bg: `rgba(56,189,248,0.10)`, border: '#38bdf8', text: '#38bdf8' } :
-    { bg: 'rgba(15,23,42,0.4)', border: 'rgba(255,255,255,0.06)', text: '#475569' };
+                          ? { bg: 'var(--accent-cyan-glow)', border: 'var(--accent-cyan)', text: 'var(--accent-cyan)' } :
+    { bg: 'var(--bg-secondary)', border: 'var(--border-subtle)', text: 'var(--text-tertiary)' };
 
   return (
     <div style={{
       padding: '0.85rem',
       borderRadius: '10px',
-      background: hasActivity ? `${stateBadgeColor.bg}` : 'rgba(10,15,28,0.5)',
-      border: `1px solid ${hasActivity ? stateBadgeColor.border : 'rgba(255,255,255,0.06)'}`,
+      background: hasActivity ? `${stateBadgeColor.bg}` : 'var(--bg-secondary)',
+      border: `1px solid ${hasActivity ? stateBadgeColor.border : 'var(--border-subtle)'}`,
       opacity: isDim ? 0.5 : 1,
       transition: 'all 0.4s ease',
     }}>
       {/* Icon + Label Row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-        <Icon size={14} color={hasActivity ? color : '#475569'} />
-        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: hasActivity ? color : '#475569', letterSpacing: '0.04em' }}>
+        <Icon size={14} color={hasActivity ? color : 'var(--text-tertiary)'} />
+        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: hasActivity ? color : 'var(--text-tertiary)', letterSpacing: '0.04em' }}>
           {label.toUpperCase()}
         </span>
       </div>
 
       {/* Host */}
-      <div style={{ fontSize: '0.68rem', color: '#64748b', marginBottom: '8px', fontFamily: 'monospace' }}>
+      <div style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)', marginBottom: '8px', fontFamily: 'monospace' }}>
         {host}
       </div>
 
@@ -846,7 +856,7 @@ function VMNodeCard({ label, icon: Icon, host, color, vmState, lastEvent, hasAct
         <div style={{
           marginTop: '6px',
           fontSize: '0.65rem',
-          color: '#64748b',
+          color: 'var(--text-secondary)',
           fontFamily: 'monospace',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
@@ -861,27 +871,27 @@ function VMNodeCard({ label, icon: Icon, host, color, vmState, lastEvent, hasAct
 
 /** Collapsible activity card for a single event */
 function EventCard({ event, expanded, onToggle }) {
-  const vmColor = VM_ROLE_COLORS[event.vm] || '#94a3b8';
+  const vmColor = VM_ROLE_COLORS[event.vm] || 'var(--text-tertiary)';
   const vmLabel = VM_ROLE_LABELS[event.vm] || event.vm;
   const hasOutput = event.output && event.output.trim().length > 0;
 
   const typeIcon =
-    event.type === 'complete' ? '✓' :
-    event.type === 'error'    ? '✗' :
+    event.type === 'complete' ? '' :
+    event.type === 'error'    ? '' :
     event.type === 'connection' ? '⟳' :
     event.type === 'status'   ? '●' :
     event.type === 'command'  ? '$' : '·';
 
   const cardBg =
-    event.status === 'error'   ? 'rgba(248,113,113,0.07)' :
-    event.status === 'success' ? 'rgba(52,211,153,0.06)' :
-    'rgba(15,23,42,0.35)';
+    event.status === 'error'   ? 'var(--accent-red-glow)' :
+    event.status === 'success' ? 'var(--accent-green-glow)' :
+    'var(--bg-secondary)';
 
   const borderColor =
-    event.status === 'error'   ? 'rgba(248,113,113,0.3)' :
-    event.status === 'success' ? 'rgba(52,211,153,0.2)' :
-    event.status === 'running' ? 'rgba(56,189,248,0.15)' :
-    'rgba(255,255,255,0.05)';
+    event.status === 'error'   ? 'var(--accent-red)' :
+    event.status === 'success' ? 'var(--accent-green)' :
+    event.status === 'running' ? 'var(--accent-cyan)' :
+    'var(--border-subtle)';
 
   return (
     <div style={{
@@ -915,7 +925,7 @@ function EventCard({ event, expanded, onToggle }) {
         {/* Type chip */}
         <span style={{
           fontSize: '0.6rem',
-          color: '#64748b',
+          color: 'var(--text-tertiary)',
           fontFamily: 'monospace',
           flexShrink: 0,
         }}>
@@ -925,7 +935,7 @@ function EventCard({ event, expanded, onToggle }) {
         {/* Primary text */}
         <span style={{
           fontSize: '0.75rem',
-          color: event.status === 'error' ? '#fca5a5' : event.status === 'success' ? '#6ee7b7' : '#cbd5e1',
+          color: event.status === 'error' ? 'var(--accent-red)' : event.status === 'success' ? 'var(--accent-green)' : 'var(--text-primary)',
           fontFamily: event.type === 'command' || event.type === 'output' ? 'monospace' : 'inherit',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
@@ -937,7 +947,7 @@ function EventCard({ event, expanded, onToggle }) {
         </span>
 
         {/* Timestamp */}
-        <span style={{ fontSize: '0.62rem', color: '#475569', flexShrink: 0 }}>
+        <span style={{ fontSize: '0.62rem', color: 'var(--text-tertiary)', flexShrink: 0 }}>
           {event.timestamp}
         </span>
 
@@ -948,7 +958,7 @@ function EventCard({ event, expanded, onToggle }) {
             onClick={onToggle}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              color: '#64748b', padding: '0 2px', flexShrink: 0,
+              color: 'var(--text-secondary)', padding: '0 2px', flexShrink: 0,
             }}
           >
             {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
@@ -961,11 +971,12 @@ function EventCard({ event, expanded, onToggle }) {
         <div style={{
           marginTop: '6px',
           padding: '6px 8px',
-          background: 'rgba(0,0,0,0.3)',
+          background: 'var(--bg-primary)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '5px',
           fontFamily: 'monospace',
           fontSize: '0.7rem',
-          color: '#94a3b8',
+          color: 'var(--text-secondary)',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-all',
         }}>
@@ -1011,22 +1022,22 @@ function SubstepPipeline({ events, state }) {
         const isFailed = state === 'FAILED' && idx === activeIdx;
 
         const bg =
-          isFailed ? 'rgba(248,113,113,0.2)' :
-          isDone    ? 'rgba(52,211,153,0.15)' :
-          isActive  ? 'rgba(56,189,248,0.15)' :
-          'rgba(15,23,42,0.5)';
+          isFailed ? 'var(--accent-red-glow)' :
+          isDone    ? 'var(--accent-green-glow)' :
+          isActive  ? 'var(--accent-cyan-glow)' :
+          'var(--bg-secondary)';
 
         const border =
-          isFailed ? '#f87171' :
-          isDone    ? '#34d399' :
-          isActive  ? '#38bdf8' :
-          'rgba(255,255,255,0.06)';
+          isFailed ? 'var(--accent-red)' :
+          isDone    ? 'var(--accent-green)' :
+          isActive  ? 'var(--accent-cyan)' :
+          'var(--border-subtle)';
 
         const textColor =
-          isFailed ? '#f87171' :
-          isDone    ? '#34d399' :
-          isActive  ? '#38bdf8' :
-          '#475569';
+          isFailed ? 'var(--accent-red)' :
+          isDone    ? 'var(--accent-green)' :
+          isActive  ? 'var(--accent-cyan)' :
+          'var(--text-tertiary)';
 
         return (
           <React.Fragment key={phase.id}>
@@ -1041,7 +1052,7 @@ function SubstepPipeline({ events, state }) {
               animation: isActive ? 'pulse-glow 1.4s ease-in-out infinite' : 'none',
             }}>
               <div style={{ fontSize: '0.58rem', fontWeight: 800, color: textColor }}>
-                {isDone ? '✓' : isFailed ? '✗' : phase.short}
+                {isDone ? '' : isFailed ? '' : phase.short}
               </div>
               <div style={{ fontSize: '0.6rem', color: textColor, fontWeight: 600 }}>
                 {phase.label}
@@ -1051,7 +1062,7 @@ function SubstepPipeline({ events, state }) {
               <div style={{
                 width: 12,
                 height: 1,
-                background: isDone ? '#34d399' : 'rgba(255,255,255,0.08)',
+                background: isDone ? 'var(--accent-green)' : 'var(--border-subtle)',
                 flexShrink: 0,
                 transition: 'background 0.3s ease',
               }} />

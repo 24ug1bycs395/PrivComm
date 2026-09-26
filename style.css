@@ -1923,7 +1923,7 @@ body {
 }
 
 .tm-cell.active-risk-cell::after {
-  content: '⚡ ACTIVE';
+  content: ' ACTIVE';
   position: absolute;
   top: -8px;
   right: -6px;

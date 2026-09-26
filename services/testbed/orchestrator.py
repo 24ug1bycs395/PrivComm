@@ -122,6 +122,7 @@ class TestbedOrchestrator:
 
             await SSHController.run_command(
                 topology.responder,
+                "sudo swanctl --unload-all >/dev/null 2>&1 || true; "
                 "sudo swanctl --load-all || sudo ipsec restart || true",
                 on_event=resp_cb, vm_role="responder"
             )
@@ -148,6 +149,7 @@ class TestbedOrchestrator:
 
             await SSHController.run_command(
                 topology.initiator,
+                "sudo swanctl --unload-all >/dev/null 2>&1 || true; "
                 "sudo swanctl --load-all || sudo ipsec restart || true",
                 on_event=init_cb, vm_role="initiator"
             )

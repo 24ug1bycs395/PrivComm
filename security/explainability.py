@@ -30,7 +30,7 @@ def generate_plain_english_explanations(
             "parameter": "IKE Protocol Version",
             "observed_value": "IKEv1 (Aggressive Mode)",
             "status": "WEAK",
-            "icon": "⚠️",
+            "icon": "",
             "title": "Legacy IKEv1 Aggressive Mode (Vulnerable to Offline Password Cracking)",
             "plain_english_summary": "Outdated 1990s negotiation protocol that broadcasts your VPN authentication password hash over the open internet in plain sight.",
             "detailed_explanation": (
@@ -45,7 +45,7 @@ def generate_plain_english_explanations(
             "parameter": "IKE Protocol Version",
             "observed_value": "IKEv2 (RFC 7296)",
             "status": "SECURE",
-            "icon": "📞",
+            "icon": "",
             "title": "Modern IKEv2 Protocol Engine (RFC 7296)",
             "plain_english_summary": "Manages your VPN connection lifecycle with high speed, instant auto-reconnect, and seamless network mobility across Wi-Fi and 5G.",
             "detailed_explanation": (
@@ -59,7 +59,7 @@ def generate_plain_english_explanations(
             "parameter": "IKE Protocol Version",
             "observed_value": "IKEv1 (Main Mode)",
             "status": "WEAK",
-            "icon": "⚠️",
+            "icon": "",
             "title": "Legacy IKEv1 Main Mode (RFC 2409)",
             "plain_english_summary": "1990s negotiation protocol requiring 6 network round-trips with slow setup times and frequent connection drops.",
             "detailed_explanation": (
@@ -73,7 +73,7 @@ def generate_plain_english_explanations(
             "parameter": "IKE Protocol Version",
             "observed_value": ike_version if ike_version and ike_version != "UNKNOWN" else "IKE / IPsec",
             "status": "INFO",
-            "icon": "📞",
+            "icon": "",
             "title": f"Tunnel Negotiation Protocol ({ike_version or 'IKE'})",
             "plain_english_summary": "Manages initial identity verification and security negotiations between your device and the VPN server.",
             "detailed_explanation": (
@@ -90,7 +90,7 @@ def generate_plain_english_explanations(
             "parameter": "Encryption Cipher Algorithm",
             "observed_value": "3DES-CBC (Triple-DES)",
             "status": "OBSOLETE",
-            "icon": "⚠️",
+            "icon": "",
             "title": "Obsolete 3DES-CBC Cipher (Vulnerable to Sweet32 Collision Attacks)",
             "plain_english_summary": "Obsolete 1990s 64-bit encryption block cipher that modern high-speed computers can break through data collision attacks.",
             "detailed_explanation": (
@@ -104,7 +104,7 @@ def generate_plain_english_explanations(
             "parameter": "Encryption Cipher Algorithm",
             "observed_value": "AES-256-GCM (AEAD Cipher)",
             "status": "SECURE",
-            "icon": "🔒",
+            "icon": "",
             "title": "Authenticated AES-256-GCM Cipher (Galois/Counter Mode)",
             "plain_english_summary": "Bank-grade 256-bit encryption that scrambles data while simultaneously attaching a 128-bit tamper-proof digital seal.",
             "detailed_explanation": (
@@ -118,7 +118,7 @@ def generate_plain_english_explanations(
             "parameter": "Encryption Cipher Algorithm",
             "observed_value": f"{enc or 'AES-128-GCM'} (AEAD Cipher)",
             "status": "SECURE",
-            "icon": "🔒",
+            "icon": "",
             "title": "AES-128-GCM Authenticated Encryption (Galois/Counter Mode)",
             "plain_english_summary": "High-speed 128-bit authenticated encryption providing strong privacy and integrated tamper detection.",
             "detailed_explanation": (
@@ -131,7 +131,7 @@ def generate_plain_english_explanations(
             "parameter": "Encryption Cipher Algorithm",
             "observed_value": "AES-256-CBC (Cipher Block Chaining)",
             "status": "SECURE",
-            "icon": "🔒",
+            "icon": "",
             "title": "AES-256-CBC Block Cipher (Requires External HMAC Integrity Check)",
             "plain_english_summary": "Strong 256-bit data scrambling that links data blocks together, requiring a separate hashing step to catch packet tampering.",
             "detailed_explanation": (
@@ -145,7 +145,7 @@ def generate_plain_english_explanations(
             "parameter": "Encryption Cipher Algorithm",
             "observed_value": f"{enc or 'AES-128-CBC'} (Cipher Block Chaining)",
             "status": "SECURE",
-            "icon": "🔒",
+            "icon": "",
             "title": "AES-128-CBC Block Cipher Lock",
             "plain_english_summary": "Standard 128-bit block encryption for privacy protection, paired with external integrity hashing.",
             "detailed_explanation": (
@@ -158,7 +158,7 @@ def generate_plain_english_explanations(
             "parameter": "Encryption Cipher Algorithm",
             "observed_value": "ChaCha20-Poly1305 (AEAD Cipher)",
             "status": "SECURE",
-            "icon": "🔒",
+            "icon": "",
             "title": "ChaCha20-Poly1305 High-Speed Stream Cipher (RFC 7634)",
             "plain_english_summary": "Ultra-fast 256-bit stream cipher optimized for mobile devices without built-in AES hardware chips.",
             "detailed_explanation": (
@@ -171,7 +171,7 @@ def generate_plain_english_explanations(
             "parameter": "Encryption Cipher Algorithm",
             "observed_value": enc,
             "status": "SECURE",
-            "icon": "🔒",
+            "icon": "",
             "title": f"Camellia Block Cipher ({enc} / ISO-IEC 18033-3)",
             "plain_english_summary": "International 128-bit block cipher offering military-grade privacy protection equivalent to AES.",
             "detailed_explanation": (
@@ -184,7 +184,7 @@ def generate_plain_english_explanations(
             "parameter": "Encryption Cipher Algorithm",
             "observed_value": "NULL (Plaintext - No Encryption)",
             "status": "OBSOLETE",
-            "icon": "🚨",
+            "icon": "",
             "title": "CRITICAL EXPOSURE: NULL Encryption (Raw Plaintext Transmitted)",
             "plain_english_summary": "CRITICAL RISK: Payload encryption is completely disabled—all data is transmitted in readable plain text.",
             "detailed_explanation": (
@@ -201,7 +201,7 @@ def generate_plain_english_explanations(
                 "parameter": "Encryption Cipher Algorithm",
                 "observed_value": enc if enc and enc != "UNKNOWN" else "Standard Cipher",
                 "status": "INFO",
-                "icon": "🔒",
+                "icon": "",
                 "title": f"Data Encryption Cipher ({enc or 'Detected Cipher'})",
                 "plain_english_summary": "Cryptographic algorithm responsible for obscuring readable data across public networks.",
                 "detailed_explanation": f"Converts plain text into unreadable ciphertext using {enc or 'the detected cipher'} to ensure privacy."
@@ -214,7 +214,7 @@ def generate_plain_english_explanations(
             "parameter": "Diffie-Hellman Key Exchange",
             "observed_value": "DH Group 19 (NIST ECP-256)",
             "status": "SECURE",
-            "icon": "🤝",
+            "icon": "",
             "title": "Elliptic Curve Diffie-Hellman Group 19 (NIST P-256 / FIPS 186-4)",
             "plain_english_summary": "Allows two remote servers across the open internet to safely agree on identical secret encryption keys without ever sending the key over the wire.",
             "detailed_explanation": (
@@ -228,7 +228,7 @@ def generate_plain_english_explanations(
             "parameter": "Diffie-Hellman Key Exchange",
             "observed_value": "DH Group 20 (NIST ECP-384)",
             "status": "SECURE",
-            "icon": "🤝",
+            "icon": "",
             "title": "High-Assurance Elliptic Curve Group 20 (NIST P-384 / NSA Suite B)",
             "plain_english_summary": "Top-tier 384-bit Elliptic Curve secret handshake meeting NSA CSfC High-Assurance government standards.",
             "detailed_explanation": (
@@ -241,7 +241,7 @@ def generate_plain_english_explanations(
             "parameter": "Diffie-Hellman Key Exchange",
             "observed_value": "DH Group 31 (Curve448)",
             "status": "SECURE",
-            "icon": "🤝",
+            "icon": "",
             "title": "Curve448 Elliptic Curve Key Exchange (RFC 8031)",
             "plain_english_summary": "Modern 448-bit Edwards-curve secret handshake offering a 224-bit security margin with complete immunity to side-channel timing attacks.",
             "detailed_explanation": (
@@ -254,7 +254,7 @@ def generate_plain_english_explanations(
             "parameter": "Diffie-Hellman Key Exchange",
             "observed_value": "DH Group 14 (2048-bit MODP)",
             "status": "SECURE",
-            "icon": "🤝",
+            "icon": "",
             "title": "Standard Corporate Modular Prime Group 14 (2048-bit MODP / RFC 3526)",
             "plain_english_summary": "Standard enterprise key agreement using 2048-bit prime integer mathematics for shared secret creation.",
             "detailed_explanation": (
@@ -267,7 +267,7 @@ def generate_plain_english_explanations(
             "parameter": "Diffie-Hellman Key Exchange",
             "observed_value": f"DH Group {dh} (High-Bit MODP)",
             "status": "SECURE",
-            "icon": "🤝",
+            "icon": "",
             "title": f"High-Bit Prime Key Exchange (DH Group {dh} / 3072+ bit MODP)",
             "plain_english_summary": "Ultra-strong key exchange using massive 3072-bit or 4096-bit prime number math.",
             "detailed_explanation": (
@@ -280,7 +280,7 @@ def generate_plain_english_explanations(
             "parameter": "Diffie-Hellman Key Exchange",
             "observed_value": f"DH Group {dh} (1024-bit MODP)",
             "status": "WEAK",
-            "icon": "⚠️",
+            "icon": "",
             "title": f"Weak DH Group {dh} 1024-bit Key Exchange (Vulnerable to Logjam Attacks)",
             "plain_english_summary": "Underpowered 1024-bit prime key exchange vulnerable to nation-state supercomputer cracking.",
             "detailed_explanation": (
@@ -298,7 +298,7 @@ def generate_plain_english_explanations(
                 "parameter": "Diffie-Hellman Key Exchange",
                 "observed_value": f"Group {dh}" if dh and dh != "unknown" else "Standard Group",
                 "status": "INFO",
-                "icon": "🤝",
+                "icon": "",
                 "title": f"Cryptographic Key Agreement (DH Group {dh if dh and dh != 'unknown' else 'Standard'})",
                 "plain_english_summary": "Mathematical method allowing VPN endpoints to securely agree on session keys.",
                 "detailed_explanation": f"Protects key distribution so adversaries watching network traffic cannot deduce session encryption keys for DH Group {dh}."
@@ -312,7 +312,7 @@ def generate_plain_english_explanations(
             "parameter": "Perfect Forward Secrecy (PFS)",
             "observed_value": "Enforced (CREATE_CHILD_SA Rekeying)",
             "status": "SECURE",
-            "icon": "🔑",
+            "icon": "",
             "title": "Ephemeral One-Time Rekeying (PFS Enforced)",
             "plain_english_summary": "Constantly generates brand-new, independent session keys so compromising today's key leaves all past and future recorded traffic 100% safe.",
             "detailed_explanation": (
@@ -327,7 +327,7 @@ def generate_plain_english_explanations(
             "parameter": "Perfect Forward Secrecy (PFS)",
             "observed_value": "Disabled / Static Master Derivation",
             "status": "WEAK",
-            "icon": "⚠️",
+            "icon": "",
             "title": "PFS Disabled (Retroactive Decryption Exposure)",
             "plain_english_summary": "CRITICAL RISK: Data session keys depend on the master server key—stealing the server key allows hackers to decrypt all recorded past traffic.",
             "detailed_explanation": (
@@ -344,7 +344,7 @@ def generate_plain_english_explanations(
             "parameter": "IPsec Encapsulation Mode",
             "observed_value": "Tunnel Mode (Outer IP Wrapping)",
             "status": "SECURE",
-            "icon": "🛡️",
+            "icon": "",
             "title": "IPsec Tunnel Mode Encapsulation (Complete Outer IP Envelope)",
             "plain_english_summary": "Encloses your entire original IP packet—including private source and destination IP addresses—inside a brand-new encrypted outer IP envelope.",
             "detailed_explanation": (
@@ -358,7 +358,7 @@ def generate_plain_english_explanations(
             "parameter": "IPsec Encapsulation Mode",
             "observed_value": "Transport Mode (Exposed IP Headers)",
             "status": "INFO",
-            "icon": "🛡️",
+            "icon": "",
             "title": "IPsec Transport Mode Encapsulation (Host-to-Host Payload Shielding)",
             "plain_english_summary": "Encrypts only the inner data payload while leaving original source and destination IP addresses visible on the public network.",
             "detailed_explanation": (
@@ -376,7 +376,7 @@ def generate_plain_english_explanations(
             "parameter": "AI Encrypted Traffic Intelligence",
             "observed_value": f"{predicted_label} ({conf_pct}% confidence)",
             "status": "SECURE" if predicted_label != "MALWARE" else "OBSOLETE",
-            "icon": "🧠",
+            "icon": "",
             "title": f"AI Behavioral Pattern Recognition ({predicted_label} Application)",
             "plain_english_summary": f"Machine Learning identified the exact application activity ('{predicted_label}') inside the VPN tunnel using behavioral traffic patterns without breaking encryption.",
             "detailed_explanation": (
@@ -400,7 +400,7 @@ def generate_plain_english_explanations(
             "parameter": "Observable Metadata Exposure",
             "observed_value": f"{rating} Risk (Score {score}/100)",
             "status": card_status,
-            "icon": "📡",
+            "icon": "",
             "title": f"Observable Network Metadata Analysis ({src_ip or 'Endpoint'} -> {dst_ip or 'Endpoint'})",
             "plain_english_summary": f"Assessed outer IP header visibility, unencrypted IKE identity payloads, SPI correlation risk, and Transport mode exposure (Rating: {rating}).",
             "detailed_explanation": (

@@ -1,0 +1,219 @@
+{
+  "model_name": "VPN Behavioral Anomaly Detector",
+  "model_version": "1.0.0",
+  "training_dataset_version": "vpn-behavior-v1",
+  "features": [
+    "duration_sec",
+    "packet_count",
+    "byte_count",
+    "packets_per_second",
+    "bytes_per_second",
+    "mean_packet_size",
+    "std_packet_size",
+    "min_packet_size",
+    "max_packet_size",
+    "mean_inter_arrival_time",
+    "std_inter_arrival_time",
+    "forward_packet_count",
+    "backward_packet_count",
+    "forward_byte_count",
+    "backward_byte_count",
+    "flow_count",
+    "new_flows_per_minute",
+    "concurrent_flows",
+    "unique_source_count",
+    "unique_destination_count",
+    "peer_count",
+    "inbound_outbound_byte_ratio",
+    "inbound_outbound_packet_ratio",
+    "tcp_packet_count",
+    "udp_packet_count",
+    "icmp_packet_count",
+    "other_packet_count",
+    "esp_packet_count",
+    "ike_packet_count",
+    "sa_establishment_frequency",
+    "session_duration_mean",
+    "session_duration_std"
+  ],
+  "training_timestamp": "2026-09-26T20:44:59.954221+00:00",
+  "training_method": "normal-only unsupervised training with scenario/time-aware holdout",
+  "training_data_sources": [
+    "strongswan_testbed_pcap"
+  ],
+  "synthetic_data_warning": false,
+  "selected_detector": "robust_zscore",
+  "candidates": [
+    "isolation_forest",
+    "robust_zscore"
+  ],
+  "score_definition": "0.0 is strongly consistent with the learned normal baseline; 1.0 is strongly anomalous. This is a calibrated ranking score, not a probability.",
+  "training_rows": 6,
+  "validation_rows": 22,
+  "test_rows": 22,
+  "normal_training_rows": 6,
+  "validation_metrics": {
+    "isolation_forest": {
+      "precision": 0.875,
+      "recall": 0.35,
+      "f1": 0.5,
+      "false_positive_rate": 0.5,
+      "confusion_matrix_labels_0_normal_1_anomalous": [
+        [
+          1,
+          1
+        ],
+        [
+          13,
+          7
+        ]
+      ],
+      "anomaly_score_distribution": {
+        "min": 0.0,
+        "median": 0.0,
+        "p95": 1.0,
+        "max": 1.0
+      },
+      "per_scenario": {
+        "burst_pattern": {
+          "samples": 5,
+          "anomaly_rate_detected": 0.0,
+          "mean_anomaly_score": 0.0,
+          "recall": 0.0
+        },
+        "flow_spike": {
+          "samples": 5,
+          "anomaly_rate_detected": 0.0,
+          "mean_anomaly_score": 0.0,
+          "recall": 0.0
+        },
+        "normal": {
+          "samples": 2,
+          "anomaly_rate_detected": 0.5,
+          "mean_anomaly_score": 0.5,
+          "recall": null
+        },
+        "session_anomaly": {
+          "samples": 5,
+          "anomaly_rate_detected": 1.0,
+          "mean_anomaly_score": 1.0,
+          "recall": 1.0
+        },
+        "traffic_spike": {
+          "samples": 5,
+          "anomaly_rate_detected": 0.4,
+          "mean_anomaly_score": 0.5988239821294025,
+          "recall": 0.4
+        }
+      }
+    },
+    "robust_zscore": {
+      "precision": 0.9523809523809523,
+      "recall": 1.0,
+      "f1": 0.975609756097561,
+      "false_positive_rate": 0.5,
+      "confusion_matrix_labels_0_normal_1_anomalous": [
+        [
+          1,
+          1
+        ],
+        [
+          0,
+          20
+        ]
+      ],
+      "anomaly_score_distribution": {
+        "min": 0.0,
+        "median": 1.0,
+        "p95": 1.0,
+        "max": 1.0
+      },
+      "per_scenario": {
+        "burst_pattern": {
+          "samples": 5,
+          "anomaly_rate_detected": 1.0,
+          "mean_anomaly_score": 1.0,
+          "recall": 1.0
+        },
+        "flow_spike": {
+          "samples": 5,
+          "anomaly_rate_detected": 1.0,
+          "mean_anomaly_score": 1.0,
+          "recall": 1.0
+        },
+        "normal": {
+          "samples": 2,
+          "anomaly_rate_detected": 0.5,
+          "mean_anomaly_score": 0.5,
+          "recall": null
+        },
+        "session_anomaly": {
+          "samples": 5,
+          "anomaly_rate_detected": 1.0,
+          "mean_anomaly_score": 1.0,
+          "recall": 1.0
+        },
+        "traffic_spike": {
+          "samples": 5,
+          "anomaly_rate_detected": 1.0,
+          "mean_anomaly_score": 1.0,
+          "recall": 1.0
+        }
+      }
+    }
+  },
+  "test_metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "false_positive_rate": 0.0,
+    "confusion_matrix_labels_0_normal_1_anomalous": [
+      [
+        2,
+        0
+      ],
+      [
+        0,
+        20
+      ]
+    ],
+    "anomaly_score_distribution": {
+      "min": 0.0,
+      "median": 1.0,
+      "p95": 1.0,
+      "max": 1.0
+    },
+    "per_scenario": {
+      "burst_pattern": {
+        "samples": 5,
+        "anomaly_rate_detected": 1.0,
+        "mean_anomaly_score": 1.0,
+        "recall": 1.0
+      },
+      "flow_spike": {
+        "samples": 5,
+        "anomaly_rate_detected": 1.0,
+        "mean_anomaly_score": 1.0,
+        "recall": 1.0
+      },
+      "normal": {
+        "samples": 2,
+        "anomaly_rate_detected": 0.0,
+        "mean_anomaly_score": 0.0,
+        "recall": null
+      },
+      "session_anomaly": {
+        "samples": 5,
+        "anomaly_rate_detected": 1.0,
+        "mean_anomaly_score": 1.0,
+        "recall": 1.0
+      },
+      "traffic_spike": {
+        "samples": 5,
+        "anomaly_rate_detected": 1.0,
+        "mean_anomaly_score": 1.0,
+        "recall": 1.0
+      }
+    }
+  }
+}
