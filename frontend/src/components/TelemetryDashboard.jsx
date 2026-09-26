@@ -32,7 +32,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
   const [historyList, setHistoryList] = useState([]);
   const [selectedFilename, setSelectedFilename] = useState('ikev2_s2s_ipsec_vpn_aes_gcm.pcapng');
   const [telemetryLogs, setTelemetryLogs] = useState([
-    '[SYSTEM] Cyber Sentinel Live Telemetry Dashboard initialized.',
+    '[SYSTEM] Privcomm Live Telemetry Dashboard initialized.',
     '[STREAM] Listening for VM tap ingestion streams on port 500 / 4500 / 50...',
     '[DISSECTOR] Engine ready. XGBoost Multiclass Classifier loaded.',
     '[POLICY] Context-Aware Security Baseline Rulebook v2.0 ACTIVE.'
@@ -151,7 +151,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         setChatMessages(prev => [...prev, { sender: 'ai', text: '⚠️ Unable to fetch AI response from server backend.' }]);
       }
     } catch (err) {
-      setChatMessages(prev => [...prev, { sender: 'ai', text: '⚠️ Network error: Could not reach Cyber Sentinel AI service.' }]);
+      setChatMessages(prev => [...prev, { sender: 'ai', text: '⚠️ Network error: Could not reach Privcomm AI service.' }]);
     } finally {
       setChatLoading(false);
     }
@@ -324,7 +324,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
   return (
     <div className="tab-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '1.5rem 1rem', position: 'relative' }}>
-      
+
       {/* Top Header / Nav Bar Strip */}
       <div style={{
         display: 'flex',
@@ -341,7 +341,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Shield size={22} color="#38bdf8" />
           <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#38bdf8', letterSpacing: '0.05em' }}>
-            CYBER SENTINEL
+            Privcomm
           </span>
           <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
             / Live Telemetry & Analytics Dashboard
@@ -442,7 +442,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
       {/* Analytics Grid: Threat Matrix + AI Traffic Breakdown */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-        
+
         {/* 3x3 Security Threat Matrix Grid */}
         <div className="glass-card" style={{ padding: '20px' }}>
           <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -646,7 +646,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
       {/* Enterprise Security Auditing Grid (Drift, Policy, PQC) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        
+
         {/* 1. Configuration Drift Detector */}
         <div className="glass-card" style={{ padding: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -903,9 +903,9 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         </div>
       </div>
 
-      {/* FLOATING CYBER SENTINEL AI ASSISTANT CHATBOT WIDGET */}
+      {/* FLOATING Privcomm AI ASSISTANT CHATBOT WIDGET */}
       <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 3000 }}>
-        
+
         {/* Toggle Button */}
         {!chatOpen && (
           <button
@@ -926,7 +926,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
             }}
           >
             <Bot size={20} />
-            <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Cyber Sentinel AI Assistant</span>
+            <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Privcomm AI Assistant</span>
             <span style={{ width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%', boxShadow: '0 0 6px #22c55e' }} />
           </button>
         )}
@@ -954,7 +954,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Bot size={18} color="#38bdf8" />
                 <div>
-                  <strong style={{ fontSize: '0.85rem', color: '#fff', display: 'block' }}>Cyber Sentinel Assistant</strong>
+                  <strong style={{ fontSize: '0.85rem', color: '#fff', display: 'block' }}>Privcomm Assistant</strong>
                   <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Live Telemetry & Security Advisor</span>
                 </div>
               </div>
@@ -999,7 +999,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
               {chatLoading && (
                 <div style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#38bdf8' }}>
                   <Sparkles size={14} className="animate-spin" />
-                  <span>Cyber Sentinel AI is analyzing...</span>
+                  <span>Privcomm AI is analyzing...</span>
                 </div>
               )}
               <div ref={chatBottomRef} />
