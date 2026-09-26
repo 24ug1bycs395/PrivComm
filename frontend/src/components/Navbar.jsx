@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Shield, Activity, Layers, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X } from 'lucide-react';
+import { Shield, Activity, Layers, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Radio } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 
 const tabs = [
-  { id: 'dashboard',     label: 'Telemetry',    icon: LayoutDashboard },
-  { id: 'analyzer',     label: 'PCAP Analyzer', icon: Activity },
-  { id: 'testbed',      label: 'Testbed',       icon: Server },
-  { id: 'vault',        label: 'Vault',         icon: Database },
-  { id: 'overview',     label: 'Architecture',  icon: Layers },
-  { id: 'threat-matrix',label: 'Threats',       icon: Shield },
-  { id: 'compliance',   label: 'Compliance',    icon: FileCheck },
+  { id: 'dashboard',     label: 'Telemetry',       icon: LayoutDashboard },
+  { id: 'live',          label: 'Live Dashboard',  icon: Radio },
+  { id: 'analyzer',     label: 'PCAP Analyzer',    icon: Activity },
+  { id: 'testbed',      label: 'Testbed',          icon: Server },
+  { id: 'vault',        label: 'Vault',            icon: Database },
+  { id: 'overview',     label: 'Architecture',     icon: Layers },
+  { id: 'threat-matrix',label: 'Threats',          icon: Shield },
+  { id: 'compliance',   label: 'Compliance',       icon: FileCheck },
 ];
 
 export default function Navbar({ activeTab, setActiveTab }) {
