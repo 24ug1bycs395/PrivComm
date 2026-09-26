@@ -372,7 +372,7 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
               </div>
 
               <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '0.75rem' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--accent-green)', fontWeight: 700 }}>VM 3 &bull; OBSERVER</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', fontWeight: 700 }}>VM 3 &bull; OBSERVER</div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>TShark / tcpdump</div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>{topology.observer_ip}</div>
                 {nodeStatus?.nodes?.observer && (
@@ -594,7 +594,7 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
               {[
                 { role: 'initiator', label: 'Initiator VM', icon: Send, host: topology.initiator_ip, color: 'var(--accent-cyan)' },
                 { role: 'responder', label: 'Responder VM', icon: Server, host: topology.responder_ip, color: 'var(--accent-blue)' },
-                { role: 'observer', label: 'Observer', icon: Eye, host: topology.observer_ip, color: 'var(--accent-green)' },
+                { role: 'observer', label: 'Observer', icon: Eye, host: topology.observer_ip, color: 'var(--accent-cyan)' },
               ].map(({ role, label, icon: Icon, host, color }) => {
                 const roleEvents = terminalEvents.filter(e => e.vm === role);
                 const lastEvent = roleEvents[roleEvents.length - 1];
@@ -756,8 +756,8 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
 
 const VM_ROLE_COLORS = {
   initiator: '#38bdf8',
-  responder: '#a78bfa',
-  observer: '#34d399',
+  responder: '#60a5fa',
+  observer: '#0284c7',
   system: '#94a3b8',
 };
 
@@ -771,10 +771,10 @@ const VM_ROLE_LABELS = {
 /** Animated status dot */
 function StatusDot({ status }) {
   const color =
-    status === 'success' ? '#34d399' :
-    status === 'error' ? '#f87171' :
+    status === 'success' ? '#38bdf8' :
+    status === 'error' ? '#94a3b8' :
     status === 'running' ? '#38bdf8' :
-    status === 'connecting' ? '#f59e0b' :
+    status === 'connecting' ? '#60a5fa' :
     '#475569';
 
   return (
@@ -805,10 +805,10 @@ function VMNodeCard({ label, icon: Icon, host, color, vmState, lastEvent, hasAct
     vmState === 'pending' ? 'WAITING' : 'IDLE';
 
   const stateBadgeColor =
-    vmState === 'success' ? { bg: 'var(--accent-green-glow)', border: 'var(--accent-green)', text: 'var(--accent-green)' } :
-    vmState === 'error'   ? { bg: 'var(--accent-red-glow)', border: 'var(--accent-red)', text: 'var(--accent-red)' } :
+    vmState === 'success' ? { bg: 'var(--accent-cyan-dim)', border: 'rgba(56, 189, 248, 0.3)', text: 'var(--accent-cyan)' } :
+    vmState === 'error'   ? { bg: 'rgba(100, 116, 139, 0.12)', border: 'rgba(100, 116, 139, 0.35)', text: 'var(--text-secondary)' } :
     vmState === 'running' || vmState === 'connecting'
-                          ? { bg: 'var(--accent-cyan-glow)', border: 'var(--accent-cyan)', text: 'var(--accent-cyan)' } :
+                          ? { bg: 'var(--accent-cyan-dim)', border: 'var(--accent-cyan)', text: 'var(--accent-cyan)' } :
     { bg: 'var(--bg-secondary)', border: 'var(--border-subtle)', text: 'var(--text-tertiary)' };
 
   return (

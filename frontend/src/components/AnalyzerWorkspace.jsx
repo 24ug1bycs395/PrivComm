@@ -270,7 +270,7 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
 
           <div className="sample-row-card" onClick={() => handleLoadSample('ikev2-strong')}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: 'var(--accent-green-dim)', color: 'var(--accent-green)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: 'var(--accent-cyan-dim)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Shield size={18} />
               </div>
               <div>
@@ -367,9 +367,9 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
               fontFamily: 'JetBrains Mono',
               fontSize: '0.82rem',
               fontWeight: 700,
-              background: riskLevel === 'SECURE' || riskLevel === 'LOW' ? 'rgba(34, 197, 94, 0.15)' : (riskLevel === 'MEDIUM' ? 'rgba(234, 179, 8, 0.15)' : 'rgba(239, 68, 68, 0.15)'),
-              color: riskLevel === 'SECURE' || riskLevel === 'LOW' ? '#4ade80' : (riskLevel === 'MEDIUM' ? '#fde047' : '#fca5a5'),
-              border: `1px solid ${riskLevel === 'SECURE' || riskLevel === 'LOW' ? '#22c55e' : (riskLevel === 'MEDIUM' ? '#eab308' : '#ef4444')}`
+              background: riskLevel === 'SECURE' || riskLevel === 'LOW' ? 'rgba(56, 189, 248, 0.15)' : (riskLevel === 'MEDIUM' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(100, 116, 139, 0.15)'),
+              color: riskLevel === 'SECURE' || riskLevel === 'LOW' ? '#38bdf8' : (riskLevel === 'MEDIUM' ? '#60a5fa' : '#cbd5e1'),
+              border: `1px solid ${riskLevel === 'SECURE' || riskLevel === 'LOW' ? '#38bdf8' : (riskLevel === 'MEDIUM' ? '#3b82f6' : '#94a3b8')}`
             }}>
               <span className="live-dot" style={{ background: 'currentColor' }}></span>
               <span>{riskLevel} RISK ({riskScore}/100)</span>
@@ -414,7 +414,7 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
             <div className="metric-box">
               <div className="metric-title-bar">
                 <span>CIPHER &amp; INTEGRITY SUITE</span>
-                <Lock size={16} color="var(--accent-green)" />
+                <Lock size={16} color="var(--accent-cyan)" />
               </div>
               <div className="metric-big-val" style={{ fontSize: '1.25rem' }}>
                 {analysisResult.encryption || 'AES-256-GCM'}
@@ -469,7 +469,7 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>
                   IKE IDENTITY PAYLOADS ($ID_i$ / $ID_r$)
                 </span>
-                <strong style={{ fontSize: '0.86rem', color: analysisResult.metadata_exposure?.identity_exposure?.plaintext_identity_leak ? 'var(--accent-red)' : 'var(--accent-green)' }}>
+                <strong style={{ fontSize: '0.86rem', color: analysisResult.metadata_exposure?.identity_exposure?.plaintext_identity_leak ? 'var(--text-secondary)' : 'var(--accent-cyan)' }}>
                   {analysisResult.metadata_exposure?.identity_exposure?.plaintext_identity_leak ? 'PLAINTEXT EXPOSED' : 'ENCRYPTED / ABSENT'}
                 </strong>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', display: 'block', marginTop: '4px' }}>
@@ -493,7 +493,7 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>
                   HEADER EXPOSURE (MODE)
                 </span>
-                <strong style={{ fontSize: '0.86rem', color: analysisResult.mode === 'Transport' ? 'var(--accent-yellow)' : 'var(--accent-green)' }}>
+                <strong style={{ fontSize: '0.86rem', color: analysisResult.mode === 'Transport' ? 'var(--accent-blue)' : 'var(--accent-cyan)' }}>
                   {analysisResult.mode || 'Tunnel'} Mode ({analysisResult.metadata_exposure?.transport_mode_exposure?.exposed_metadata_bytes_per_pkt || 0} B/pkt)
                 </strong>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', display: 'block', marginTop: '4px' }}>
@@ -627,7 +627,10 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
             {findings.length === 0 ? (
               <div className="finding-box LOW">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--accent-green)' }}>✓ Zero Cryptographic Policy Violations</span>
+                  <span style={{ fontWeight: 700, color: 'var(--accent-cyan)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={15} />
+                    Zero Cryptographic Policy Violations
+                  </span>
                   <span className="status-badge compliant">NIST COMPLIANT</span>
                 </div>
                 <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
