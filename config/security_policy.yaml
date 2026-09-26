@@ -90,4 +90,4 @@ risk_weights:
 
 sa_lifetime:
   max_seconds: 28800
-  warn_if_unknown: true
+  warn_if_unknown: false

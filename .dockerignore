@@ -17,7 +17,7 @@ env/
 
 models/random_forest_model.joblib
 consolidated_traffic_data.csv
-traffic-classifier/
+traffic-classifier/data/
 tests/
 docs/
 Vagrantfile
