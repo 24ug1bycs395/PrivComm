@@ -1087,21 +1087,21 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                 onClick={() => handleSendChatMessage('Explain active live VM stream security')}
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)', borderRadius: '12px', padding: '3px 8px', fontSize: '0.68rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
-                 Active stream rationale
+                Active stream rationale
               </button>
               <button
                 type="button"
                 onClick={() => handleSendChatMessage('Why is 3DES or DH Group 2 weak?')}
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)', borderRadius: '12px', padding: '3px 8px', fontSize: '0.68rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
-                 Why is 3DES weak?
+                Why is 3DES weak?
               </button>
               <button
                 type="button"
                 onClick={() => handleSendChatMessage('Remediation steps for high risk tunnels')}
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)', borderRadius: '12px', padding: '3px 8px', fontSize: '0.68rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
-                 Remediation steps
+                Remediation steps
               </button>
             </div>
 
