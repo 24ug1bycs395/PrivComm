@@ -50,7 +50,7 @@ def run_tshark_json(pcap_path: str, display_filter: Optional[str] = None) -> Lis
     if not tshark_bin:
         raise FileNotFoundError("TShark executable not found. Please install Wireshark or set TSHARK_PATH.")
 
-    cmd = [tshark_bin, "-r", pcap_path, "-T", "json"]
+    cmd = [tshark_bin, "-r", pcap_path, "-T", "json", "-c", "500"]
     if display_filter:
         cmd.extend(["-Y", display_filter])
 

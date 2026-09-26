@@ -62,6 +62,43 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
   const feedRef = useRef(null);
   const isNearBottomRef = useRef(true);
 
+  // Temporary Node Status Test State
+  const [nodeStatus, setNodeStatus] = useState(null);
+  const [isCheckingNodes, setIsCheckingNodes] = useState(false);
+
+  const handleCheckNodes = async () => {
+    setIsCheckingNodes(true);
+    try {
+      const res = await fetch('/api/testbed/check-nodes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          initiator: { host: topology.initiator_ip, port: 22, username: 'vagrant' },
+          responder: { host: topology.responder_ip, port: 22, username: 'vagrant' },
+          observer: { host: topology.observer_ip, port: 22, username: 'vagrant' }
+        })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setNodeStatus(data);
+    } catch (err) {
+      console.error('Failed to check testbed nodes:', err);
+      setNodeStatus({
+        all_online: false,
+        online_count: 0,
+        total_nodes: 3,
+        error: err.message || 'Check failed',
+        nodes: {
+          initiator: { host: topology.initiator_ip, status: 'OFFLINE', error: 'Connection failed' },
+          responder: { host: topology.responder_ip, status: 'OFFLINE', error: 'Connection failed' },
+          observer: { host: topology.observer_ip, status: 'OFFLINE', error: 'Connection failed' }
+        }
+      });
+    } finally {
+      setIsCheckingNodes(false);
+    }
+  };
+
   // Fetch scenarios and recent jobs on mount
   useEffect(() => {
     fetchScenarios();
@@ -239,26 +276,116 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Virtual Topology (Host-Only Network)
               </span>
-              <span className="badge badge-cyan" style={{ fontSize: '0.7rem' }}>3-VM MESH</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="badge badge-cyan" style={{ fontSize: '0.7rem' }}>3-VM MESH</span>
+                {/* Temporary Test Button */}
+                <button
+                  type="button"
+                  onClick={handleCheckNodes}
+                  disabled={isCheckingNodes}
+                  style={{
+                    fontSize: '0.72rem',
+                    padding: '0.3rem 0.65rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    background: 'rgba(56, 189, 248, 0.12)',
+                    border: '1px solid rgba(56, 189, 248, 0.4)',
+                    color: '#38bdf8',
+                    borderRadius: '6px',
+                    cursor: isCheckingNodes ? 'wait' : 'pointer',
+                    fontWeight: 600,
+                    transition: 'all 0.2s ease'
+                  }}
+                  title="Test SSH connectivity & status of the 3 nodes"
+                >
+                  <RefreshCw size={12} className={isCheckingNodes ? 'spin' : ''} />
+                  {isCheckingNodes ? 'Checking...' : 'Check Node Status (Test)'}
+                </button>
+              </div>
             </div>
+
+            {/* Diagnostic Banner if node check was performed */}
+            {nodeStatus && (
+              <div
+                style={{
+                  marginBottom: '0.9rem',
+                  padding: '0.6rem 0.85rem',
+                  borderRadius: '6px',
+                  background: nodeStatus.all_online ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  border: `1px solid ${nodeStatus.all_online ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '0.78rem'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {nodeStatus.all_online ? (
+                    <CheckCircle size={15} color="#22c55e" />
+                  ) : (
+                    <AlertTriangle size={15} color="#ef4444" />
+                  )}
+                  <span style={{ fontWeight: 600, color: nodeStatus.all_online ? '#4ade80' : '#f87171' }}>
+                    {nodeStatus.all_online
+                      ? 'All 3 nodes initialized & reachable via SSH!'
+                      : `${nodeStatus.online_count} / 3 nodes reachable — check Vagrant or Docker containers.`}
+                  </span>
+                </div>
+                <span style={{ color: '#94a3b8', fontSize: '0.7rem' }}>Test Mode</span>
+              </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', textAlign: 'center' }}>
               <div style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '8px', padding: '0.75rem' }}>
                 <div style={{ fontSize: '0.7rem', color: '#38bdf8', fontWeight: 700 }}>VM 1 &bull; INITIATOR</div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', marginTop: '4px' }}>strongSwan 5.x</div>
                 <div style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>{topology.initiator_ip}</div>
+                {nodeStatus?.nodes?.initiator && (
+                  <div style={{ marginTop: '6px' }}>
+                    <span
+                      className={`badge ${nodeStatus.nodes.initiator.status === 'ONLINE' ? 'badge-green' : 'badge-red'}`}
+                      style={{ fontSize: '0.65rem', padding: '2px 6px' }}
+                      title={nodeStatus.nodes.initiator.details || nodeStatus.nodes.initiator.error}
+                    >
+                      {nodeStatus.nodes.initiator.status} {nodeStatus.nodes.initiator.latency_ms ? `(${nodeStatus.nodes.initiator.latency_ms}ms)` : ''}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(168, 85, 247, 0.2)', borderRadius: '8px', padding: '0.75rem' }}>
                 <div style={{ fontSize: '0.7rem', color: '#c084fc', fontWeight: 700 }}>VM 2 &bull; RESPONDER</div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', marginTop: '4px' }}>strongSwan 5.x</div>
                 <div style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>{topology.responder_ip}</div>
+                {nodeStatus?.nodes?.responder && (
+                  <div style={{ marginTop: '6px' }}>
+                    <span
+                      className={`badge ${nodeStatus.nodes.responder.status === 'ONLINE' ? 'badge-green' : 'badge-red'}`}
+                      style={{ fontSize: '0.65rem', padding: '2px 6px' }}
+                      title={nodeStatus.nodes.responder.details || nodeStatus.nodes.responder.error}
+                    >
+                      {nodeStatus.nodes.responder.status} {nodeStatus.nodes.responder.latency_ms ? `(${nodeStatus.nodes.responder.latency_ms}ms)` : ''}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(52, 211, 153, 0.2)', borderRadius: '8px', padding: '0.75rem' }}>
                 <div style={{ fontSize: '0.7rem', color: '#34d399', fontWeight: 700 }}>VM 3 &bull; OBSERVER</div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff', marginTop: '4px' }}>TShark / tcpdump</div>
                 <div style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'JetBrains Mono', marginTop: '2px' }}>{topology.observer_ip}</div>
+                {nodeStatus?.nodes?.observer && (
+                  <div style={{ marginTop: '6px' }}>
+                    <span
+                      className={`badge ${nodeStatus.nodes.observer.status === 'ONLINE' ? 'badge-green' : 'badge-red'}`}
+                      style={{ fontSize: '0.65rem', padding: '2px 6px' }}
+                      title={nodeStatus.nodes.observer.details || nodeStatus.nodes.observer.error}
+                    >
+                      {nodeStatus.nodes.observer.status} {nodeStatus.nodes.observer.latency_ms ? `(${nodeStatus.nodes.observer.latency_ms}ms)` : ''}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

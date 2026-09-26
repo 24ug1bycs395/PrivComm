@@ -124,3 +124,81 @@ async def download_testbed_pcap(job_id: str):
         media_type="application/vnd.tcpdump.pcap",
         filename=os.path.basename(pcap_path)
     )
+
+
+async def _probe_node(role: str, host: str, port: int = 22, username: str = "vagrant", password: str = "vagrant", timeout: float = 2.5) -> dict:
+    import time
+    t0 = time.monotonic()
+    try:
+        # 1. Quick TCP connection probe
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection(host, port),
+            timeout=timeout
+        )
+        writer.close()
+        await writer.wait_closed()
+        latency_ms = round((time.monotonic() - t0) * 1000, 1)
+
+        # 2. Fast SSH banner/command check
+        details = "SSH port 22 reachable"
+        try:
+            import asyncssh
+            async with asyncssh.connect(
+                host=host, port=port, username=username, password=password,
+                known_hosts=None, login_timeout=2.0
+            ) as conn:
+                res = await asyncio.wait_for(conn.run("uname -s -r 2>/dev/null || hostname", timeout=2.0), timeout=2.0)
+                if res.stdout:
+                    details = res.stdout.strip()
+        except Exception:
+            pass
+
+        return {
+            "role": role,
+            "host": host,
+            "port": port,
+            "status": "ONLINE",
+            "latency_ms": latency_ms,
+            "details": details,
+            "error": None
+        }
+    except Exception as exc:
+        return {
+            "role": role,
+            "host": host,
+            "port": port,
+            "status": "OFFLINE",
+            "latency_ms": None,
+            "details": "Unreachable / Port closed",
+            "error": str(exc)
+        }
+
+
+@router.get("/check-nodes", summary="Test SSH & connectivity of the 3 testbed containers/VMs")
+@router.post("/check-nodes", summary="Test SSH & connectivity of the 3 testbed containers/VMs")
+async def check_testbed_nodes(topology: Optional[TestbedTopology] = None):
+    """
+    Probes all 3 testbed nodes (Initiator, Responder, Observer) in parallel
+    and returns their live online/offline status, latency, and system info.
+    """
+    top = topology or TestbedTopology()
+    import asyncio
+    results = await asyncio.gather(
+        _probe_node("initiator", top.initiator.host, top.initiator.port, top.initiator.username, top.initiator.password or "vagrant"),
+        _probe_node("responder", top.responder.host, top.responder.port, top.responder.username, top.responder.password or "vagrant"),
+        _probe_node("observer", top.observer.host, top.observer.port, top.observer.username, top.observer.password or "vagrant")
+    )
+
+    all_online = all(r["status"] == "ONLINE" for r in results)
+    online_count = sum(1 for r in results if r["status"] == "ONLINE")
+
+    return {
+        "all_online": all_online,
+        "online_count": online_count,
+        "total_nodes": 3,
+        "nodes": {
+            "initiator": results[0],
+            "responder": results[1],
+            "observer": results[2]
+        }
+    }
