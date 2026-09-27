@@ -24,7 +24,7 @@ const steps = [
     num: '03', title: 'Assess',
     desc: 'Validate cipher resilience, PRF/hash integrity, key lengths, and Diffie-Hellman group parameters.',
     tag: 'Crypto Evaluation', icon: Lock,
-    color: 'var(--accent-green)', glow: 'var(--accent-green-dim)',
+    color: 'var(--accent-cyan)', glow: 'var(--accent-cyan-dim)',
   },
   {
     num: '04', title: 'Explain',
@@ -36,13 +36,13 @@ const steps = [
     num: '05', title: 'Simulate',
     desc: 'Model hypothetical cipher downgrades, rekey exhaustion events, and replay vulnerability postures.',
     tag: 'Digital Twin', icon: Activity,
-    color: 'var(--accent-yellow)', glow: 'rgba(217, 119, 6, 0.12)',
+    color: 'var(--accent-blue)', glow: 'var(--accent-blue-dim)',
   },
   {
     num: '06', title: 'Secure',
     desc: 'Synthesize actionable remediation playbooks, cryptographic hardening scripts, and audit reports.',
     tag: 'Hardening', icon: CheckSquare,
-    color: 'var(--accent-green)', glow: 'var(--accent-green-dim)',
+    color: 'var(--accent-cyan)', glow: 'var(--accent-cyan-dim)',
   },
 ];
 
@@ -67,7 +67,7 @@ const metrics = [
 ];
 
 /* ── Component ──────────────────────────────────────────────────────── */
-export default function Overview({ onStartAnalysis }) {
+export default function Overview({ onStartAnalysis, onViewTelemetry }) {
   return (
     <div style={{ animation: 'fade-in 0.4s ease' }}>
 
@@ -140,7 +140,7 @@ export default function Overview({ onStartAnalysis }) {
             type="button"
             id="hero-view-dashboard"
             className="btn btn-secondary btn-lg"
-            onClick={() => {}}
+            onClick={onViewTelemetry}
           >
             View Telemetry Dashboard
             <ChevronRight size={17} />
@@ -336,7 +336,7 @@ export default function Overview({ onStartAnalysis }) {
                     {cap.sub}
                   </div>
                 </div>
-                <CheckCircle size={15} style={{ marginLeft: 'auto', color: 'var(--accent-green)', flexShrink: 0, opacity: 0.85 }} />
+                <CheckCircle size={15} style={{ marginLeft: 'auto', color: 'var(--accent-cyan)', flexShrink: 0, opacity: 0.85 }} />
               </div>
             );
           })}

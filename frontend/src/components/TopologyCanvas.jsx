@@ -20,7 +20,7 @@ export default function TopologyCanvas() {
     window.addEventListener('resize', resize);
 
     const primaryColor = isLight ? '#0284c7' : '#38bdf8';
-    const greenColor = isLight ? '#16a34a' : '#34d399';
+    const secondaryColor = isLight ? '#0369a1' : '#60a5fa';
     const blueColor = isLight ? '#2563eb' : '#3b82f6';
 
     // Particles for flowing ESP/AH encrypted packets
@@ -31,7 +31,7 @@ export default function TopologyCanvas() {
         progress: Math.random(),
         speed: 0.003 + Math.random() * 0.004,
         size: 2 + Math.random() * 2.5,
-        color: Math.random() > 0.35 ? primaryColor : greenColor,
+        color: Math.random() > 0.35 ? primaryColor : secondaryColor,
       });
     }
 
@@ -91,7 +91,7 @@ export default function TopologyCanvas() {
       [
         { ...nodeA, label: 'GATEWAY ALPHA', sub: 'Site-01 Initiator', color: primaryColor },
         { ...nodeCenter, label: 'SENTINEL CORE', sub: 'ESP/AH Inspector', color: blueColor },
-        { ...nodeB, label: 'GATEWAY BETA', sub: 'Site-02 Responder', color: greenColor },
+        { ...nodeB, label: 'GATEWAY BETA', sub: 'Site-02 Responder', color: secondaryColor },
       ].forEach((node) => {
         // Outer circle
         ctx.beginPath();
@@ -154,7 +154,7 @@ export default function TopologyCanvas() {
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-cyan)', fontWeight: 600, letterSpacing: '0.05em' }}>
           TOPOLOGY_RECON // SECURE SITE-TO-SITE TUNNEL MESH
         </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-green)', fontWeight: 600 }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-cyan)', fontWeight: 600 }}>
           ● LIVE TELEMETRY
         </span>
       </div>

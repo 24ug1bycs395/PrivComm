@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Shield, Activity, Layers, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Radio } from 'lucide-react';
+import { Activity, Layers, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Shield } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 
 const tabs = [
@@ -30,22 +30,6 @@ export default function Navbar({ activeTab, setActiveTab }) {
       <header className={`site-header${scrolled ? ' scrolled' : ''}`} role="banner">
         <div className="header-inner">
 
-          {/* Brand */}
-          <div
-            className="brand-wrapper"
-            onClick={() => setActiveTab('overview')}
-            role="link"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && setActiveTab('overview')}
-          >
-            <div className="brand-icon" aria-hidden="true">
-              <Shield size={20} strokeWidth={2} />
-            </div>
-            <div className="brand-title-group">
-              <span className="brand-title">Privcomm</span>
-              <span className="brand-subtitle">IPSEC INTELLIGENCE</span>
-            </div>
-          </div>
 
           {/* Desktop Nav */}
           <nav className="nav-tabs" aria-label="Main Navigation">
@@ -90,7 +74,7 @@ export default function Navbar({ activeTab, setActiveTab }) {
                 borderRadius: '50%',
                 border: '1px solid var(--border-default)',
                 background: 'var(--bg-card)',
-                color: isDark ? '#fbbf24' : '#2563eb',
+                color: isDark ? '#38bdf8' : '#2563eb',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -99,7 +83,7 @@ export default function Navbar({ activeTab, setActiveTab }) {
                 backdropFilter: 'blur(12px)',
                 transition: 'all 0.22s var(--ease-spring)',
                 boxShadow: isDark
-                  ? '0 0 12px rgba(251,191,36,0.15)'
+                  ? '0 0 12px rgba(56,189,248,0.15)'
                   : '0 0 12px rgba(37,99,235,0.15)',
               }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1) rotate(15deg)'; }}

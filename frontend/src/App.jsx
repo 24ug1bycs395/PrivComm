@@ -8,7 +8,6 @@ import HistoryVaultTab from './components/HistoryVaultTab';
 import Overview from './components/Overview';
 import ThreatMatrixTab from './components/ThreatMatrixTab';
 import ComplianceTab from './components/ComplianceTab';
-import { Shield } from 'lucide-react';
 import { ThemeProvider } from './ThemeContext';
 
 export default function App() {
@@ -39,6 +38,7 @@ export default function App() {
               externalAnalysis={inspectedAnalysis}
               onNavigateToTestbed={() => setActiveTab('testbed')}
               onNavigateToAnalyzer={() => setActiveTab('analyzer')}
+              onNavigateToOverview={() => setActiveTab('overview')}
             />
           )}
           {activeTab === 'live' && (
@@ -59,7 +59,12 @@ export default function App() {
             />
           )}
           {activeTab === 'vault' && <HistoryVaultTab onSelectAnalysis={handleNavigateToAnalysis} />}
-          {activeTab === 'overview' && <Overview onStartAnalysis={() => setActiveTab('analyzer')} />}
+          {activeTab === 'overview' && (
+            <Overview
+              onStartAnalysis={() => setActiveTab('analyzer')}
+              onViewTelemetry={() => setActiveTab('dashboard')}
+            />
+          )}
           {activeTab === 'threat-matrix' && <ThreatMatrixTab />}
           {activeTab === 'compliance' && <ComplianceTab />}
         </main>
@@ -68,7 +73,6 @@ export default function App() {
         <footer className="site-footer">
           <div className="footer-inner">
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Shield size={16} color="var(--accent-cyan)" strokeWidth={2} />
               <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem' }}>Privcomm</span>
               <span style={{ color: 'var(--text-muted)' }}>&mdash;</span>
               <span style={{ color: 'var(--text-tertiary)', fontSize: '0.82rem' }}>AI-Assisted IPsec VPN Security Intelligence</span>
