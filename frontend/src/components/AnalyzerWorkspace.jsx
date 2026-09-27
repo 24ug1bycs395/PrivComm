@@ -15,6 +15,7 @@ import {
   Terminal,
   Activity
 } from 'lucide-react';
+import AnomalyDetectionPanel from './AnomalyDetectionPanel';
 
 export default function AnalyzerWorkspace({ externalAnalysis }) {
   const [loading, setLoading] = useState(false);
@@ -503,6 +504,15 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
             </div>
           </div>
 
+          {/* VPN Behavioral Anomaly Detection Panel */}
+          <div style={{ marginBottom: '24px' }}>
+            <AnomalyDetectionPanel
+              anomalyData={analysisResult.behavioral_anomaly}
+              pcapFeatures={analysisResult.flow_features || analysisResult}
+              isEmbedded={true}
+            />
+          </div>
+
           {/* Dual Column: 3x3 Threat Matrix + Cryptographic Parameters */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.35fr', gap: '24px', marginBottom: '24px' }}>
             {/* 3x3 Threat Matrix */}
@@ -627,7 +637,7 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
             {findings.length === 0 ? (
               <div className="finding-box LOW">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--accent-green)' }}>✓ Zero Cryptographic Policy Violations</span>
+                  <span style={{ fontWeight: 700, color: 'var(--accent-green)' }}> Zero Cryptographic Policy Violations</span>
                   <span className="status-badge compliant">NIST COMPLIANT</span>
                 </div>
                 <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>

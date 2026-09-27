@@ -98,8 +98,8 @@ def query_gemini_explainer(parameter_name: str, observed_value: str) -> Optional
                             "parameter": parameter_name,
                             "observed_value": observed_value,
                             "status": card_data.get("status", "INFO"),
-                            "icon": "🧠",
-                            "title": f"✨ AI (Gemini): {card_data.get('title', parameter_name)}",
+                            "icon": "",
+                            "title": f" AI (Gemini): {card_data.get('title', parameter_name)}",
                             "plain_english_summary": card_data.get("plain_english_summary", ""),
                             "detailed_explanation": card_data.get("detailed_explanation", "")
                         }
@@ -161,44 +161,44 @@ def query_gemini_assistant(user_message: str) -> str:
 
     if "dh" in msg_lower or "diffie" in msg_lower or "group 19" in msg_lower or "group 2" in msg_lower:
         return (
-            "🤝 **Diffie-Hellman (DH) Key Exchange Explanation:**\n"
+            " **Diffie-Hellman (DH) Key Exchange Explanation:**\n"
             "• **DH Group 19 (ECP-256):** Recommended bank-grade Elliptic Curve key exchange. Allows VPN endpoints to agree on encryption keys securely with fast execution.\n"
             "• **DH Group 14 (MODP-2048):** Standard corporate baseline using 2048-bit prime numbers.\n"
-            "• **DH Group 2 (MODP-1024):** ⚠️ Deprecated & Weak! 1024-bit prime keys can be precomputed by GPU clusters (Logjam vulnerability)."
+            "• **DH Group 2 (MODP-1024):**  Deprecated & Weak! 1024-bit prime keys can be precomputed by GPU clusters (Logjam vulnerability)."
         )
 
     if "3des" in msg_lower or "des" in msg_lower or "cipher" in msg_lower or "aes" in msg_lower or "gcm" in msg_lower:
         return (
-            "🔒 **Encryption Cipher Baselines:**\n"
+            " **Encryption Cipher Baselines:**\n"
             "• **AES-256-GCM:** High-speed AEAD encryption that scrambles data and verifies message integrity in a single pass (Tamper-Proof).\n"
             "• **AES-256-CBC:** Strong block cipher, requiring a separate HMAC hash check.\n"
-            "• **3DES / DES:** ⚠️ Obsolete 1990s ciphers! Vulnerable to Sweet32 birthday attacks where eavesdroppers recover cleartext data."
+            "• **3DES / DES:**  Obsolete 1990s ciphers! Vulnerable to Sweet32 birthday attacks where eavesdroppers recover cleartext data."
         )
 
     if "ikev1" in msg_lower or "ikev2" in msg_lower or "version" in msg_lower or "protocol" in msg_lower:
         return (
-            "📞 **IKE Protocol Negotiation:**\n"
+            " **IKE Protocol Negotiation:**\n"
             "• **IKEv2 (Modern):** Fast, resilient, supports MOBIKE (seamless roaming between Wi-Fi and 5G/4G), auto-heals dropped tunnels.\n"
             "• **IKEv1 (Legacy):** Slower negotiation requiring extra network round-trips; aggressive mode exposes pre-shared key hashes to offline dictionary attacks."
         )
 
     if "pfs" in msg_lower or "forward secrecy" in msg_lower:
         return (
-            "🔑 **Perfect Forward Secrecy (PFS):**\n"
+            " **Perfect Forward Secrecy (PFS):**\n"
             "PFS generates a fresh, independent temporary key for every single session. "
             "Even if an attacker steals your master VPN server key five years in the future, they cannot retroactively decrypt any past recorded traffic!"
         )
 
     if "ai" in msg_lower or "xgboost" in msg_lower or "traffic" in msg_lower or "classify" in msg_lower:
         return (
-            "🧠 **AI Encrypted Traffic Classification:**\n"
+            " **AI Encrypted Traffic Classification:**\n"
             "Our XGBoost machine learning model extracts 28 statistical flow features (packet size distributions, inter-arrival timing, burstiness) "
             "to identify application activity (e.g., CHAT, VOIP, STREAMING, P2P, MALWARE) with statistical confidence, without needing to decrypt the payload!"
         )
 
     if "upgrade" in msg_lower or "fix" in msg_lower or "remediat" in msg_lower or "cisco" in msg_lower or "strongswan" in msg_lower:
         return (
-            "🛡️ **Remediation & Compliance Action Plan:**\n"
+            " **Remediation & Compliance Action Plan:**\n"
             "1. Change IKE phase 1 protocol from `IKEv1` to `IKEv2`.\n"
             "2. Update phase 1 & 2 proposals to `AES-256-GCM` or `AES-256-CBC` with `HMAC-SHA2-256`.\n"
             "3. Replace DH Group 2/5 with `DH Group 19 (ECP-256)` or `DH Group 14 (MODP-2048)`.\n"
@@ -206,7 +206,7 @@ def query_gemini_assistant(user_message: str) -> str:
         )
 
     return (
-        "🤖 **Privcomm Security Assistant**\n"
+        " **Privcomm Security Assistant**\n"
         "I am ready to help you analyze your IPsec VPN security posture, cryptographic parameters, risk scores, or traffic classifications!\n\n"
         "You can ask me questions like:\n"
         "• *'Why is DH Group 2 considered weak?'*\n"

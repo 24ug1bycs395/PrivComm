@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import time
 from typing import Dict, Any, Tuple, Optional, Callable
 
@@ -73,8 +74,10 @@ class SSHController:
 
             _emit("connection", status="connecting")
 
+            ssh_host = vm_config.ssh_host or vm_config.host
+
             connect_kwargs = {
-                "host": vm_config.host,
+                "host": ssh_host,
                 "port": vm_config.port,
                 "username": vm_config.username,
                 "known_hosts": None,
@@ -177,6 +180,35 @@ class SSHController:
             _emit("complete", status="error", output=f"Failed to write {remote_path}: {stderr}")
 
         return code == 0
+
+    @staticmethod
+    async def download_file(
+        vm_config: VMHostConfig,
+        remote_path: str,
+        local_path: str,
+    ) -> bool:
+        """Download a remote artifact through SFTP without simulated fallback."""
+        if vm_config.is_simulated:
+            return False
+
+        import asyncssh
+
+        connect_kwargs = {
+            "host": vm_config.ssh_host or vm_config.host,
+            "port": vm_config.port,
+            "username": vm_config.username,
+            "known_hosts": None,
+        }
+        if vm_config.password:
+            connect_kwargs["password"] = vm_config.password
+        if vm_config.key_path:
+            connect_kwargs["client_keys"] = [vm_config.key_path]
+
+        os.makedirs(os.path.dirname(local_path) or ".", exist_ok=True)
+        async with asyncssh.connect(**connect_kwargs) as conn:
+            async with conn.start_sftp_client() as sftp:
+                await sftp.get(remote_path, local_path)
+        return os.path.isfile(local_path) and os.path.getsize(local_path) > 24
 
 
 def _simulated_output(command: str, vm_role: str) -> list:

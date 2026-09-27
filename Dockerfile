@@ -48,6 +48,7 @@ RUN pip install --no-cache-dir -r requirements.txt \
 COPY main.py index.html dashboard.html report.html style.css script.js ./
 COPY analyzer ./analyzer
 COPY ml ./ml
+COPY anomaly ./anomaly
 COPY security ./security
 COPY routers ./routers
 COPY services ./services

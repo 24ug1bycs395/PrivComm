@@ -26,13 +26,14 @@ import {
   Eye,
   ExternalLink
 } from 'lucide-react';
+import AnomalyDetectionPanel from './AnomalyDetectionPanel';
 
 export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestbed, onNavigateToAnalyzer }) {
   const [analysis, setAnalysis] = useState(null);
   const [historyList, setHistoryList] = useState([]);
   const [selectedFilename, setSelectedFilename] = useState('ikev2_s2s_ipsec_vpn_aes_gcm.pcapng');
   const [telemetryLogs, setTelemetryLogs] = useState([
-    '[SYSTEM] Cyber Sentinel Live Telemetry Dashboard initialized.',
+    '[SYSTEM] Privcomm Live Telemetry Dashboard initialized.',
     '[STREAM] Listening for VM tap ingestion streams on port 500 / 4500 / 50...',
     '[DISSECTOR] Engine ready. XGBoost Multiclass Classifier loaded.',
     '[POLICY] Context-Aware Security Baseline Rulebook v2.0 ACTIVE.'
@@ -44,7 +45,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'ai',
-      text: '👋 Hello! Ask me anything about live VM telemetry, IPsec ciphers, DH groups, or risk ratings!'
+      text: ' Hello! Ask me anything about live VM telemetry, IPsec ciphers, DH groups, or risk ratings!'
     }
   ]);
   const [chatLoading, setChatLoading] = useState(false);
@@ -148,10 +149,10 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         const reply = data.reply || 'Analysis complete.';
         setChatMessages(prev => [...prev, { sender: 'ai', text: reply }]);
       } else {
-        setChatMessages(prev => [...prev, { sender: 'ai', text: '⚠️ Unable to fetch AI response from server backend.' }]);
+        setChatMessages(prev => [...prev, { sender: 'ai', text: ' Unable to fetch AI response from server backend.' }]);
       }
     } catch (err) {
-      setChatMessages(prev => [...prev, { sender: 'ai', text: '⚠️ Network error: Could not reach Cyber Sentinel AI service.' }]);
+      setChatMessages(prev => [...prev, { sender: 'ai', text: ' Network error: Could not reach Privcomm AI service.' }]);
     } finally {
       setChatLoading(false);
     }
@@ -277,42 +278,42 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
   // Custom Card Explainer Default Items if none returned from API
   const defaultExplainers = [
     {
-      icon: '📞',
+      icon: '',
       title: 'Modern IKEv2 Protocol Engine (RFC 7296)',
       status: curr.ike_version?.includes('IKEv1') ? 'OBSOLETE' : 'SECURE',
       plain_english_summary: 'Manages your VPN connection lifecycle with high speed, instant auto-reconnect, and seamless network mobility across Wi-Fi and 5G.',
       detailed_explanation: 'IKEv2 acts as the intelligent digital negotiator for your VPN. Like traveling on a train where your laptop switches between station Wi-Fi and 5G cellular, MOBIKE (RFC 4555) technology shifts your encrypted session without dropping active video calls or web apps.'
     },
     {
-      icon: '🔒',
+      icon: '',
       title: 'Authenticated AES-256-GCM Cipher (Galois/Counter Mode)',
       status: curr.encryption?.includes('3DES') ? 'OBSOLETE' : 'SECURE',
       plain_english_summary: 'Bank-grade 256-bit encryption that scrambles data while simultaneously attaching a 128-bit tamper-proof digital seal.',
       detailed_explanation: 'Think of AES-256-GCM as placing your secret documents into an unbreakable steel vault while applying a tamper-evident holographic seal to the outside. If a hacker alters even 1 bit of data, the server detects the broken seal and discards the packet instantly before decryption.'
     },
     {
-      icon: '🤝',
+      icon: '',
       title: `Elliptic Curve Secret Handshake (DH Group ${curr.dh_group || '19'})`,
       status: (curr.dh_group === '2' || curr.dh_group === 2) ? 'OBSOLETE' : 'SECURE',
       plain_english_summary: 'Allows two remote servers across the open internet to safely agree on identical secret encryption keys without ever sending the key over the wire.',
       detailed_explanation: 'Imagine two people in a room full of eavesdroppers mixing base colors publicly to end up with the exact same secret color mixture. Group 19 uses NIST P-256 Elliptic Curve math to compute shared secrets 10x faster than legacy 2048-bit prime numbers.'
     },
     {
-      icon: '🔑',
+      icon: '',
       title: 'Ephemeral One-Time Rekeying (PFS Enforced)',
       status: curr.pfs ? 'SECURE' : 'CAUTION',
       plain_english_summary: 'Constantly generates brand-new, independent session keys so compromising today\'s key leaves all past and future recorded traffic 100% safe.',
       detailed_explanation: 'Imagine a hotel keycard system where every single room keycard is completely unique and automatically expires after 1 hour, rather than having one master key. With PFS enforced, even if a hacker steals the server\'s master key in the future, past recorded traffic remains un-decryptable.'
     },
     {
-      icon: '🛡️',
+      icon: '',
       title: `IPsec ${curr.mode || 'Tunnel'} Mode Encapsulation`,
       status: curr.mode === 'Transport' ? 'CAUTION' : 'SECURE',
       plain_english_summary: 'Encloses your entire original IP packet—including private source and destination IP addresses—inside a brand-new encrypted outer IP envelope.',
       detailed_explanation: 'Like placing a coded postcard inside a thick, sealed courier envelope addressed between two secure VPN gateways. Eavesdroppers on public networks cannot inspect internal company IP addresses, device names, or private network topology.'
     },
     {
-      icon: '🧠',
+      icon: '',
       title: `AI Behavioral Pattern Recognition (${trafficType} Traffic)`,
       status: 'SECURE',
       plain_english_summary: `Machine Learning identified the exact application activity ('${trafficType}') inside the VPN tunnel using behavioral traffic patterns without breaking encryption.`,
@@ -324,6 +325,120 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
   return (
     <div className="tab-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '1.5rem 1rem', position: 'relative' }}>
+
+      {/* Top Header / Nav Bar Strip */}
+      <div style={{
+        display: 'flex',
+        justify: 'space-between',
+        alignItems: 'center',
+        background: '#0d1322',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: '12px',
+        padding: '12px 20px',
+        marginBottom: '16px',
+        flexWrap: 'wrap',
+        gap: '12px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Shield size={22} color="#38bdf8" />
+          <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#38bdf8', letterSpacing: '0.05em' }}>
+            Privcomm
+          </span>
+          <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+            / Live Telemetry & Analytics Dashboard
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <a
+            href={`/reports/download-html?filename=${encodeURIComponent(curr.filename)}`}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-ghost"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '6px 14px', textDecoration: 'none' }}
+          >
+            <FileText size={15} color="#60a5fa" />
+            <span>Open Executive Report Page</span>
+          </a>
+          {onNavigateToTestbed && (
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={onNavigateToTestbed}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '6px 14px' }}
+            >
+              <Server size={15} />
+              <span>Launch Testbed VM</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Multi-Tunnel Selector & Global Network Mesh Bar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justify: 'space-between',
+        background: 'rgba(15, 23, 42, 0.85)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: '10px',
+        padding: '10px 16px',
+        marginBottom: '20px',
+        flexWrap: 'wrap',
+        gap: '10px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Layers size={16} color="#38bdf8" />
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Multi-Tunnel Hub & Spoke Mesh:
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => loadHistoryItem('ikev2_s2s_ipsec_vpn_aes_gcm.pcapng')}
+            style={{
+              background: (!selectedFilename.toLowerCase().includes('des') && !selectedFilename.toLowerCase().includes('ikev1')) ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.04)',
+              border: (!selectedFilename.toLowerCase().includes('des') && !selectedFilename.toLowerCase().includes('ikev1')) ? '1px solid #38bdf8' : '1px solid var(--border-subtle)',
+              color: (!selectedFilename.toLowerCase().includes('des') && !selectedFilename.toLowerCase().includes('ikev1')) ? '#38bdf8' : '#94a3b8',
+              borderRadius: '6px',
+              padding: '6px 12px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span style={{ width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%', boxShadow: '0 0 6px #22c55e' }} />
+            <span>Tunnel 1: HQ ↔ Branch Alpha (AES-256-GCM)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => loadHistoryItem('IKEv1_Aggressive_DES_MD5.pcap')}
+            style={{
+              background: (selectedFilename.toLowerCase().includes('des') || selectedFilename.toLowerCase().includes('ikev1')) ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.04)',
+              border: (selectedFilename.toLowerCase().includes('des') || selectedFilename.toLowerCase().includes('ikev1')) ? '1px solid #ef4444' : '1px solid var(--border-subtle)',
+              color: (selectedFilename.toLowerCase().includes('des') || selectedFilename.toLowerCase().includes('ikev1')) ? '#fca5a5' : '#94a3b8',
+              borderRadius: '6px',
+              padding: '6px 12px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span style={{ width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%', boxShadow: '0 0 6px #ef4444' }} />
+            <span>Tunnel 2: HQ ↔ Branch Beta (3DES Drift)</span>
+          </button>
+        </div>
+      </div>
+
       {/* Status Banner */}
       <div style={{
         background: 'rgba(56, 189, 248, 0.08)',
@@ -393,12 +508,12 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
       {/* Analytics Grid: Threat Matrix + AI Traffic Breakdown */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-        
+
         {/* 3x3 Security Threat Matrix Grid */}
         <div className="card-glass" style={{ padding: '20px' }}>
           <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Activity size={18} color="var(--accent-cyan)" />
-            <span>📊 3x3 Security Threat Matrix Grid</span>
+            <span> 3x3 Security Threat Matrix Grid</span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
@@ -411,7 +526,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
             <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(217, 119, 6, 0.12)', color: 'var(--accent-yellow)', border: '1px solid rgba(217, 119, 6, 0.25)' }}>Medium</div>
             <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(220, 38, 38, 0.12)', color: 'var(--accent-red)', border: '1px solid rgba(220, 38, 38, 0.3)' }}>High</div>
             <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 800, fontSize: '0.75rem', background: riskScore >= 60 ? 'rgba(220, 38, 38, 0.3)' : 'rgba(220, 38, 38, 0.15)', color: 'var(--accent-red)', border: riskScore >= 60 ? '2px solid var(--accent-red)' : '1px solid rgba(220, 38, 38, 0.3)' }}>
-              Critical {riskScore >= 60 && '⚠️'}
+              Critical {riskScore >= 60 && ''}
             </div>
 
             <div style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)', margin: 'auto 0' }}>Med Likelihood</div>
@@ -421,7 +536,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
             <div style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)', margin: 'auto 0' }}>Low Likelihood</div>
             <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 800, fontSize: '0.75rem', background: riskScore === 0 ? 'rgba(22, 163, 74, 0.25)' : 'rgba(22, 163, 74, 0.12)', color: 'var(--accent-green)', border: riskScore === 0 ? '2px solid var(--accent-green)' : '1px solid rgba(22, 163, 74, 0.25)' }}>
-              Low {riskScore === 0 && '✓'}
+              Low {riskScore === 0 && ''}
             </div>
             <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(22, 163, 74, 0.12)', color: 'var(--accent-green)', border: '1px solid rgba(22, 163, 74, 0.25)' }}>Low</div>
             <div style={{ padding: '12px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', background: 'rgba(217, 119, 6, 0.12)', color: 'var(--accent-yellow)', border: '1px solid rgba(217, 119, 6, 0.25)' }}>Medium</div>
@@ -432,7 +547,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         <div className="card-glass" style={{ padding: '20px' }}>
           <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Cpu size={18} color="var(--accent-blue)" />
-            <span>🤖 AI Encrypted Traffic Probability Breakdown</span>
+            <span> AI Encrypted Traffic Probability Breakdown</span>
           </div>
 
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
@@ -475,7 +590,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
           <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Eye size={18} color="var(--accent-cyan)" />
-            <span>📡 Observable Metadata Exposure Intelligence</span>
+            <span> Observable Metadata Exposure Intelligence</span>
           </div>
           <span className={`badge ${riskScore === 0 ? 'badge-green' : 'badge-red'}`}>
             EXPOSURE: {meta.exposure_rating || (riskScore === 0 ? 'LOW (0/100)' : 'HIGH (70/100)')}
@@ -521,11 +636,20 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         </div>
       </div>
 
+      {/* VPN Behavioral Anomaly Detection Panel */}
+      <div style={{ marginBottom: '24px' }}>
+        <AnomalyDetectionPanel
+          anomalyData={curr?.behavioral_anomaly || analysis?.behavioral_anomaly}
+          pcapFeatures={curr}
+          isEmbedded={true}
+        />
+      </div>
+
       {/* History Ingestion History Table */}
       <div className="card-glass" style={{ padding: '20px', marginBottom: '24px' }}>
         <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Database size={18} color="var(--accent-cyan)" />
-          <span>📂 Recent Capture Ingestions &amp; Analysis History</span>
+          <span> Recent Capture Ingestions &amp; Analysis History</span>
         </div>
 
         <div style={{ overflowX: 'auto' }}>
@@ -597,7 +721,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
       {/* Enterprise Security Auditing Grid (Drift, Policy, PQC) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        
+
         {/* 1. Configuration Drift Detector */}
         <div className="card-glass" style={{ padding: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -765,7 +889,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
       <div className="card-glass" style={{ padding: '20px', marginBottom: '24px' }}>
         <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <HelpCircle size={18} color="var(--accent-cyan)" />
-          <span>💡 Active Tunnel Plain-English Rationale (For Non-Experts)</span>
+          <span> Active Tunnel Plain-English Rationale (For Non-Experts)</span>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '14px' }}>
@@ -788,7 +912,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <strong style={{ fontSize: '0.88rem', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>{item.icon || '🛡️'}</span>
+                    <span>{item.icon || ''}</span>
                     <span>{item.title}</span>
                   </strong>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -833,7 +957,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
       <div className="glass-card" style={{ padding: '20px', marginBottom: '24px' }}>
         <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Terminal size={18} color="var(--accent-cyan)" />
-          <span>📡 Real-Time Telemetry Stream Log</span>
+          <span> Real-Time Telemetry Stream Log</span>
         </div>
 
         <div style={{
@@ -854,9 +978,9 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         </div>
       </div>
 
-      {/* FLOATING CYBER SENTINEL AI ASSISTANT CHATBOT WIDGET */}
+      {/* FLOATING Privcomm AI ASSISTANT CHATBOT WIDGET */}
       <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 3000 }}>
-        
+
         {/* Toggle Button */}
         {!chatOpen && (
           <button
@@ -950,7 +1074,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
               {chatLoading && (
                 <div style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--accent-cyan)' }}>
                   <Sparkles size={14} className="animate-spin" />
-                  <span>Cyber Sentinel AI is analyzing...</span>
+                  <span>Privcomm AI is analyzing...</span>
                 </div>
               )}
               <div ref={chatBottomRef} />
@@ -963,21 +1087,21 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                 onClick={() => handleSendChatMessage('Explain active live VM stream security')}
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)', borderRadius: '12px', padding: '3px 8px', fontSize: '0.68rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
-                💬 Active stream rationale
+                Active stream rationale
               </button>
               <button
                 type="button"
                 onClick={() => handleSendChatMessage('Why is 3DES or DH Group 2 weak?')}
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)', borderRadius: '12px', padding: '3px 8px', fontSize: '0.68rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
-                🔒 Why is 3DES weak?
+                Why is 3DES weak?
               </button>
               <button
                 type="button"
                 onClick={() => handleSendChatMessage('Remediation steps for high risk tunnels')}
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)', borderRadius: '12px', padding: '3px 8px', fontSize: '0.68rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
-                🛡️ Remediation steps
+                Remediation steps
               </button>
             </div>
 
