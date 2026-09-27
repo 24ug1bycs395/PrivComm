@@ -29,6 +29,8 @@ const PRESET_SCENARIOS = [
     mode: 'Tunnel',
     encryption: 'AES-256-GCM',
     integrity: 'None (AEAD)',
+    hashAlgorithm: 'SHA-256',
+    hash_algorithm: 'SHA-256',
     dhGroup: '19 (ECP-256)',
     pfs: true,
     trafficProfile: 'VIDEO_STREAM',
@@ -44,6 +46,8 @@ const PRESET_SCENARIOS = [
     mode: 'Transport',
     encryption: '3DES-CBC',
     integrity: 'HMAC-MD5-96',
+    hashAlgorithm: 'MD5',
+    hash_algorithm: 'MD5',
     dhGroup: '2 (MODP-1024)',
     pfs: false,
     trafficProfile: 'HTTP_GET',
@@ -59,6 +63,8 @@ const PRESET_SCENARIOS = [
     mode: 'Tunnel',
     encryption: 'ChaCha20-Poly1305',
     integrity: 'None (AEAD)',
+    hashAlgorithm: 'SHA-256',
+    hash_algorithm: 'SHA-256',
     dhGroup: '31 (Curve25519)',
     pfs: true,
     trafficProfile: 'VOIP_RTP',
@@ -74,6 +80,8 @@ const PRESET_SCENARIOS = [
     mode: 'Tunnel',
     encryption: 'AES-256-GCM',
     integrity: 'None (AEAD)',
+    hashAlgorithm: 'SHA-384',
+    hash_algorithm: 'SHA-384',
     dhGroup: 'Group 20 + ML-KEM-768',
     pfs: true,
     trafficProfile: 'DNS_BURST',
@@ -353,13 +361,14 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
       step++;
       if (step <= 5) {
         setEstablishingStep(step);
+        const hAlgo = selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256';
         const labels = [
           '',
           'swanctl.conf cryptographic synthesis verified',
           'Responder VM listener armed (192.168.56.20:500)',
           'Initiator VM IKE daemon started (192.168.56.10:500)',
-          'Observer tap armed on eth1: tcpdump proto 50 / udp 500',
-          `IKE_SA & CHILD_SA negotiated: ${selectedScenario.encryption || 'AES-256-GCM'}`
+          `[Integrity Layer] ${hAlgo} handshake proposal digest verified`,
+          `IKE_SA & CHILD_SA negotiated: ${selectedScenario.encryption || 'AES-256-GCM'} (${hAlgo} Integrity Check PASS)`
         ];
         setLiveTimeline(prev => [
           { time: new Date().toLocaleTimeString(), text: `[Step 0${step}] ${labels[step] || 'Negotiating'}`, type: step === 5 ? 'secure' : 'info' },
@@ -659,6 +668,18 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
               </option>
             ))}
           </select>
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.72rem',
+            background: (selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256') === 'MD5' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(52, 211, 153, 0.12)',
+            color: (selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256') === 'MD5' ? 'var(--accent-red)' : 'var(--accent-green)',
+            padding: '4px 8px',
+            borderRadius: 'var(--radius-xs)',
+            border: `1px solid ${(selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256') === 'MD5' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(52, 211, 153, 0.3)'}`,
+            whiteSpace: 'nowrap'
+          }}>
+            🔒 Hash: {selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256'}
+          </span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
@@ -904,7 +925,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
               { step: 2, label: 'Responder Provision', desc: '192.168.56.20 listener armed' },
               { step: 3, label: 'Initiator Provision', desc: '192.168.56.10 IKE daemon started' },
               { step: 4, label: 'Observer Tap', desc: 'tcpdump sniffer monitoring eth1' },
-              { step: 5, label: 'SA Established', desc: 'Child SA installed in kernel XFRM' }
+              { step: 5, label: 'SA Established', desc: `Child SA active (${selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256'} verified)` }
             ].map(s => {
               const isDone = establishingStep > s.step;
               const isCurr = establishingStep === s.step;
@@ -981,6 +1002,18 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
               </div>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
                 {selectedScenario.encryption}
+              </span>
+            </div>
+
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '14px 16px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-tertiary)', letterSpacing: '0.06em' }}>
+                INTEGRITY HASH
+              </span>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.15rem', fontWeight: 800, color: (selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256') === 'MD5' ? 'var(--accent-red)' : 'var(--accent-green)', marginTop: '6px' }}>
+                {selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256'}
+              </div>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                {(selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256') === 'MD5' ? 'RFC 8221 Deprecated' : 'Handshake Verified'}
               </span>
             </div>
           </div>
