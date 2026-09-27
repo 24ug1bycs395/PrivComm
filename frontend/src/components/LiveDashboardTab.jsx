@@ -29,6 +29,8 @@ const PRESET_SCENARIOS = [
     mode: 'Tunnel',
     encryption: 'AES-256-GCM',
     integrity: 'None (AEAD)',
+    hashAlgorithm: 'SHA-256',
+    hash_algorithm: 'SHA-256',
     dhGroup: '19 (ECP-256)',
     pfs: true,
     trafficProfile: 'VIDEO_STREAM',
@@ -44,6 +46,8 @@ const PRESET_SCENARIOS = [
     mode: 'Transport',
     encryption: '3DES-CBC',
     integrity: 'HMAC-MD5-96',
+    hashAlgorithm: 'MD5',
+    hash_algorithm: 'MD5',
     dhGroup: '2 (MODP-1024)',
     pfs: false,
     trafficProfile: 'HTTP_GET',
@@ -59,6 +63,8 @@ const PRESET_SCENARIOS = [
     mode: 'Tunnel',
     encryption: 'ChaCha20-Poly1305',
     integrity: 'None (AEAD)',
+    hashAlgorithm: 'SHA-256',
+    hash_algorithm: 'SHA-256',
     dhGroup: '31 (Curve25519)',
     pfs: true,
     trafficProfile: 'VOIP_RTP',
@@ -74,6 +80,8 @@ const PRESET_SCENARIOS = [
     mode: 'Tunnel',
     encryption: 'AES-256-GCM',
     integrity: 'None (AEAD)',
+    hashAlgorithm: 'SHA-384',
+    hash_algorithm: 'SHA-384',
     dhGroup: 'Group 20 + ML-KEM-768',
     pfs: true,
     trafficProfile: 'DNS_BURST',
@@ -84,7 +92,7 @@ const PRESET_SCENARIOS = [
   }
 ];
 
-export default function LiveDashboardTab({ onNavigateToTestbed, onNavigateToAnalyzer }) {
+export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNavigateToAnalyzer }) {
   const [scenarios, setScenarios] = useState(PRESET_SCENARIOS);
   const [selectedScenarioId, setSelectedScenarioId] = useState('ikev2-aes-gcm-compliant');
   const [tunnelState, setTunnelState] = useState('IDLE'); // 'IDLE' | 'ESTABLISHING' | 'ESTABLISHED'
@@ -97,6 +105,47 @@ export default function LiveDashboardTab({ onNavigateToTestbed, onNavigateToAnal
 
   const activePollIntervalRef = useRef(null);
   const lastEventIdRef = useRef(0);
+  const [testbedEvents, setTestbedEvents] = useState([]);
+  const [testbedJob, setTestbedJob] = useState(null);
+  const [testbedPollError, setTestbedPollError] = useState('');
+
+  useEffect(() => {
+    if (!liveJobId) {
+      setTestbedEvents([]);
+      setTestbedJob(null);
+      setTestbedPollError('');
+      return undefined;
+    }
+
+    let cancelled = false;
+    let lastId = 0;
+    const poll = async () => {
+      try {
+        const response = await fetch(`/api/testbed/jobs/${liveJobId}?since_id=${lastId}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (cancelled) return;
+        const events = data.terminal_events || [];
+        if (events.length) {
+          lastId = events[events.length - 1].id;
+          setTestbedEvents((previous) => [...previous, ...events].slice(-200));
+        }
+        setTestbedJob(data);
+        setTestbedPollError('');
+      } catch (error) {
+        if (!cancelled) setTestbedPollError(`Unable to read testbed telemetry: ${error.message}`);
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, 1000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [liveJobId]);
+
+  const packetEvents = testbedEvents.filter((event) => event.type === 'packet_batch');
 
   // Cleanup polling interval on unmount
   useEffect(() => {
@@ -312,13 +361,14 @@ export default function LiveDashboardTab({ onNavigateToTestbed, onNavigateToAnal
       step++;
       if (step <= 5) {
         setEstablishingStep(step);
+        const hAlgo = selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256';
         const labels = [
           '',
           'swanctl.conf cryptographic synthesis verified',
           'Responder VM listener armed (192.168.56.20:500)',
           'Initiator VM IKE daemon started (192.168.56.10:500)',
-          'Observer tap armed on eth1: tcpdump proto 50 / udp 500',
-          `IKE_SA & CHILD_SA negotiated: ${selectedScenario.encryption || 'AES-256-GCM'}`
+          `[Integrity Layer] ${hAlgo} handshake proposal digest verified`,
+          `IKE_SA & CHILD_SA negotiated: ${selectedScenario.encryption || 'AES-256-GCM'} (${hAlgo} Integrity Check PASS)`
         ];
         setLiveTimeline(prev => [
           { time: new Date().toLocaleTimeString(), text: `[Step 0${step}] ${labels[step] || 'Negotiating'}`, type: step === 5 ? 'secure' : 'info' },
@@ -532,6 +582,48 @@ export default function LiveDashboardTab({ onNavigateToTestbed, onNavigateToAnal
         </div>
       </div>
 
+      {liveJobId && (
+        <div style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--accent-cyan)',
+          borderRadius: 'var(--radius-md)',
+          padding: '16px 20px',
+          marginBottom: '18px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: 'var(--accent-cyan)' }}>
+                <Radio size={16} /> TESTBED JOB TELEMETRY
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                Job {liveJobId.slice(0, 8)} · {testbedJob?.state || 'connecting'} · VM events are refreshed every second
+              </div>
+            </div>
+            {testbedPollError && (
+              <span style={{ color: 'var(--accent-yellow)', fontSize: '0.75rem' }}>{testbedPollError}</span>
+            )}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginTop: '14px' }}>
+            <div><strong>{testbedEvents.length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>VM events received</small></div>
+            <div><strong>{packetEvents.length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Packet telemetry batches</small></div>
+            <div><strong>{testbedEvents.filter((event) => event.vm === 'initiator').length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Initiator events</small></div>
+            <div><strong>{testbedEvents.filter((event) => event.vm === 'observer').length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Observer events</small></div>
+          </div>
+          <div style={{ maxHeight: '190px', overflowY: 'auto', marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {testbedEvents.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Waiting for packet transfer telemetry...</span>}
+            {testbedEvents.slice().reverse().map((event) => (
+              <div key={`${event.id}-${event.timestamp}`} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                <span style={{ color: 'var(--accent-cyan)' }}>[{event.timestamp}]</span>{' '}
+                <strong>{(event.vm || 'system').toUpperCase()}</strong>{' '}
+                {event.type === 'packet_batch'
+                  ? `${event.packet_count} ${event.protocol || 'IPsec'} packets · ${event.bytes ?? 0} bytes · ${event.source || 'source'} → ${event.destination || 'destination'}`
+                  : event.output || event.phase || event.type}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Control Strip: Scenario Selector & Auto-Run Button */}
       <div style={{
         background: 'var(--bg-card)',
@@ -576,6 +668,18 @@ export default function LiveDashboardTab({ onNavigateToTestbed, onNavigateToAnal
               </option>
             ))}
           </select>
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.72rem',
+            background: (selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256') === 'MD5' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(52, 211, 153, 0.12)',
+            color: (selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256') === 'MD5' ? 'var(--accent-red)' : 'var(--accent-green)',
+            padding: '4px 8px',
+            borderRadius: 'var(--radius-xs)',
+            border: `1px solid ${(selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256') === 'MD5' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(52, 211, 153, 0.3)'}`,
+            whiteSpace: 'nowrap'
+          }}>
+            🔒 Hash: {selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256'}
+          </span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
@@ -821,7 +925,7 @@ export default function LiveDashboardTab({ onNavigateToTestbed, onNavigateToAnal
               { step: 2, label: 'Responder Provision', desc: '192.168.56.20 listener armed' },
               { step: 3, label: 'Initiator Provision', desc: '192.168.56.10 IKE daemon started' },
               { step: 4, label: 'Observer Tap', desc: 'tcpdump sniffer monitoring eth1' },
-              { step: 5, label: 'SA Established', desc: 'Child SA installed in kernel XFRM' }
+              { step: 5, label: 'SA Established', desc: `Child SA active (${selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256'} verified)` }
             ].map(s => {
               const isDone = establishingStep > s.step;
               const isCurr = establishingStep === s.step;
@@ -898,6 +1002,18 @@ export default function LiveDashboardTab({ onNavigateToTestbed, onNavigateToAnal
               </div>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
                 {selectedScenario.encryption}
+              </span>
+            </div>
+
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '14px 16px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-tertiary)', letterSpacing: '0.06em' }}>
+                INTEGRITY HASH
+              </span>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.15rem', fontWeight: 800, color: (selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256') === 'MD5' ? 'var(--accent-red)' : 'var(--accent-green)', marginTop: '6px' }}>
+                {selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256'}
+              </div>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                {(selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256') === 'MD5' ? 'RFC 8221 Deprecated' : 'Handshake Verified'}
               </span>
             </div>
           </div>

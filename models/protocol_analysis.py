@@ -24,5 +24,6 @@ class ProtocolAnalysisResult(BaseModel):
     metadata_exposure: Optional[Dict[str, Any]] = Field(default=None, description="Observable metadata exposure assessment (IPs, identities, SPI linkability, transport mode exposure)")
     security_assessment: Optional[Dict[str, Any]] = Field(default=None, description="Security policy audit findings and risk evaluation")
     explainability: Optional[List[Dict[str, Any]]] = Field(default=None, description="Plain-English component-by-component security explanations")
+    tunnel_integrity: Optional[Dict[str, Any]] = Field(default=None, description="Tunnel establishment cryptographic integrity verification results")
     report_html: Optional[str] = Field(default=None, description="Generated Executive HTML report path or download link")
 

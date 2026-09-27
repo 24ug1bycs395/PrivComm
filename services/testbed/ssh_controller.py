@@ -228,12 +228,15 @@ def _simulated_output(command: str, vm_role: str) -> list:
         ]
     elif "swanctl --initiate" in cmd_lower or "ipsec up" in cmd_lower:
         return [
-            f"[sim:{vm_role}] Initiating IKEv2 IKE_SA to responder...",
+            f"[sim:{vm_role}] Initiating IKE SA handshake to responder...",
+            f"[sim:{vm_role}] [Integrity Layer] Computing cryptographic handshake proposal digest...",
+            f"[sim:{vm_role}] [Integrity Layer] Handshake hash digest attached to IKE_SA proposal",
             f"[sim:{vm_role}] sending IKE_SA_INIT request to 192.168.56.20",
-            f"[sim:{vm_role}] received IKE_SA_INIT response",
+            f"[sim:{vm_role}] received IKE_SA_INIT response (PRF/integrity suite matched)",
+            f"[sim:{vm_role}] [Integrity Layer] Mutual proposal checksum validated: MATCH",
             f"[sim:{vm_role}] IKE_AUTH request sent",
             f"[sim:{vm_role}] IKE_AUTH response received — authentication OK",
-            f"[sim:{vm_role}] CHILD_SA net-tunnel established (ESP-AES-256-GCM)",
+            f"[sim:{vm_role}] CHILD_SA net-tunnel established (ESP integrity verified)",
             f"[sim:{vm_role}] IKE_SA net-tunnel[1] established — tunnel UP",
         ]
     elif "tcpdump" in cmd_lower:
