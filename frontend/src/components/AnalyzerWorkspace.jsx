@@ -15,6 +15,7 @@ import {
   Terminal,
   Activity
 } from 'lucide-react';
+import AnomalyDetectionPanel from './AnomalyDetectionPanel';
 
 export default function AnalyzerWorkspace({ externalAnalysis }) {
   const [loading, setLoading] = useState(false);
@@ -501,6 +502,15 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* VPN Behavioral Anomaly Detection Panel */}
+          <div style={{ marginBottom: '24px' }}>
+            <AnomalyDetectionPanel
+              anomalyData={analysisResult.behavioral_anomaly}
+              pcapFeatures={analysisResult.flow_features || analysisResult}
+              isEmbedded={true}
+            />
           </div>
 
           {/* Dual Column: 3x3 Threat Matrix + Cryptographic Parameters */}

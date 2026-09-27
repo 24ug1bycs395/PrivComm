@@ -13,6 +13,7 @@ import { ThemeProvider } from './ThemeContext';
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
   const [inspectedAnalysis, setInspectedAnalysis] = useState(null);
+  const [liveJobId, setLiveJobId] = useState(null);
 
   const handleNavigateToAnalysis = (analysisData) => {
     setInspectedAnalysis(analysisData);
@@ -42,12 +43,21 @@ export default function App() {
           )}
           {activeTab === 'live' && (
             <LiveDashboardTab
+              liveJobId={liveJobId}
               onNavigateToTestbed={() => setActiveTab('testbed')}
               onNavigateToAnalyzer={() => setActiveTab('analyzer')}
             />
           )}
           {activeTab === 'analyzer' && <AnalyzerWorkspace externalAnalysis={inspectedAnalysis} />}
-          {activeTab === 'testbed' && <TestbedTab onNavigateToAnalysis={handleNavigateToAnalysis} />}
+          {activeTab === 'testbed' && (
+            <TestbedTab
+              onNavigateToAnalysis={handleNavigateToAnalysis}
+              onNavigateToLive={(jobId) => {
+                setLiveJobId(jobId);
+                setActiveTab('live');
+              }}
+            />
+          )}
           {activeTab === 'vault' && <HistoryVaultTab onSelectAnalysis={handleNavigateToAnalysis} />}
           {activeTab === 'overview' && (
             <Overview

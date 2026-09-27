@@ -18,8 +18,9 @@ class ProtocolAnalysisResult(BaseModel):
     source_ip: Optional[str] = Field(default=None, description="Source IP address of the IPsec tunnel endpoint")
     destination_ip: Optional[str] = Field(default=None, description="Destination IP address of the IPsec tunnel endpoint")
     
-    # Extended AI Traffic, Metadata Exposure & Security Assessment Fields
+    # Extended AI Traffic, Metadata Exposure, Behavioral Anomaly & Security Assessment Fields
     traffic_classification: Optional[Dict[str, Any]] = Field(default=None, description="XGBoost AI encrypted traffic classification result")
+    behavioral_anomaly: Optional[Dict[str, Any]] = Field(default=None, description="VPN Behavioral Anomaly Detection result")
     metadata_exposure: Optional[Dict[str, Any]] = Field(default=None, description="Observable metadata exposure assessment (IPs, identities, SPI linkability, transport mode exposure)")
     security_assessment: Optional[Dict[str, Any]] = Field(default=None, description="Security policy audit findings and risk evaluation")
     explainability: Optional[List[Dict[str, Any]]] = Field(default=None, description="Plain-English component-by-component security explanations")

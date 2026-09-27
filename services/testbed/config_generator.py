@@ -112,18 +112,18 @@ class StrongSwanConfigGenerator:
         start_action = "start" if is_initiator else "none"
         mode = scenario.ipsec_mode.lower()  # "tunnel" or "transport"
 
-        # Traffic selectors differ by mode:
-        # - Tunnel mode:    subnets (e.g. 10.0.1.0/24 ↔ 10.0.2.0/24)
-        # - Transport mode: host-to-host (%any ↔ %any covers all host traffic)
+        # Traffic selectors differ by mode. The Docker testbed does not create
+        # separate 10.0.x.x interfaces, so tunnel mode uses the actual node
+        # endpoints as /32 or /128 selectors.
         if mode == "transport":
             local_ts = "%any"
             remote_ts = "%any"
         elif is_ipv6:
-            local_ts = "fd00:10:0:1::/64"
-            remote_ts = "fd00:10:0:2::/64"
+            local_ts = f"{local_ip}/128"
+            remote_ts = f"{remote_ip}/128"
         else:
-            local_ts = "10.0.1.0/24"
-            remote_ts = "10.0.2.0/24"
+            local_ts = f"{local_ip}/32"
+            remote_ts = f"{remote_ip}/32"
 
         pfs_comment = "# PFS enabled: DH group included in ESP proposal" if scenario.pfs \
             else "# PFS disabled: no DH group in ESP proposal — keys derived from IKE SA"
@@ -200,9 +200,9 @@ secrets {{
             rightsubnet = ""
             subnet_lines = ""
         elif scenario.ip_version.upper() == "IPV6":
-            subnet_lines = "    leftsubnet=fd00:10:0:1::/64\n    rightsubnet=fd00:10:0:2::/64"
+            subnet_lines = f"    leftsubnet={left_ip}/128\n    rightsubnet={right_ip}/128"
         else:
-            subnet_lines = "    leftsubnet=10.0.1.0/24\n    rightsubnet=10.0.2.0/24"
+            subnet_lines = f"    leftsubnet={left_ip}/32\n    rightsubnet={right_ip}/32"
 
         ipsec_conf = f"""# strongSwan ipsec.conf — Scenario: {scenario.name}
 # IPsec Mode: {mode.capitalize()} | IP Version: {scenario.ip_version} | PFS: {"Enabled" if scenario.pfs else "Disabled"}

@@ -1137,3 +1137,146 @@ h1, h2, h3, h4, h5, h6 {
   .nav-tabs { display: none; }
   .footer-inner { flex-direction: column; gap: 10px; text-align: center; }
 }
+
+/* Isolated Attack VM simulator */
+.attack-simulator {
+  padding: 1.25rem;
+  border-color: rgba(248, 113, 113, 0.28);
+  background: linear-gradient(135deg, rgba(127, 29, 29, 0.12), rgba(15, 23, 42, 0.72));
+}
+
+.attack-simulator.is-locked {
+  border-color: var(--border-subtle);
+}
+
+.attack-simulator.is-locked .attack-vm-status {
+  color: var(--text-tertiary);
+  border-color: var(--border-subtle);
+  background: var(--bg-secondary);
+}
+
+.attack-locked-state {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 6px;
+  color: #fbbf24;
+  background: rgba(120, 53, 15, 0.16);
+  font-size: 0.72rem;
+}
+
+.attack-simulator-header,
+.attack-controls,
+.attack-session-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.attack-simulator-header h2 {
+  margin: 0.2rem 0 0.35rem;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+.attack-simulator-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.attack-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #fb7185;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.attack-vm-status {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(251, 146, 60, 0.35);
+  border-radius: 7px;
+  color: #fb923c;
+  background: rgba(124, 45, 18, 0.18);
+  font-size: 0.72rem;
+}
+
+.attack-vm-status.is-running {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.6);
+  animation: pulse-glow 1.6s ease-in-out infinite;
+}
+
+.attack-vm-status span { display: flex; flex-direction: column; gap: 0.12rem; }
+.attack-vm-status small { color: var(--text-tertiary); font-size: 0.63rem; }
+
+.attack-option-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+
+.attack-option {
+  min-height: 112px;
+  padding: 0.75rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+  background: rgba(15, 23, 42, 0.55);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.attack-option:hover:not(:disabled),
+.attack-option.selected {
+  border-color: #fb7185;
+  background: rgba(127, 29, 29, 0.22);
+}
+
+.attack-option:disabled { cursor: not-allowed; opacity: 0.7; }
+.attack-option span { display: block; font-size: 0.78rem; font-weight: 750; }
+.attack-option small { display: block; min-height: 2.4em; margin-top: 0.4rem; color: var(--text-secondary); font-size: 0.68rem; line-height: 1.35; }
+.attack-option em { display: block; margin-top: 0.45rem; color: #fda4af; font-size: 0.63rem; font-style: normal; }
+
+.attack-controls { justify-content: flex-start; flex-wrap: wrap; }
+.attack-controls label { display: flex; align-items: center; gap: 0.55rem; color: var(--text-secondary); font-size: 0.72rem; font-weight: 650; }
+.attack-controls select { min-width: 190px; padding: 0.5rem 0.65rem; border: 1px solid var(--border-subtle); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); }
+.attack-start-button, .attack-stop-button, .attack-refresh-button { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; }
+.attack-start-button { border: 1px solid #fb7185; background: rgba(190, 24, 93, 0.3); color: #fda4af; }
+.attack-stop-button { border: 1px solid #f97316; background: rgba(154, 52, 18, 0.28); color: #fdba74; }
+.attack-refresh-button { border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); }
+.attack-start-button:disabled { cursor: wait; opacity: 0.55; }
+
+.attack-message, .attack-active-state { display: flex; gap: 0.45rem; align-items: center; margin-top: 0.8rem; padding: 0.65rem 0.75rem; border-radius: 6px; font-size: 0.72rem; }
+.attack-message { color: #fda4af; background: rgba(127, 29, 29, 0.2); }
+.attack-active-state { display: block; border: 1px solid rgba(248, 113, 113, 0.38); background: rgba(127, 29, 29, 0.16); color: var(--text-secondary); }
+.attack-active-title { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem; color: #fda4af; font-weight: 750; }
+
+.attack-session-list { margin-top: 1rem; border-top: 1px solid var(--border-subtle); padding-top: 0.8rem; }
+.attack-session-heading { margin-bottom: 0.55rem; color: var(--text-tertiary); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.attack-session { padding: 0.65rem 0; border-bottom: 1px solid var(--border-subtle); }
+.attack-session-main { justify-content: flex-start; color: #fda4af; font-size: 0.72rem; }
+.attack-session-main span { margin-left: auto; color: var(--text-tertiary); font-size: 0.65rem; text-transform: uppercase; }
+.attack-session ul { margin: 0.45rem 0 0 1.45rem; padding: 0; color: var(--text-secondary); font-size: 0.68rem; line-height: 1.55; }
+
+@media (max-width: 760px) {
+  .attack-simulator-header { align-items: flex-start; flex-direction: column; }
+  .attack-option-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 480px) {
+  .attack-option-grid { grid-template-columns: 1fr; }
+  .attack-controls { align-items: stretch; flex-direction: column; }
+  .attack-controls label, .attack-controls select, .attack-start-button, .attack-stop-button { width: 100%; }
+}

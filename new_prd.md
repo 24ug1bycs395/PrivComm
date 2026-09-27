@@ -91,11 +91,11 @@ python main.py --check-dependencies
 It should report:
 
 ```text
-Python: ✓
-TShark: ✓
+Python: 
+TShark: 
 TShark version: ...
-Wireshark: ✓/Not required
-XGBoost model: ✓
+Wireshark: /Not required
+XGBoost model: 
 ```
 
 If TShark is not installed, provide clear Windows installation instructions in `README.md`.

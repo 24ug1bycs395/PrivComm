@@ -92,7 +92,7 @@ const PRESET_SCENARIOS = [
   }
 ];
 
-export default function LiveDashboardTab({ onNavigateToTestbed, onNavigateToAnalyzer }) {
+export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNavigateToAnalyzer }) {
   const [scenarios, setScenarios] = useState(PRESET_SCENARIOS);
   const [selectedScenarioId, setSelectedScenarioId] = useState('ikev2-aes-gcm-compliant');
   const [tunnelState, setTunnelState] = useState('IDLE'); // 'IDLE' | 'ESTABLISHING' | 'ESTABLISHED'
@@ -105,6 +105,47 @@ export default function LiveDashboardTab({ onNavigateToTestbed, onNavigateToAnal
 
   const activePollIntervalRef = useRef(null);
   const lastEventIdRef = useRef(0);
+  const [testbedEvents, setTestbedEvents] = useState([]);
+  const [testbedJob, setTestbedJob] = useState(null);
+  const [testbedPollError, setTestbedPollError] = useState('');
+
+  useEffect(() => {
+    if (!liveJobId) {
+      setTestbedEvents([]);
+      setTestbedJob(null);
+      setTestbedPollError('');
+      return undefined;
+    }
+
+    let cancelled = false;
+    let lastId = 0;
+    const poll = async () => {
+      try {
+        const response = await fetch(`/api/testbed/jobs/${liveJobId}?since_id=${lastId}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (cancelled) return;
+        const events = data.terminal_events || [];
+        if (events.length) {
+          lastId = events[events.length - 1].id;
+          setTestbedEvents((previous) => [...previous, ...events].slice(-200));
+        }
+        setTestbedJob(data);
+        setTestbedPollError('');
+      } catch (error) {
+        if (!cancelled) setTestbedPollError(`Unable to read testbed telemetry: ${error.message}`);
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, 1000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [liveJobId]);
+
+  const packetEvents = testbedEvents.filter((event) => event.type === 'packet_batch');
 
   // Cleanup polling interval on unmount
   useEffect(() => {
@@ -540,6 +581,48 @@ export default function LiveDashboardTab({ onNavigateToTestbed, onNavigateToAnal
           </div>
         </div>
       </div>
+
+      {liveJobId && (
+        <div style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--accent-cyan)',
+          borderRadius: 'var(--radius-md)',
+          padding: '16px 20px',
+          marginBottom: '18px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: 'var(--accent-cyan)' }}>
+                <Radio size={16} /> TESTBED JOB TELEMETRY
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                Job {liveJobId.slice(0, 8)} · {testbedJob?.state || 'connecting'} · VM events are refreshed every second
+              </div>
+            </div>
+            {testbedPollError && (
+              <span style={{ color: 'var(--accent-yellow)', fontSize: '0.75rem' }}>{testbedPollError}</span>
+            )}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginTop: '14px' }}>
+            <div><strong>{testbedEvents.length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>VM events received</small></div>
+            <div><strong>{packetEvents.length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Packet telemetry batches</small></div>
+            <div><strong>{testbedEvents.filter((event) => event.vm === 'initiator').length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Initiator events</small></div>
+            <div><strong>{testbedEvents.filter((event) => event.vm === 'observer').length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Observer events</small></div>
+          </div>
+          <div style={{ maxHeight: '190px', overflowY: 'auto', marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {testbedEvents.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Waiting for packet transfer telemetry...</span>}
+            {testbedEvents.slice().reverse().map((event) => (
+              <div key={`${event.id}-${event.timestamp}`} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                <span style={{ color: 'var(--accent-cyan)' }}>[{event.timestamp}]</span>{' '}
+                <strong>{(event.vm || 'system').toUpperCase()}</strong>{' '}
+                {event.type === 'packet_batch'
+                  ? `${event.packet_count} ${event.protocol || 'IPsec'} packets · ${event.bytes ?? 0} bytes · ${event.source || 'source'} → ${event.destination || 'destination'}`
+                  : event.output || event.phase || event.type}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Control Strip: Scenario Selector & Auto-Run Button */}
       <div style={{
