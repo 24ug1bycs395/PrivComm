@@ -146,6 +146,21 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
   }, [liveJobId]);
 
   const packetEvents = testbedEvents.filter((event) => event.type === 'packet_batch');
+  const observerPacketEvents = packetEvents.filter((event) => event.vm === 'observer');
+
+  // A dashboard opened from Testbed is observer-backed. Keep its headline
+  // counters tied to the latest observer event instead of the local demo
+  // packet generator used by the standalone dashboard.
+  useEffect(() => {
+    if (!liveJobId || observerPacketEvents.length === 0) return;
+    const latest = observerPacketEvents[observerPacketEvents.length - 1];
+    if (Number.isFinite(Number(latest.packet_count))) {
+      setPacketCount(Number(latest.packet_count));
+    }
+    if (Number.isFinite(Number(latest.bytes))) {
+      setBytesTransferred(Number(latest.bytes));
+    }
+  }, [liveJobId, observerPacketEvents]);
 
   // Cleanup polling interval on unmount
   useEffect(() => {
@@ -333,7 +348,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
   // Auto-streaming continuous interval
   useEffect(() => {
     let intervalId = null;
-    if (isAutoStreaming && tunnelState === 'ESTABLISHED') {
+    if (!liveJobId && isAutoStreaming && tunnelState === 'ESTABLISHED') {
       intervalId = setInterval(() => {
         sendSinglePacket();
       }, streamSpeedMs);
@@ -491,7 +506,9 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
             }
             setEstablishingStep(5);
             setTunnelState('ESTABLISHED');
-            setIsAutoStreaming(true);
+            // Physical testbed sessions are driven by observer telemetry. The
+            // local packet generator is reserved for the standalone demo.
+            setIsAutoStreaming(!liveJobId);
             setLiveTimeline(prev => [
               { time: new Date().toLocaleTimeString(), text: '✅ Physical strongSwan IPsec tunnel established! Automated real-time packet stream engaged.', type: 'secure' },
               ...prev
@@ -683,7 +700,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          {tunnelState === 'IDLE' && (
+          {tunnelState === 'IDLE' && !liveJobId && (
             <button
               type="button"
               className="soc-btn-primary"
@@ -708,7 +725,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
             </button>
           )}
 
-          {tunnelState === 'ESTABLISHING' && (
+          {tunnelState === 'ESTABLISHING' && !liveJobId && (
             <button
               type="button"
               disabled
@@ -734,7 +751,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
             </button>
           )}
 
-          {tunnelState === 'ESTABLISHED' && (
+          {tunnelState === 'ESTABLISHED' && !liveJobId && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               {/* Play/Pause Auto Stream */}
               <button
@@ -854,7 +871,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
       </div>
 
       {/* Traffic Profile Selector Strip */}
-      {tunnelState === 'ESTABLISHED' && (
+      {tunnelState === 'ESTABLISHED' && !liveJobId && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', letterSpacing: '0.06em' }}>
             PROFILE MIX:
@@ -965,7 +982,9 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
                 {packetCount} <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>pkts</span>
               </div>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
-                {tunnelState === 'ESTABLISHED' ? (isAutoStreaming ? '● Streaming live (auto)' : 'Stream paused') : 'Tunnel dormant'}
+            {liveJobId
+              ? (testbedJob?.state === 'COMPLETED' ? 'Observer capture complete' : '● Observer capture telemetry')
+              : (tunnelState === 'ESTABLISHED' ? (isAutoStreaming ? '● Streaming live (auto)' : 'Stream paused') : 'Tunnel dormant')}
               </span>
             </div>
 
@@ -1176,7 +1195,11 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '36px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', textAlign: 'center' }}>
                 <Terminal size={20} />
                 <span>
-                  {tunnelState === 'ESTABLISHING'
+                  {liveJobId
+                    ? (observerPacketEvents.length > 0
+                      ? 'Observer packet telemetry is shown above; waiting for packet-level capture details.'
+                      : 'Waiting for the observer VM to report captured packets...')
+                    : tunnelState === 'ESTABLISHING'
                     ? 'Tunnel is negotiating keys... Dissector dormant.'
                     : tunnelState === 'ESTABLISHED'
                     ? 'Streaming active! Ingested packets will appear automatically.'

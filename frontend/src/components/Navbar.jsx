@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Layers, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Shield } from 'lucide-react';
+import { Activity, Layers, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Shield, Radio } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 
 const tabs = [
@@ -9,11 +9,10 @@ const tabs = [
   { id: 'testbed',      label: 'Testbed',          icon: Server },
   { id: 'vault',        label: 'Vault',            icon: Database },
   { id: 'overview',     label: 'Architecture',     icon: Layers },
-  { id: 'threat-matrix',label: 'Threats',          icon: Shield },
   { id: 'compliance',   label: 'Compliance',       icon: FileCheck },
 ];
 
-export default function Navbar({ activeTab, setActiveTab }) {
+export default function Navbar({ activeTab, setActiveTab, liveDashboardEnabled = false }) {
   const { theme, toggle } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -29,20 +28,34 @@ export default function Navbar({ activeTab, setActiveTab }) {
     <>
       <header className={`site-header${scrolled ? ' scrolled' : ''}`} role="banner">
         <div className="header-inner">
-
+          <button
+            type="button"
+            className="brand-wrapper"
+            onClick={() => setActiveTab('overview')}
+            aria-label="Privcomm home"
+          >
+            <span className="brand-mark" aria-hidden="true"><Shield size={18} strokeWidth={2.1} /></span>
+            <span className="brand-lockup">
+              <span className="brand-name">Privcomm</span>
+              <span className="brand-subtitle">IPSEC SECURITY INTELLIGENCE</span>
+            </span>
+          </button>
 
           {/* Desktop Nav */}
           <nav className="nav-tabs" aria-label="Main Navigation">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
+              const isLiveLocked = tab.id === 'live' && !liveDashboardEnabled;
               return (
                 <button
                   key={tab.id}
                   type="button"
                   id={`nav-${tab.id}`}
                   className={`nav-tab-btn${isActive ? ' active' : ''}`}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => !isLiveLocked && setActiveTab(tab.id)}
+                  disabled={isLiveLocked}
+                  title={isLiveLocked ? 'Run the testbed and establish the tunnel first' : undefined}
                   aria-current={isActive ? 'page' : undefined}
                 >
                   <Icon size={15} strokeWidth={isActive ? 2.2 : 1.8} />
@@ -80,7 +93,6 @@ export default function Navbar({ activeTab, setActiveTab }) {
                 justifyContent: 'center',
                 cursor: 'pointer',
                 flexShrink: 0,
-                backdropFilter: 'blur(12px)',
                 transition: 'all 0.22s var(--ease-spring)',
                 boxShadow: isDark
                   ? '0 0 12px rgba(56,189,248,0.15)'
@@ -132,7 +144,6 @@ export default function Navbar({ activeTab, setActiveTab }) {
             left: 0,
             right: 0,
             background: 'var(--bg-primary)',
-            backdropFilter: 'blur(24px)',
             borderBottom: '1px solid var(--border-default)',
             padding: '12px 20px',
             display: 'flex',
@@ -145,12 +156,15 @@ export default function Navbar({ activeTab, setActiveTab }) {
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
+            const isLiveLocked = tab.id === 'live' && !liveDashboardEnabled;
             return (
               <button
                 key={tab.id}
                 type="button"
                 className={`nav-tab-btn${isActive ? ' active' : ''}`}
-                onClick={() => { setActiveTab(tab.id); setMobileOpen(false); }}
+                onClick={() => { if (!isLiveLocked) { setActiveTab(tab.id); setMobileOpen(false); } }}
+                disabled={isLiveLocked}
+                title={isLiveLocked ? 'Run the testbed and establish the tunnel first' : undefined}
                 style={{ justifyContent: 'flex-start', padding: '10px 14px', width: '100%' }}
               >
                 <Icon size={16} />

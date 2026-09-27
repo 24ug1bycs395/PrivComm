@@ -69,7 +69,7 @@ const metrics = [
 /* ── Component ──────────────────────────────────────────────────────── */
 export default function Overview({ onStartAnalysis, onViewTelemetry }) {
   return (
-    <div style={{ animation: 'fade-in 0.4s ease' }}>
+    <div className="overview-page" style={{ animation: 'fade-in 0.4s ease' }}>
 
       {/* ─── Hero ─────────────────────────────────────────────────── */}
       <section style={{ textAlign: 'center', maxWidth: '860px', margin: '0 auto 72px auto' }}>
@@ -102,12 +102,7 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
           marginBottom: '22px',
         }}>
           AI-Assisted{' '}
-          <span style={{
-            background: 'linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}>
+          <span style={{ color: 'var(--accent-blue)' }}>
             IPsec Security
           </span>
           <br />Intelligence Platform

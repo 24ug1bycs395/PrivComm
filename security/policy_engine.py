@@ -94,7 +94,7 @@ def evaluate_ipsec_security(
     ike_version = ipsec_config.get("ike_version", "unknown")
     if ike_version != "unknown":
         disapproved_vers = policy.get("protocol", {}).get("disapproved_versions", ["IKEv1"])
-        if ike_version in disapproved_vers:
+        if any(d.upper() in ike_version.upper() for d in disapproved_vers):
             findings.append(SecurityFinding(
                 finding_id="IPSEC-VER-001",
                 category="Protocol Version",

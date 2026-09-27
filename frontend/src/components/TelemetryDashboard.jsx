@@ -31,10 +31,12 @@ import {
   ShieldCheck,
   ShieldAlert
 } from 'lucide-react';
+import { ThreatMatrixDetails } from './ThreatMatrixTab';
 import AnomalyDetectionPanel from './AnomalyDetectionPanel';
 
 export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestbed, onNavigateToAnalyzer, onNavigateToOverview }) {
   const [analysis, setAnalysis] = useState(null);
+  const [isThreatMatrixOpen, setIsThreatMatrixOpen] = useState(false);
   const [historyList, setHistoryList] = useState([]);
   const [selectedFilename, setSelectedFilename] = useState('ikev2_s2s_ipsec_vpn_aes_gcm.pcapng');
   const [telemetryLogs, setTelemetryLogs] = useState([
@@ -62,6 +64,17 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
       chatBottomRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chatMessages, chatLoading]);
+
+  useEffect(() => {
+    if (!isThreatMatrixOpen) return undefined;
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') setIsThreatMatrixOpen(false);
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isThreatMatrixOpen]);
 
   // Load history on mount
   useEffect(() => {
@@ -583,6 +596,15 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
             <div className="matrix-cell matrix-low">Low</div>
             <div className="matrix-cell matrix-med">Medium</div>
           </div>
+
+          <button
+            type="button"
+            className="threat-matrix-open-button"
+            onClick={() => setIsThreatMatrixOpen(true)}
+          >
+            <Shield size={15} />
+            View threat matrix details
+          </button>
         </div>
 
         {/* AI Encrypted Traffic Probability Breakdown */}
@@ -1186,6 +1208,41 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
           </div>
         )}
       </div>
+
+      {isThreatMatrixOpen && (
+        <div
+          className="threat-matrix-dialog-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setIsThreatMatrixOpen(false);
+          }}
+        >
+          <section
+            className="threat-matrix-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="threat-matrix-dialog-title"
+          >
+            <div className="threat-matrix-dialog-header">
+              <div>
+                <div className="section-kicker">SEC.03 — THREAT MODEL</div>
+                <h2 id="threat-matrix-dialog-title">Threat Matrix Details</h2>
+              </div>
+              <button
+                type="button"
+                className="threat-matrix-dialog-close"
+                onClick={() => setIsThreatMatrixOpen(false)}
+                aria-label="Close threat matrix details"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="threat-matrix-dialog-body">
+              <ThreatMatrixDetails />
+            </div>
+          </section>
+        </div>
+      )}
 
     </div>
   );

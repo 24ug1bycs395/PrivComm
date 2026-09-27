@@ -98,7 +98,6 @@ body {
 .ambient-glow {
   position: fixed;
   border-radius: 50%;
-  filter: blur(140px);
   pointer-events: none;
   z-index: 0;
   opacity: 0.45;
@@ -121,6 +120,12 @@ body {
   background: radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, transparent 70%);
 }
 
+/* Legacy pages share the civic-service surface and do not use blurred orbs. */
+.ambient-glow,
+.ambient-glow-orb {
+  display: none !important;
+}
+
 /* --------------------------------------------------------------------------
    Header / Navigation Bar
    -------------------------------------------------------------------------- */
@@ -130,8 +135,6 @@ body {
   width: 100%;
   height: var(--header-height);
   background: rgba(7, 11, 18, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-subtle);
   z-index: 1000;
   display: flex;
@@ -475,7 +478,6 @@ body {
   border: 1px solid var(--accent-border);
   padding: 8px 14px;
   border-radius: var(--radius-sm);
-  backdrop-filter: blur(8px);
   pointer-events: auto;
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
@@ -618,7 +620,6 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  backdrop-filter: blur(8px);
   transition: all 0.25s var(--ease-spring);
   position: relative;
 }
@@ -1342,9 +1343,7 @@ body {
 }
 
 .analyzer-workspace-card {
-  background: rgba(11, 17, 28, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--bg-card);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(56, 189, 248, 0.08);
