@@ -512,10 +512,14 @@ async function sendChatMessage() {
     const data = await res.json();
 
     let replyText = data.reply || "I am analyzing your IPsec VPN security posture.";
-    replyText = replyText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    replyText = replyText.replace(/\n/g, '<br>');
+    replyText = replyText
+      .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #38bdf8;">$1</strong>')
+      .replace(/`([^`]+)`/g, '<code style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 2px 5px; border-radius: 4px; font-size: 0.85em; font-family: monospace;">$1</code>')
+      .replace(/^[\*\-•]\s+(.*)$/gm, '<div style="display:flex;gap:6px;margin:3px 0;"><span style="color:#38bdf8;">•</span><span>$1</span></div>')
+      .replace(/\n\n/g, '<div style="height:6px;"></div>')
+      .replace(/\n/g, '<br>');
 
-    aiMsgDiv.innerHTML = `<div class="msg-bubble">${replyText}</div>`;
+    aiMsgDiv.innerHTML = `<div class="msg-bubble" style="line-height: 1.55;">${replyText}</div>`;
   } catch (err) {
     aiMsgDiv.innerHTML = `<div class="msg-bubble" style="color:#fca5a5;"> Assistant notice: Unable to connect to backend server. Ensure server is running with <code>python main.py server</code>.</div>`;
   }
