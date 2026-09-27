@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../ThemeContext';
 import {
   Activity,
   AlertTriangle,
@@ -17,11 +18,8 @@ import {
   Sparkles,
   Search
 } from 'lucide-react';
-import { useTheme } from '../ThemeContext';
 
 export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmbedded = false }) {
-  const { theme } = useTheme();
-  const isLight = theme === 'light';
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'windows' | 'baseline' | 'simulator'
   const [baselineMetrics, setBaselineMetrics] = useState([]);
   const [modelStatus, setModelStatus] = useState(null);
@@ -250,15 +248,33 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
     m.feature.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+
+  const cardBg = isLight ? '#ffffff' : 'rgba(15, 23, 42, 0.65)';
+  const cardBorder = isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.08)';
+  const cardShadow = isLight ? '0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04)' : '0 20px 40px -15px rgba(0, 0, 0, 0.5)';
+  const subCardBg = isLight ? '#f8fafc' : 'rgba(30, 41, 59, 0.5)';
+  const subCardBorder = isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.06)';
+  const rowBg = isLight ? '#ffffff' : 'rgba(30, 41, 59, 0.4)';
+  const rowBorder = isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.04)';
+  const sectionBg = isLight ? '#f8fafc' : 'rgba(20, 29, 47, 0.6)';
+  const textColor = isLight ? '#0f172a' : '#f8fafc';
+  const textMuted = isLight ? '#64748b' : '#94a3b8';
+  const textBody = isLight ? '#334155' : '#cbd5e1';
+  const tabContainerBg = isLight ? '#f1f5f9' : 'rgba(0, 0, 0, 0.3)';
+  const trackBg = isLight ? '#e2e8f0' : 'rgba(0, 0, 0, 0.4)';
+
   return (
-    <div className="anomaly-panel-container anomaly-accessible-type" style={{
-      background: isLight ? 'var(--bg-card)' : 'rgba(15, 23, 42, 0.65)',
-      border: isLight ? '1px solid var(--border-default)' : '1px solid rgba(255, 255, 255, 0.08)',
+    <div className={`anomaly-panel-container ${isLight ? 'card-glass' : ''}`} style={{
+      background: cardBg,
+      backdropFilter: 'blur(16px)',
+      border: `1px solid ${cardBorder}`,
       borderRadius: '16px',
       padding: '24px',
-      color: 'var(--text-primary)',
+      color: textColor,
       marginTop: isEmbedded ? '0' : '24px',
-      boxShadow: isLight ? 'var(--shadow-md)' : '0 20px 40px -15px rgba(0, 0, 0, 0.5)',
+      boxShadow: cardShadow,
       position: 'relative',
       overflow: 'hidden'
     }}>
@@ -269,25 +285,25 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '16px',
-        borderBottom: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.08)',
+        borderBottom: `1px solid ${cardBorder}`,
         paddingBottom: '18px',
         marginBottom: '20px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
-            background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(16, 185, 129, 0.2))',
-            border: '1px solid rgba(6, 182, 212, 0.4)',
+            background: isLight ? 'rgba(2, 132, 199, 0.1)' : 'linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(16, 185, 129, 0.2))',
+            border: isLight ? '1px solid rgba(2, 132, 199, 0.25)' : '1px solid rgba(6, 182, 212, 0.4)',
             padding: '10px',
             borderRadius: '12px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <Activity size={24} color="#06b6d4" />
+            <Activity size={24} color={isLight ? '#0284c7' : '#06b6d4'} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, letterSpacing: '-0.02em', color: textColor }}>
                 VPN Behavioral Anomaly Detection
               </h3>
               <span style={{
@@ -296,15 +312,15 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                 textTransform: 'uppercase',
                 padding: '2px 8px',
                 borderRadius: '6px',
-                background: 'rgba(6, 182, 212, 0.15)',
-                color: 'var(--accent-cyan)',
-                border: '1px solid rgba(56, 189, 248, 0.3)'
+                background: isLight ? 'rgba(2, 132, 199, 0.1)' : 'rgba(6, 182, 212, 0.15)',
+                color: isLight ? '#0284c7' : '#38bdf8',
+                border: isLight ? '1px solid rgba(2, 132, 199, 0.25)' : '1px solid rgba(56, 189, 248, 0.3)'
               }}>
                 Unsupervised ML
               </span>
             </div>
-            <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-              Detects statistical deviations from learned baseline across 32 observable flow &amp; protocol dimensions (independent of traffic type classifier).
+            <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: textMuted }}>
+              Detects statistical deviations from learned baseline across 32 observable flow & protocol dimensions (independent of traffic type classifier).
             </p>
           </div>
         </div>
@@ -312,10 +328,10 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
         {/* Navigation Tabs */}
         <div style={{
           display: 'flex',
-          background: isLight ? 'var(--bg-tertiary)' : 'rgba(0, 0, 0, 0.3)',
+          background: tabContainerBg,
           padding: '4px',
           borderRadius: '10px',
-          border: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.05)',
+          border: `1px solid ${isLight ? '#e2e8f0' : 'rgba(255, 255, 255, 0.05)'}`,
           gap: '4px'
         }}>
           {[
@@ -341,9 +357,9 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                   fontWeight: 600,
                   border: 'none',
                   cursor: 'pointer',
-                  background: isActive ? (isLight ? 'var(--bg-card)' : 'linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(14, 165, 233, 0.15))') : 'transparent',
-                  color: isActive ? 'var(--accent-cyan)' : 'var(--text-tertiary)',
-                  boxShadow: isActive ? (isLight ? 'var(--shadow-sm)' : 'inset 0 0 0 1px rgba(56, 189, 248, 0.4)') : 'none',
+                  background: isActive ? (isLight ? '#ffffff' : 'linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(14, 165, 233, 0.15))') : 'transparent',
+                  color: isActive ? (isLight ? '#0284c7' : '#38bdf8') : textMuted,
+                  boxShadow: isActive ? (isLight ? '0 1px 3px rgba(0, 0, 0, 0.1)' : 'inset 0 0 0 1px rgba(56, 189, 248, 0.4)') : 'none',
                   transition: 'all 0.15s ease'
                 }}
               >
@@ -367,30 +383,29 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
           }}>
             {/* Anomaly Verdict Card */}
             <div style={{
-              background: isLight ? 'var(--bg-secondary)' : 'rgba(30, 41, 59, 0.5)',
-              border: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.06)',
+              background: subCardBg,
+              border: `1px solid ${subCardBorder}`,
               borderRadius: '14px',
               padding: '20px',
               position: 'relative',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              boxShadow: isLight ? '0 1px 3px rgba(0,0,0,0.05)' : 'none'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600 }}>
+                  <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: textMuted, fontWeight: 600 }}>
                     Behavioral Verdict
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
                     {effectiveAnomaly?.overall_prediction === 'anomalous' ? (
-                      <AlertOctagon size={24} color={isLight ? '#dc2626' : '#ef4444'} />
+                      <AlertOctagon size={24} color="#ef4444" />
                     ) : (
                       <CheckCircle2 size={24} color={isLight ? '#16a34a' : '#10b981'} />
                     )}
                     <span style={{
                       fontSize: '1.4rem',
                       fontWeight: 800,
-                      color: effectiveAnomaly?.overall_prediction === 'anomalous'
-                        ? (isLight ? 'var(--status-danger)' : '#f87171')
-                        : (isLight ? 'var(--status-success)' : '#34d399'),
+                      color: effectiveAnomaly?.overall_prediction === 'anomalous' ? '#ef4444' : (isLight ? '#15803d' : '#34d399'),
                       letterSpacing: '-0.02em',
                       textTransform: 'uppercase'
                     }}>
@@ -403,15 +418,15 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                   borderRadius: '20px',
                   fontSize: '0.75rem',
                   fontWeight: 700,
-                  background: effectiveAnomaly?.overall_prediction === 'anomalous' ? 'var(--status-danger-dim)' : 'var(--status-success-dim)',
-                  color: effectiveAnomaly?.overall_prediction === 'anomalous' ? 'var(--status-danger)' : 'var(--status-success)',
-                  border: `1px solid ${effectiveAnomaly?.overall_prediction === 'anomalous' ? 'var(--status-danger-border)' : 'var(--status-success-border)'}`
+                  background: effectiveAnomaly?.overall_prediction === 'anomalous' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(22, 163, 74, 0.12)',
+                  color: effectiveAnomaly?.overall_prediction === 'anomalous' ? '#dc2626' : (isLight ? '#15803d' : '#6ee7b7'),
+                  border: `1px solid ${effectiveAnomaly?.overall_prediction === 'anomalous' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(22, 163, 74, 0.25)'}`
                 }}>
                   {effectiveAnomaly?.overall_severity || 'LOW RISK'}
                 </span>
               </div>
 
-              <div style={{ marginTop: '16px', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+              <div style={{ marginTop: '16px', fontSize: '0.82rem', color: textBody, lineHeight: '1.5' }}>
                 {effectiveAnomaly?.overall_prediction === 'anomalous' ? (
                   <span>Observed traffic patterns show <strong>significant statistical deviation</strong> from the learned operational baseline in one or more time windows.</span>
                 ) : (
@@ -422,17 +437,18 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
 
             {/* Score Meter Card */}
             <div style={{
-              background: isLight ? 'var(--bg-secondary)' : 'rgba(30, 41, 59, 0.5)',
-              border: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.06)',
+              background: subCardBg,
+              border: `1px solid ${subCardBorder}`,
               borderRadius: '14px',
               padding: '20px',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              boxShadow: isLight ? '0 1px 3px rgba(0,0,0,0.05)' : 'none'
             }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600 }}>
+                  <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: textMuted, fontWeight: 600 }}>
                     Calibrated Anomaly Score
                   </span>
                   <span style={{
@@ -449,7 +465,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                 <div style={{
                   width: '100%',
                   height: '10px',
-                  background: isLight ? 'var(--bg-tertiary)' : 'rgba(0, 0, 0, 0.4)',
+                  background: trackBg,
                   borderRadius: '6px',
                   marginTop: '10px',
                   overflow: 'hidden',
@@ -470,7 +486,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                     left: '50%',
                     width: '2px',
                     background: isLight ? '#0f172a' : '#f8fafc',
-                    boxShadow: isLight ? '0 0 4px rgba(0,0,0,0.3)' : '0 0 4px #f8fafc',
+                    boxShadow: isLight ? '0 0 4px rgba(15,23,42,0.4)' : '0 0 4px #f8fafc',
                     zIndex: 2
                   }} title="Decision Boundary Threshold" />
                 </div>
@@ -480,7 +496,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                 display: 'flex',
                 justifyContent: 'space-between',
                 fontSize: '0.7rem',
-                color: 'var(--text-muted)',
+                color: textMuted,
                 marginTop: '10px',
                 fontFamily: 'var(--font-mono, monospace)'
               }}>
@@ -492,39 +508,40 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
 
             {/* Model Provenance Card */}
             <div style={{
-              background: isLight ? 'var(--bg-secondary)' : 'rgba(30, 41, 59, 0.5)',
-              border: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.06)',
+              background: subCardBg,
+              border: `1px solid ${subCardBorder}`,
               borderRadius: '14px',
               padding: '20px',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              boxShadow: isLight ? '0 1px 3px rgba(0,0,0,0.05)' : 'none'
             }}>
               <div>
-                <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-tertiary)', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: textMuted, fontWeight: 600 }}>
                   Detection Engine Specs
                 </span>
                 <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--text-tertiary)' }}>Algorithm:</span>
-                    <span style={{ fontWeight: 600, color: 'var(--accent-cyan)' }}>{modelStatus?.detector_name || 'Isolation Forest (Robust Scaler)'}</span>
+                    <span style={{ color: textMuted }}>Algorithm:</span>
+                    <span style={{ fontWeight: 600, color: isLight ? '#0284c7' : '#38bdf8' }}>{modelStatus?.detector_name || 'Isolation Forest (Robust Scaler)'}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--text-tertiary)' }}>Features:</span>
-                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>32 Observable Dimensions</span>
+                    <span style={{ color: textMuted }}>Features:</span>
+                    <span style={{ fontWeight: 600, color: textColor }}>32 Observable Dimensions</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--text-tertiary)' }}>Scope:</span>
-                    <span style={{ fontWeight: 600, color: 'var(--status-success)' }}>Zero Decrypted Payload Access</span>
+                    <span style={{ color: textMuted }}>Scope:</span>
+                    <span style={{ fontWeight: 600, color: isLight ? '#15803d' : '#34d399' }}>Zero Decrypted Payload Access</span>
                   </div>
                 </div>
               </div>
 
               <div style={{
                 fontSize: '0.7rem',
-                color: 'var(--text-muted)',
+                color: textMuted,
                 marginTop: '8px',
-                borderTop: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.05)',
+                borderTop: `1px solid ${subCardBorder}`,
                 paddingTop: '6px'
               }}>
                 Calibrated against continuous IPsec/IKE behavioral distributions.
@@ -534,20 +551,20 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
 
           {/* Top Contributing Deviations Section */}
           <div style={{
-            background: isLight ? 'var(--bg-secondary)' : 'rgba(20, 29, 47, 0.6)',
-            border: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.06)',
+            background: sectionBg,
+            border: `1px solid ${subCardBorder}`,
             borderRadius: '14px',
             padding: '20px',
             marginTop: '16px'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Sparkles size={18} color="var(--accent-cyan)" />
-                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                <Sparkles size={18} color={isLight ? '#0284c7' : '#38bdf8'} />
+                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: textColor }}>
                   Top Feature Deviations vs Learned Normal Baseline
                 </h4>
               </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+              <span style={{ fontSize: '0.75rem', color: textMuted }}>
                 Ranked by Interquartile Range (IQR) Distance
               </span>
             </div>
@@ -561,12 +578,13 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      background: isLight ? 'var(--bg-card)' : 'rgba(30, 41, 59, 0.4)',
-                      border: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.04)',
+                      background: rowBg,
+                      border: `1px solid ${rowBorder}`,
                       borderRadius: '10px',
                       padding: '12px 16px',
                       flexWrap: 'wrap',
-                      gap: '12px'
+                      gap: '12px',
+                      boxShadow: isLight ? '0 1px 2px rgba(0,0,0,0.04)' : 'none'
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: '220px' }}>
@@ -574,8 +592,8 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                         width: '24px',
                         height: '24px',
                         borderRadius: '50%',
-                        background: 'rgba(6, 182, 212, 0.15)',
-                        color: 'var(--accent-cyan)',
+                        background: isLight ? 'rgba(2, 132, 199, 0.12)' : 'rgba(6, 182, 212, 0.15)',
+                        color: isLight ? '#0284c7' : '#38bdf8',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -585,10 +603,10 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                         {idx + 1}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.85rem', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-primary)' }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.85rem', fontFamily: 'var(--font-mono, monospace)', color: textColor }}>
                           {dev.feature}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                        <div style={{ fontSize: '0.75rem', color: textMuted }}>
                           Baseline Median: {dev.baseline_median} | IQR: {dev.baseline_iqr}
                         </div>
                       </div>
@@ -597,9 +615,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                     <div style={{ flex: 1, minWidth: '240px' }}>
                       <div style={{
                         fontSize: '0.8rem',
-                        color: dev.reason.includes('elevated') || dev.reason.includes('above')
-                          ? (isLight ? 'var(--status-danger)' : '#fca5a5')
-                          : 'var(--text-secondary)',
+                        color: dev.reason.includes('elevated') || dev.reason.includes('above') ? (isLight ? '#dc2626' : '#fca5a5') : textBody,
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px'
@@ -614,7 +630,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                         fontSize: '0.9rem',
                         fontWeight: 700,
                         fontFamily: 'var(--font-mono, monospace)',
-                        color: 'var(--accent-cyan)'
+                        color: isLight ? '#0284c7' : '#38bdf8'
                       }}>
                         {typeof dev.value === 'number' ? (dev.value > 1000 ? dev.value.toLocaleString() : dev.value) : dev.value}
                       </span>
@@ -623,7 +639,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                 ))}
               </div>
             ) : (
-              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>
+              <div style={{ padding: '24px', textAlign: 'center', color: textMuted, fontSize: '0.85rem' }}>
                 No significant statistical deviations detected. All 32 dimensions fall within expected baseline variance.
               </div>
             )}
@@ -635,10 +651,10 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
       {activeTab === 'windows' && (
         <div>
           <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: textMuted }}>
               Sliding 60-second observation windows evaluated across capture timeline:
             </p>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+            <span style={{ fontSize: '0.75rem', color: textMuted }}>
               Total: {windows.length} Window(s)
             </span>
           </div>
@@ -661,20 +677,19 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                         alignItems: 'center',
                         padding: '12px 14px',
                         borderRadius: '10px',
-                        border: isSelected ? '1px solid var(--accent-cyan)' : '1px solid var(--border-subtle)',
-                        background: isSelected
-                          ? (isLight ? 'var(--accent-cyan-dim)' : 'rgba(56, 189, 248, 0.12)')
-                          : (isLight ? 'var(--bg-secondary)' : 'rgba(30, 41, 59, 0.4)'),
+                        border: isSelected ? (isLight ? '1px solid #0284c7' : '1px solid #38bdf8') : `1px solid ${rowBorder}`,
+                        background: isSelected ? (isLight ? 'rgba(2, 132, 199, 0.08)' : 'rgba(56, 189, 248, 0.12)') : subCardBg,
                         cursor: 'pointer',
                         textAlign: 'left',
-                        transition: 'all 0.15s ease'
+                        transition: 'all 0.15s ease',
+                        boxShadow: isLight && isSelected ? '0 1px 3px rgba(2, 132, 199, 0.1)' : 'none'
                       }}
                     >
                       <div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: textColor }}>
                           Window #{idx + 1}
                         </div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
+                        <div style={{ fontSize: '0.7rem', color: textMuted }}>
                           {win.packet_count ? `${win.packet_count.toLocaleString()} pkts` : 'Observation Window'}
                         </div>
                       </div>
@@ -690,7 +705,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                           fontSize: '0.65rem',
                           textTransform: 'uppercase',
                           fontWeight: 600,
-                          color: isAnom ? (isLight ? 'var(--status-danger)' : '#f87171') : (isLight ? 'var(--status-success)' : '#34d399')
+                          color: isAnom ? (isLight ? '#dc2626' : '#f87171') : (isLight ? '#15803d' : '#34d399')
                         }}>
                           {win.prediction}
                         </div>
@@ -703,21 +718,22 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
               {/* Selected Window Detail */}
               {currentWindow && (
                 <div style={{
-                  background: isLight ? 'var(--bg-secondary)' : 'rgba(20, 29, 47, 0.6)',
-                  border: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.08)',
+                  background: sectionBg,
+                  border: `1px solid ${subCardBorder}`,
                   borderRadius: '12px',
-                  padding: '18px'
+                  padding: '18px',
+                  boxShadow: isLight ? '0 1px 3px rgba(0,0,0,0.05)' : 'none'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: textColor }}>
                       Window #{selectedWindowIdx + 1} Assessment Detail
                     </h4>
                     <span style={{
                       fontSize: '0.75rem',
                       padding: '3px 8px',
                       borderRadius: '6px',
-                      background: currentWindow.prediction === 'anomalous' ? 'var(--status-danger-dim)' : 'var(--status-success-dim)',
-                      color: currentWindow.prediction === 'anomalous' ? 'var(--status-danger)' : 'var(--status-success)',
+                      background: currentWindow.prediction === 'anomalous' ? (isLight ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.2)') : (isLight ? 'rgba(22, 163, 74, 0.12)' : 'rgba(16, 185, 129, 0.2)'),
+                      color: currentWindow.prediction === 'anomalous' ? (isLight ? '#dc2626' : '#f87171') : (isLight ? '#15803d' : '#34d399'),
                       fontWeight: 700,
                       textTransform: 'uppercase'
                     }}>
@@ -726,37 +742,38 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-                    <div style={{ background: isLight ? 'var(--bg-card)' : 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px', border: isLight ? '1px solid var(--border-subtle)' : 'none' }}>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>Window Anomaly Score</span>
+                    <div style={{ background: rowBg, border: `1px solid ${rowBorder}`, padding: '10px', borderRadius: '8px' }}>
+                      <span style={{ fontSize: '0.7rem', color: textMuted }}>Window Anomaly Score</span>
                       <div style={{ fontSize: '1.2rem', fontWeight: 800, color: getScoreColor(currentWindow.anomaly_score) }}>
                         {(currentWindow.anomaly_score * 100).toFixed(1)}%
                       </div>
                     </div>
-                    <div style={{ background: isLight ? 'var(--bg-card)' : 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px', border: isLight ? '1px solid var(--border-subtle)' : 'none' }}>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>Duration / Packets</span>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    <div style={{ background: rowBg, border: `1px solid ${rowBorder}`, padding: '10px', borderRadius: '8px' }}>
+                      <span style={{ fontSize: '0.7rem', color: textMuted }}>Duration / Packets</span>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: textColor }}>
                         {currentWindow.window_duration_sec ? `${currentWindow.window_duration_sec}s` : '60s'} / {currentWindow.packet_count || 0}
                       </div>
                     </div>
                   </div>
 
-                  <h5 style={{ margin: '0 0 8px', fontSize: '0.8rem', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
+                  <h5 style={{ margin: '0 0 8px', fontSize: '0.8rem', color: textMuted, textTransform: 'uppercase' }}>
                     Contributing Deviations in Window
                   </h5>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {currentWindow.top_contributing_features?.map((f, fIdx) => (
                       <div key={fIdx} style={{
                         fontSize: '0.78rem',
-                        background: isLight ? 'var(--bg-card)' : 'rgba(30, 41, 59, 0.4)',
-                        border: isLight ? '1px solid var(--border-subtle)' : 'none',
+                        background: rowBg,
+                        border: `1px solid ${rowBorder}`,
                         padding: '8px 12px',
                         borderRadius: '6px',
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        color: textColor
                       }}>
-                        <span style={{ fontFamily: 'var(--font-mono, monospace)', fontWeight: 600, color: 'var(--text-primary)' }}>{f.feature}</span>
-                        <span style={{ color: 'var(--accent-cyan)' }}>{f.reason}</span>
+                        <span style={{ fontFamily: 'var(--font-mono, monospace)', fontWeight: 600 }}>{f.feature}</span>
+                        <span style={{ color: isLight ? '#0284c7' : '#38bdf8' }}>{f.reason}</span>
                       </div>
                     ))}
                   </div>
@@ -764,7 +781,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
               )}
             </div>
           ) : (
-            <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-tertiary)' }}>
+            <div style={{ padding: '30px', textAlign: 'center', color: textMuted }}>
               Single window capture analysis active.
             </div>
           )}
@@ -783,19 +800,19 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
             flexWrap: 'wrap'
           }}>
             <div>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: textMuted }}>
                 Operational baselines learned from enterprise VPN distributions (32 Observable Dimensions):
               </p>
             </div>
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              background: isLight ? 'var(--bg-input)' : 'rgba(0,0,0,0.3)',
+              background: isLight ? '#ffffff' : 'rgba(0,0,0,0.3)',
               borderRadius: '8px',
               padding: '4px 10px',
-              border: isLight ? '1px solid var(--border-default)' : '1px solid rgba(255, 255, 255, 0.08)'
+              border: `1px solid ${isLight ? '#cbd5e1' : 'rgba(255, 255, 255, 0.08)'}`
             }}>
-              <Search size={14} color="var(--text-tertiary)" style={{ marginRight: '6px' }} />
+              <Search size={14} color={isLight ? '#64748b' : '#94a3b8'} style={{ marginRight: '6px' }} />
               <input
                 type="text"
                 placeholder="Filter feature..."
@@ -805,7 +822,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
-                  color: 'var(--text-primary)',
+                  color: textColor,
                   fontSize: '0.8rem',
                   width: '140px'
                 }}
@@ -824,22 +841,23 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
               <div
                 key={idx}
                 style={{
-                  background: isLight ? 'var(--bg-secondary)' : 'rgba(30, 41, 59, 0.45)',
-                  border: isLight ? '1px solid var(--border-subtle)' : '1px solid rgba(255, 255, 255, 0.05)',
+                  background: subCardBg,
+                  border: `1px solid ${subCardBorder}`,
                   borderRadius: '10px',
-                  padding: '12px 14px'
+                  padding: '12px 14px',
+                  boxShadow: isLight ? '0 1px 2px rgba(0,0,0,0.04)' : 'none'
                 }}
               >
-                <div style={{ fontSize: '0.78rem', fontWeight: 600, fontFamily: 'var(--font-mono, monospace)', color: 'var(--accent-cyan)' }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 600, fontFamily: 'var(--font-mono, monospace)', color: isLight ? '#0284c7' : '#38bdf8' }}>
                   {metric.feature}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.75rem' }}>
-                  <span style={{ color: 'var(--text-tertiary)' }}>Median (Q50):</span>
-                  <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{metric.median}</span>
+                  <span style={{ color: textMuted }}>Median (Q50):</span>
+                  <span style={{ fontWeight: 700, color: textColor }}>{metric.median}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px', fontSize: '0.75rem' }}>
-                  <span style={{ color: 'var(--text-tertiary)' }}>IQR Spread:</span>
-                  <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>{metric.iqr}</span>
+                  <span style={{ color: textMuted }}>IQR Spread:</span>
+                  <span style={{ fontWeight: 700, color: textMuted }}>{metric.iqr}</span>
                 </div>
               </div>
             ))}
@@ -851,7 +869,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
       {activeTab === 'simulator' && (
         <div>
           <div style={{ marginBottom: '16px' }}>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: textMuted }}>
               Simulate real-time operational shifts or synthetic behavioral deviations to observe calibrated ML responses:
             </p>
           </div>
@@ -874,14 +892,11 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
                   fontSize: '0.75rem',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  border: simPreset === p.id
-                    ? '1px solid var(--accent-cyan)'
-                    : '1px solid var(--border-subtle)',
-                  background: simPreset === p.id
-                    ? (isLight ? 'var(--accent-cyan-dim)' : 'rgba(56, 189, 248, 0.2)')
-                    : (isLight ? 'var(--bg-secondary)' : 'rgba(30, 41, 59, 0.4)'),
-                  color: simPreset === p.id ? 'var(--accent-cyan)' : 'var(--text-tertiary)',
-                  transition: 'all 0.15s ease'
+                  border: simPreset === p.id ? (isLight ? '1px solid #0284c7' : '1px solid #38bdf8') : `1px solid ${subCardBorder}`,
+                  background: simPreset === p.id ? (isLight ? 'rgba(2, 132, 199, 0.12)' : 'rgba(56, 189, 248, 0.2)') : subCardBg,
+                  color: simPreset === p.id ? (isLight ? '#0284c7' : '#38bdf8') : textMuted,
+                  transition: 'all 0.15s ease',
+                  boxShadow: isLight && simPreset === p.id ? '0 1px 3px rgba(2, 132, 199, 0.12)' : 'none'
                 }}
               >
                 {p.label}
@@ -897,7 +912,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
             marginBottom: '18px'
           }}>
             <div>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}>
+              <label style={{ fontSize: '0.75rem', color: textMuted, display: 'block', marginBottom: '4px' }}>
                 Packets / Sec: {simFeatures.packets_per_second}
               </label>
               <input
@@ -912,7 +927,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
             </div>
 
             <div>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}>
+              <label style={{ fontSize: '0.75rem', color: textMuted, display: 'block', marginBottom: '4px' }}>
                 Bytes / Sec: {simFeatures.bytes_per_second.toLocaleString()} B/s
               </label>
               <input
@@ -927,7 +942,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
             </div>
 
             <div>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}>
+              <label style={{ fontSize: '0.75rem', color: textMuted, display: 'block', marginBottom: '4px' }}>
                 Concurrent Flows: {simFeatures.concurrent_flows}
               </label>
               <input
@@ -942,7 +957,7 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
             </div>
 
             <div>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}>
+              <label style={{ fontSize: '0.75rem', color: textMuted, display: 'block', marginBottom: '4px' }}>
                 Mean Packet Size: {simFeatures.mean_packet_size} B
               </label>
               <input
@@ -985,33 +1000,34 @@ export default function AnomalyDetectionPanel({ anomalyData, pcapFeatures, isEmb
           {/* Simulation Output */}
           {simResult && (
             <div style={{
-              background: isLight ? 'var(--bg-secondary)' : 'rgba(20, 29, 47, 0.7)',
-              border: `1px solid ${simResult.prediction === 'anomalous' ? 'var(--status-danger-border)' : 'var(--status-success-border)'}`,
+              background: sectionBg,
+              border: `1px solid ${simResult.prediction === 'anomalous' ? (isLight ? 'rgba(220, 38, 38, 0.35)' : 'rgba(239, 68, 68, 0.4)') : (isLight ? 'rgba(22, 163, 74, 0.35)' : 'rgba(16, 185, 129, 0.4)')}`,
               borderRadius: '12px',
-              padding: '16px'
+              padding: '16px',
+              boxShadow: isLight ? '0 1px 3px rgba(0,0,0,0.05)' : 'none'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Simulation Result:</span>
+                  <span style={{ fontWeight: 700, fontSize: '0.9rem', color: textColor }}>Simulation Result:</span>
                   <span style={{
                     padding: '2px 8px',
                     borderRadius: '4px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
-                    background: simResult.prediction === 'anomalous' ? 'var(--status-danger-dim)' : 'var(--status-success-dim)',
-                    color: simResult.prediction === 'anomalous' ? 'var(--status-danger)' : 'var(--status-success)'
+                    background: simResult.prediction === 'anomalous' ? (isLight ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.2)') : (isLight ? 'rgba(22, 163, 74, 0.12)' : 'rgba(16, 185, 129, 0.2)'),
+                    color: simResult.prediction === 'anomalous' ? (isLight ? '#dc2626' : '#f87171') : (isLight ? '#15803d' : '#34d399')
                   }}>
                     {simResult.prediction}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.85rem', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-primary)' }}>
+                <div style={{ fontSize: '0.85rem', fontFamily: 'var(--font-mono, monospace)', color: textColor }}>
                   Score: <strong style={{ color: getScoreColor(simResult.anomaly_score) }}>{(simResult.anomaly_score * 100).toFixed(1)}%</strong>
                 </div>
               </div>
 
               {simResult.top_contributing_features?.map((tf, i) => (
-                <div key={i} style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                <div key={i} style={{ fontSize: '0.75rem', color: textBody, marginTop: '4px' }}>
                   &bull; <strong>{tf.feature}</strong>: {tf.reason}
                 </div>
               ))}

@@ -9,10 +9,11 @@ const tabs = [
   { id: 'testbed',      label: 'Testbed',          icon: Server },
   { id: 'vault',        label: 'Vault',            icon: Database },
   { id: 'overview',     label: 'Architecture',     icon: Layers },
+  { id: 'threat-matrix',label: 'Threats',          icon: Shield },
   { id: 'compliance',   label: 'Compliance',       icon: FileCheck },
 ];
 
-export default function Navbar({ activeTab, setActiveTab, liveDashboardEnabled = false }) {
+export default function Navbar({ activeTab, setActiveTab }) {
   const { theme, toggle } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -28,34 +29,69 @@ export default function Navbar({ activeTab, setActiveTab, liveDashboardEnabled =
     <>
       <header className={`site-header${scrolled ? ' scrolled' : ''}`} role="banner">
         <div className="header-inner">
-          <button
-            type="button"
-            className="brand-wrapper"
+          {/* Brand in makingsoftware.com technical style */}
+          <div
             onClick={() => setActiveTab('overview')}
-            aria-label="Privcomm home"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '9px',
+              cursor: 'pointer',
+              textDecoration: 'none',
+              userSelect: 'none',
+              flexShrink: 0
+            }}
           >
-            <span className="brand-mark" aria-hidden="true"><Shield size={18} strokeWidth={2.1} /></span>
-            <span className="brand-lockup">
-              <span className="brand-name">Privcomm</span>
-              <span className="brand-subtitle">IPSEC SECURITY INTELLIGENCE</span>
-            </span>
-          </button>
+            <div style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '4px',
+              background: 'var(--accent-blue)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 6px rgba(37,99,235,0.3)'
+            }}>
+              <Shield size={16} strokeWidth={2.5} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+              <span style={{
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+                fontSize: '0.92rem',
+                letterSpacing: '-0.01em',
+                color: 'var(--text-primary)'
+              }}>
+                PRIVCOMM
+              </span>
+              <span style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                color: 'var(--accent-blue)',
+                padding: '1px 5px',
+                border: '1px solid var(--border-blueprint, rgba(37,99,235,0.25))',
+                borderRadius: '3px',
+                background: 'var(--accent-blue-dim)'
+              }}>
+                v2.4
+              </span>
+            </div>
+          </div>
 
           {/* Desktop Nav */}
           <nav className="nav-tabs" aria-label="Main Navigation">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
-              const isLiveLocked = tab.id === 'live' && !liveDashboardEnabled;
               return (
                 <button
                   key={tab.id}
                   type="button"
                   id={`nav-${tab.id}`}
                   className={`nav-tab-btn${isActive ? ' active' : ''}`}
-                  onClick={() => !isLiveLocked && setActiveTab(tab.id)}
-                  disabled={isLiveLocked}
-                  title={isLiveLocked ? 'Run the testbed and establish the tunnel first' : undefined}
+                  onClick={() => setActiveTab(tab.id)}
                   aria-current={isActive ? 'page' : undefined}
                 >
                   <Icon size={15} strokeWidth={isActive ? 2.2 : 1.8} />
@@ -93,6 +129,7 @@ export default function Navbar({ activeTab, setActiveTab, liveDashboardEnabled =
                 justifyContent: 'center',
                 cursor: 'pointer',
                 flexShrink: 0,
+                backdropFilter: 'blur(12px)',
                 transition: 'all 0.22s var(--ease-spring)',
                 boxShadow: isDark
                   ? '0 0 12px rgba(56,189,248,0.15)'
@@ -144,6 +181,7 @@ export default function Navbar({ activeTab, setActiveTab, liveDashboardEnabled =
             left: 0,
             right: 0,
             background: 'var(--bg-primary)',
+            backdropFilter: 'blur(24px)',
             borderBottom: '1px solid var(--border-default)',
             padding: '12px 20px',
             display: 'flex',
@@ -156,15 +194,12 @@ export default function Navbar({ activeTab, setActiveTab, liveDashboardEnabled =
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
-            const isLiveLocked = tab.id === 'live' && !liveDashboardEnabled;
             return (
               <button
                 key={tab.id}
                 type="button"
                 className={`nav-tab-btn${isActive ? ' active' : ''}`}
-                onClick={() => { if (!isLiveLocked) { setActiveTab(tab.id); setMobileOpen(false); } }}
-                disabled={isLiveLocked}
-                title={isLiveLocked ? 'Run the testbed and establish the tunnel first' : undefined}
+                onClick={() => { setActiveTab(tab.id); setMobileOpen(false); }}
                 style={{ justifyContent: 'flex-start', padding: '10px 14px', width: '100%' }}
               >
                 <Icon size={16} />

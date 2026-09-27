@@ -1116,17 +1116,80 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                     }}
                   >
                     <div style={{
-                      padding: '8px 12px',
+                      padding: '10px 14px',
                       borderRadius: '10px',
-                      fontSize: '0.78rem',
-                      lineHeight: '1.5',
+                      fontSize: '0.8rem',
+                      lineHeight: '1.55',
                       background: isUser ? 'var(--accent-blue)' : 'var(--bg-secondary)',
                       color: isUser ? '#fff' : 'var(--text-primary)',
-                      border: isUser ? 'none' : '1px solid var(--border-subtle)'
+                      border: isUser ? 'none' : '1px solid var(--border-subtle)',
+                      boxShadow: isUser ? '0 2px 8px rgba(37,99,235,0.25)' : '0 2px 8px rgba(0,0,0,0.2)'
                     }}>
-                      {msg.text.split('\n').map((line, lIdx) => (
-                        <p key={lIdx} style={{ margin: '0 0 4px 0' }}>{line}</p>
-                      ))}
+                      {(() => {
+                        if (isUser) {
+                          return <p style={{ margin: 0 }}>{msg.text}</p>;
+                        }
+                        const lines = msg.text.split('\n');
+                        return lines.map((line, lIdx) => {
+                          const trimmed = line.trim();
+                          if (!trimmed) {
+                            return <div key={lIdx} style={{ height: '6px' }} />;
+                          }
+                          const isBullet = trimmed.startsWith('* ') || trimmed.startsWith('- ') || trimmed.startsWith('• ');
+                          const content = isBullet ? trimmed.replace(/^[\*\-•]\s+/, '') : trimmed;
+
+                          const parts = [];
+                          const regex = /(\*\*.*?\*\*|`.*?`)/g;
+                          let lastIndex = 0;
+                          let match;
+
+                          while ((match = regex.exec(content)) !== null) {
+                            if (match.index > lastIndex) {
+                              parts.push(content.substring(lastIndex, match.index));
+                            }
+                            const token = match[0];
+                            if (token.startsWith('**') && token.endsWith('**')) {
+                              parts.push(
+                                <strong key={`${lIdx}-${match.index}`} style={{ color: '#38bdf8', fontWeight: 600 }}>
+                                  {token.slice(2, -2)}
+                                </strong>
+                              );
+                            } else if (token.startsWith('`') && token.endsWith('`')) {
+                              parts.push(
+                                <code key={`${lIdx}-${match.index}`} style={{
+                                  background: 'rgba(56, 189, 248, 0.12)',
+                                  color: '#38bdf8',
+                                  padding: '1px 5px',
+                                  borderRadius: '4px',
+                                  fontSize: '0.74rem',
+                                  fontFamily: 'monospace'
+                                }}>
+                                  {token.slice(1, -1)}
+                                </code>
+                              );
+                            }
+                            lastIndex = regex.lastIndex;
+                          }
+                          if (lastIndex < content.length) {
+                            parts.push(content.substring(lastIndex));
+                          }
+
+                          if (isBullet) {
+                            return (
+                              <div key={lIdx} style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', margin: '4px 0' }}>
+                                <span style={{ color: '#38bdf8', lineHeight: '1.5' }}>•</span>
+                                <div style={{ flex: 1, lineHeight: '1.5' }}>{parts}</div>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <p key={lIdx} style={{ margin: '0 0 6px 0', lineHeight: '1.55' }}>
+                              {parts}
+                            </p>
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
                 );

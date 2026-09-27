@@ -7,7 +7,7 @@ export function ThemeProvider({ children }) {
   const getInitial = () => {
     const saved = localStorage.getItem('privcomm-theme');
     if (saved) return saved;
-    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    return 'light';
   };
 
   const [theme, setTheme] = useState(getInitial);
