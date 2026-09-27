@@ -29,7 +29,56 @@ export default function Navbar({ activeTab, setActiveTab }) {
     <>
       <header className={`site-header${scrolled ? ' scrolled' : ''}`} role="banner">
         <div className="header-inner">
-
+          {/* Brand in makingsoftware.com technical style */}
+          <div
+            onClick={() => setActiveTab('overview')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '9px',
+              cursor: 'pointer',
+              textDecoration: 'none',
+              userSelect: 'none',
+              flexShrink: 0
+            }}
+          >
+            <div style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '4px',
+              background: 'var(--accent-blue)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 6px rgba(37,99,235,0.3)'
+            }}>
+              <Shield size={16} strokeWidth={2.5} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+              <span style={{
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+                fontSize: '0.92rem',
+                letterSpacing: '-0.01em',
+                color: 'var(--text-primary)'
+              }}>
+                PRIVCOMM
+              </span>
+              <span style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                color: 'var(--accent-blue)',
+                padding: '1px 5px',
+                border: '1px solid var(--border-blueprint, rgba(37,99,235,0.25))',
+                borderRadius: '3px',
+                background: 'var(--accent-blue-dim)'
+              }}>
+                v2.4
+              </span>
+            </div>
+          </div>
 
           {/* Desktop Nav */}
           <nav className="nav-tabs" aria-label="Main Navigation">

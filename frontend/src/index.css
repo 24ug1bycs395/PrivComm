@@ -4,7 +4,7 @@
    Professional Dark Theme · Glassmorphism · Refined Typography
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   /* --- Core Background Scale (Dark) --- */
@@ -17,8 +17,7 @@
   --bg-elevated:  #121e30;
   --bg-input:     rgba(13, 24, 42, 0.6);
 
-  /* --- Focused 3-4 Color Palette (Dark) --- */
-  /* 1. Primary Tech Blue / Cyan */
+  /* --- Focused Color Palette --- */
   --accent-cyan:      #38bdf8;
   --accent-cyan-dim:  rgba(56, 189, 248, 0.12);
   --accent-blue:      #3b82f6;
@@ -26,7 +25,7 @@
   --accent-indigo:    #3b82f6;
   --accent-purple:    #38bdf8;
 
-  /* 2. Semantic Status Tokens (Dark) */
+  /* --- Semantic Status Tokens --- */
   --status-success:        #4ade80;
   --status-success-dim:    rgba(34, 197, 94, 0.14);
   --status-success-border: rgba(34, 197, 94, 0.35);
@@ -49,7 +48,6 @@
   --status-info-dim:       rgba(56, 189, 248, 0.12);
   --status-info-border:    rgba(56, 189, 248, 0.30);
 
-  /* Base Product Accents (Cyan/Blue & Slate family) */
   --accent-green:     #38bdf8;
   --accent-green-dim: rgba(56, 189, 248, 0.12);
   --accent-green-glow: rgba(56, 189, 248, 0.08);
@@ -63,6 +61,7 @@
   --border-subtle:  rgba(255, 255, 255, 0.07);
   --border-default: rgba(255, 255, 255, 0.12);
   --border-strong:  rgba(255, 255, 255, 0.20);
+  --border-blueprint: rgba(56, 189, 248, 0.28);
   --border-focus:   rgba(56, 189, 248, 0.4);
   --border-active:  rgba(56, 189, 248, 0.6);
 
@@ -74,8 +73,9 @@
   --text-code:      #38bdf8;
 
   /* --- Typography --- */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: 'Space Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
 
   /* --- Geometry --- */
   --radius-xs:   4px;
@@ -104,81 +104,80 @@
   --shadow-glow-blue:   0 0 24px rgba(59, 130, 246, 0.22);
 }
 
-/* ─── Light Mode (High Contrast White Theme) ─────────────────────────── */
+/* ─── Light Mode (makingsoftware.com Blueprint Paper & Electric Blue) ─── */
 [data-theme="light"] {
-  /* Crisp White Backgrounds */
-  --bg-deep:       #ffffff;
-  --bg-primary:    #ffffff;
-  --bg-secondary:  #f8fafc;
-  --bg-tertiary:   #f1f5f9;
+  /* Crisp Paper White & Blueprint Gray Backgrounds */
+  --bg-deep:       #e8ecf4;
+  --bg-primary:    #f0f2f7;
+  --bg-secondary:  #eaedf5;
+  --bg-tertiary:   #e2e6f0;
   --bg-card:       #ffffff;
-  --bg-card-hover: #f8fafc;
+  --bg-card-hover: #f8fafd;
   --bg-elevated:   #ffffff;
-  --bg-input:      #f8fafc;
+  --bg-input:      #ffffff;
 
-  /* Focused 3-4 Color Palette (Light) */
-  /* 1. Primary Sky & Tech Blue */
-  --accent-cyan:      #0284c7;
-  --accent-cyan-dim:  rgba(2, 132, 199, 0.08);
+  /* Electric Royal Blueprint Blue (makingsoftware.com #2563eb / #1d4ed8) */
+  --accent-cyan:      #2563eb;
+  --accent-cyan-dim:  rgba(37, 99, 235, 0.08);
   --accent-blue:      #2563eb;
-  --accent-blue-dim:  rgba(37, 99, 235, 0.08);
-  --accent-indigo:    #2563eb;
-  --accent-purple:    #0284c7;
+  --accent-blue-dim:  rgba(37, 99, 235, 0.09);
+  --accent-indigo:    #1d4ed8;
+  --accent-purple:    #2563eb;
 
-  /* 2. Semantic Status Tokens (Light — High Contrast & Deep Tones) */
-  --status-success:        #15803d;  /* Deep Forest Emerald: crisp contrast on white (WCAG AAA 5.5:1) */
+  /* Semantic Status Tokens */
+  --status-success:        #15803d;
   --status-success-dim:    rgba(22, 163, 74, 0.09);
   --status-success-border: rgba(22, 163, 74, 0.28);
   --status-success-dot:    #16a34a;
   --status-success-shadow: 0 0 6px rgba(22, 163, 74, 0.22);
 
-  --status-warning:        #b45309;  /* Deep Warm Amber: high contrast on white (WCAG AA 4.6:1) */
+  --status-warning:        #b45309;
   --status-warning-dim:    rgba(217, 119, 6, 0.09);
   --status-warning-border: rgba(217, 119, 6, 0.28);
   --status-warning-dot:    #d97706;
   --status-warning-shadow: 0 0 6px rgba(217, 119, 6, 0.22);
 
-  --status-danger:         #b91c1c;  /* Deep Crimson: high contrast */
+  --status-danger:         #b91c1c;
   --status-danger-dim:     rgba(220, 38, 38, 0.09);
   --status-danger-border:  rgba(220, 38, 38, 0.28);
   --status-danger-dot:     #dc2626;
   --status-danger-shadow:  0 0 6px rgba(220, 38, 38, 0.22);
 
-  --status-info:           #0284c7;
-  --status-info-dim:       rgba(2, 132, 199, 0.08);
-  --status-info-border:    rgba(2, 132, 199, 0.25);
+  --status-info:           #2563eb;
+  --status-info-dim:       rgba(37, 99, 235, 0.08);
+  --status-info-border:    rgba(37, 99, 235, 0.25);
 
-  /* Base Product Accents (Light Sky/Blue & Slate family) */
-  --accent-green:     #0284c7;
-  --accent-green-dim: rgba(2, 132, 199, 0.08);
-  --accent-green-glow: rgba(2, 132, 199, 0.06);
+  --accent-green:     #2563eb;
+  --accent-green-dim: rgba(37, 99, 235, 0.08);
+  --accent-green-glow: rgba(37, 99, 235, 0.06);
 
   --accent-yellow:    #64748b;
   --accent-orange:    #64748b;
   --accent-red:       #475569;
   --accent-red-glow:  rgba(71, 85, 105, 0.06);
 
-  /* Clean Crisp Borders */
+  /* Blueprint Architectural Borders */
   --border-subtle:  #e2e8f0;
   --border-default: #cbd5e1;
   --border-strong:  #94a3b8;
-  --border-focus:   #0284c7;
-  --border-active:  #0284c7;
+  --border-blueprint: rgba(37, 99, 235, 0.30);
+  --border-focus:   #2563eb;
+  --border-active:  #2563eb;
 
-  /* High Contrast Deep Slate Text */
+  /* High Contrast Deep Charcoal & Slate Text */
   --text-primary:   #0f172a;
   --text-secondary: #334155;
   --text-tertiary:  #64748b;
   --text-muted:     #94a3b8;
-  --text-code:      #0284c7;
+  --text-code:      #2563eb;
 
-  /* Refined, Elegant Elevation */
+  /* Elevation */
   --shadow-sm:  0 1px 3px rgba(15, 23, 42, 0.06);
   --shadow-md:  0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
   --shadow-lg:  0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
   --shadow-xl:  0 20px 32px -4px rgba(15, 23, 42, 0.1);
-  --shadow-glow-cyan:  0 0 20px rgba(2, 132, 199, 0.12);
-  --shadow-glow-blue:  0 0 20px rgba(37, 99, 235, 0.12);
+  --shadow-glow-cyan:  0 0 20px rgba(37, 99, 235, 0.15);
+  --shadow-glow-blue:  0 0 20px rgba(37, 99, 235, 0.18);
 }
 
 /* Smooth theme transition on all major properties */
@@ -265,35 +264,55 @@ body {
   opacity: 0.5;
 }
 
-/* Light mode ambient overrides */
+/* Light mode ambient overrides (makingsoftware.com blueprint grid & corner glow) */
+[data-theme="light"] body {
+  background-color: #f0f2f7;
+}
+
 [data-theme="light"] .ambient-grid {
   background-image:
-    linear-gradient(to right,  rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    linear-gradient(to right,  rgba(37, 99, 235, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(37, 99, 235, 0.055) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: none;
 }
 
 [data-theme="light"] .orb-top {
   background: radial-gradient(circle,
-    rgba(2, 132, 199, 0.05) 0%,
-    rgba(37, 99, 235, 0.03) 40%,
+    rgba(37, 99, 235, 0.08) 0%,
+    rgba(37, 99, 235, 0.03) 50%,
     transparent 80%
   );
-  opacity: 0.6;
+  opacity: 0.8;
 }
 
 [data-theme="light"] .orb-bottom {
   background: radial-gradient(circle,
-    rgba(2, 132, 199, 0.04) 0%,
+    rgba(37, 99, 235, 0.06) 0%,
     transparent 70%
   );
-  opacity: 0.5;
+  opacity: 0.7;
+}
+
+/* Outer royal blue corner vignette */
+[data-theme="light"] .app-container::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  background:
+    radial-gradient(ellipse 45% 30% at 0% 0%, rgba(37, 99, 235, 0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 30% at 100% 0%, rgba(37, 99, 235, 0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 30% at 0% 100%, rgba(37, 99, 235, 0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 30% at 100% 100%, rgba(37, 99, 235, 0.09) 0%, transparent 60%);
 }
 
 /* Light mode header */
 [data-theme="light"] .site-header {
-  background: rgba(255, 255, 255, 0.94);
-  border-bottom: 1px solid var(--border-subtle);
-  box-shadow: 0 1px 8px rgba(15, 23, 42, 0.04);
+  background: rgba(240, 242, 247, 0.92);
+  border-bottom: 1px solid var(--border-strong);
+  box-shadow: 0 1px 0 rgba(37, 99, 235, 0.08);
 }
 
 /* Light mode console */
@@ -301,6 +320,60 @@ body {
   background: #090f1d;
   color: #94a3b8;
   border-color: #1e293b;
+}
+
+/* ─── makingsoftware.com Design System Utilities ─────────────────────── */
+.pixel-divider {
+  width: 100%;
+  height: 8px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--accent-blue) 0px, var(--accent-blue) 4px,
+    transparent 4px, transparent 8px
+  );
+  opacity: 0.22;
+  margin: 48px 0;
+}
+
+.blueprint-frame {
+  background: var(--bg-card);
+  border: 1px solid var(--border-blueprint);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.06);
+}
+
+.blueprint-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(37, 99, 235, 0.05);
+  border-bottom: 1px solid var(--border-blueprint);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+}
+
+.drop-cap::first-letter {
+  font-family: var(--font-serif);
+  font-size: 3.2em;
+  font-weight: 700;
+  float: left;
+  line-height: 0.8;
+  margin: 4px 10px 0 0;
+  color: var(--accent-blue);
+}
+
+.leader-dots {
+  flex: 1;
+  border-bottom: 1px dotted var(--border-default);
+  margin: 0 12px;
+  opacity: 0.8;
+  height: 1px;
 }
 
 /* Typography defaults */
