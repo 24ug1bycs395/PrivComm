@@ -173,15 +173,15 @@ function TunnelViz({ stage, isRunning, packetPos }) {
 
   const laptopSvg = (glow) => (
     <svg
-      width="100"
-      height="75"
+      width="90"
+      height="68"
       viewBox="0 0 80 60"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       style={{
         filter: glow
-          ? "drop-shadow(0 0 14px rgba(88,166,255,0.7))"
-          : "none",
+          ? "drop-shadow(0 0 18px rgba(88,166,255,0.85))"
+          : "drop-shadow(0 0 4px rgba(88,166,255,0.2))",
         transition: "filter 0.6s ease",
       }}
     >
@@ -202,11 +202,12 @@ function TunnelViz({ stage, isRunning, packetPos }) {
     <div
       style={{
         position: "relative",
-        padding: "24px 32px 16px",
+        padding: "16px 20px 12px",
         background: "#0d1117",
         border: "1px solid var(--border-subtle)",
         borderRadius: "12px",
         overflow: "hidden",
+        height: "100%",
       }}
     >
       {/* Grid background */}
@@ -417,7 +418,7 @@ function TunnelViz({ stage, isRunning, packetPos }) {
 }
 
 // ── Linux Terminal ─────────────────────────────────────────────────────────────
-function LinuxTerminal({ title, ip, role, lines, isActive }) {
+function LinuxTerminal({ title, ip, role, lines, isActive, termHeight = "100%", lightMode = false }) {
   const termRef = useRef(null);
   useEffect(() => {
     if (termRef.current) termRef.current.scrollTop = termRef.current.scrollHeight;
@@ -430,22 +431,25 @@ function LinuxTerminal({ title, ip, role, lines, isActive }) {
         flexDirection: "column",
         borderRadius: "10px",
         overflow: "hidden",
-        border: "1px solid var(--border-subtle)",
-        background: "#0d1117",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.35)",
+        border: lightMode ? "1px solid rgba(63,185,80,0.35)" : "1px solid var(--border-subtle)",
+        background: lightMode ? "#121c14" : "#0d1117",
+        boxShadow: lightMode
+          ? "0 4px 24px rgba(63,185,80,0.12), inset 0 0 60px rgba(63,185,80,0.03)"
+          : "0 4px 24px rgba(0,0,0,0.35)",
         height: "100%",
         minHeight: 0,
+        flex: 1,
       }}
     >
       {/* Title bar */}
       <div
         style={{
-          background: "#161b22",
+          background: lightMode ? "#162118" : "#161b22",
           padding: "10px 16px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          borderBottom: "1px solid #30363d",
+          borderBottom: lightMode ? "1px solid rgba(63,185,80,0.25)" : "1px solid #30363d",
           flexShrink: 0,
         }}
       >
@@ -456,7 +460,7 @@ function LinuxTerminal({ title, ip, role, lines, isActive }) {
             <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#28c840" }} />
           </div>
           <div>
-            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.8rem", fontWeight: 700, color: "#e6edf3", letterSpacing: "0.04em" }}>{title}</div>
+            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.8rem", fontWeight: 700, color: lightMode ? "#7ee787" : "#e6edf3", letterSpacing: "0.04em" }}>{title}</div>
             <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.66rem", color: "#7d8590" }}>{ip}</div>
           </div>
         </div>
@@ -478,10 +482,10 @@ function LinuxTerminal({ title, ip, role, lines, isActive }) {
           fontFamily: "JetBrains Mono, Menlo, monospace",
           fontSize: "0.8rem",
           lineHeight: 1.8,
-          color: "#c9d1d9",
+          color: lightMode ? "#b5e8b5" : "#c9d1d9",
           minHeight: 0,
           scrollbarWidth: "thin",
-          scrollbarColor: "#30363d transparent",
+          scrollbarColor: lightMode ? "#3fb950 transparent" : "#30363d transparent",
         }}
       >
         {lines.length === 0 ? (
@@ -538,12 +542,12 @@ function LinuxTerminal({ title, ip, role, lines, isActive }) {
       {/* Footer bar */}
       <div
         style={{
-          background: "#161b22",
-          borderTop: "1px solid #30363d",
+          background: lightMode ? "#162118" : "#161b22",
+          borderTop: lightMode ? "1px solid rgba(63,185,80,0.2)" : "1px solid #30363d",
           padding: "7px 18px",
           fontFamily: "JetBrains Mono, monospace",
           fontSize: "0.66rem",
-          color: "#7d8590",
+          color: lightMode ? "#56d364" : "#7d8590",
           flexShrink: 0,
         }}
       >
@@ -997,35 +1001,52 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
         </div>
       </div>
 
-      {/* Stage pipeline bar */}
-      {currentStage && <StageBar currentStage={currentStage} />}
 
-      {/* Tunnel Visualizer */}
-      <TunnelViz stage={currentStage} isRunning={isRunning} packetPos={packetPos} />
-
+      {/* 3 Terminals — middle column contains TunnelViz on top */}
       {/* 3 Terminals */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", height: "580px" }}>
-        <LinuxTerminal
-          title="SENDER (VM1 — Initiator)"
-          ip={topology.initiator_ip}
-          role="initiator"
-          lines={senderLines}
-          isActive={isRunning && ["INITIATOR", "TUNNEL", "TRAFFIC"].includes(currentStage)}
-        />
-        <LinuxTerminal
-          title="OBSERVER (VM3 — Packet Capture)"
-          ip={topology.observer_ip}
-          role="observer"
-          lines={observerLines}
-          isActive={isRunning && currentStage !== null}
-        />
-        <LinuxTerminal
-          title="RECEIVER (VM2 — Responder)"
-          ip={topology.responder_ip}
-          role="responder"
-          lines={receiverLines}
-          isActive={isRunning && ["RESPONDER", "TUNNEL", "TRAFFIC"].includes(currentStage)}
-        />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", height: "580px", overflow: "hidden" }}>
+        {/* SENDER — full height */}
+        <div style={{ minHeight: 0, overflow: "hidden", display: "flex" }}>
+          <LinuxTerminal
+            title="SENDER (VM1 — Initiator)"
+            ip={topology.initiator_ip}
+            role="initiator"
+            lines={senderLines}
+            isActive={isRunning && ["INITIATOR", "TUNNEL", "TRAFFIC"].includes(currentStage)}
+          />
+        </div>
+
+        {/* OBSERVER — top: TunnelViz, bottom: green terminal */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "14px", minHeight: 0, overflow: "hidden" }}>
+          {/* Top half — Tunnel Visualizer */}
+          <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+            {currentStage && <StageBar currentStage={currentStage} />}
+            <TunnelViz stage={currentStage} isRunning={isRunning} packetPos={packetPos} />
+          </div>
+
+          {/* Bottom half — green Observer terminal */}
+          <div style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex" }}>
+            <LinuxTerminal
+              title="OBSERVER (VM3 — Packet Capture)"
+              ip={topology.observer_ip}
+              role="observer"
+              lines={observerLines}
+              isActive={isRunning && currentStage !== null}
+              lightMode
+            />
+          </div>
+        </div>
+
+        {/* RECEIVER — full height */}
+        <div style={{ minHeight: 0, overflow: "hidden", display: "flex" }}>
+          <LinuxTerminal
+            title="RECEIVER (VM2 — Responder)"
+            ip={topology.responder_ip}
+            role="responder"
+            lines={receiverLines}
+            isActive={isRunning && ["RESPONDER", "TUNNEL", "TRAFFIC"].includes(currentStage)}
+          />
+        </div>
       </div>
 
       {/* Result / Failure cards */}
