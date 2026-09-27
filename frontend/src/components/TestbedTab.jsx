@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import AttackSimulator from './AttackSimulator';
 
-export default function TestbedTab({ onNavigateToAnalysis }) {
+export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive }) {
   const [scenarios, setScenarios] = useState([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState('ikev2-aes-gcm-compliant');
   const [customMode, setCustomMode] = useState(false);
@@ -584,12 +584,24 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
                   </span>
                 )}
                 {activeJob && (
-                  <span className={`badge ${
-                    activeJob.state === 'COMPLETED' ? 'badge-green' :
-                    activeJob.state === 'FAILED' ? 'badge-red' : 'badge-cyan'
-                  }`}>
-                    {activeJob.state}
-                  </span>
+                  <>
+                    <span className={`badge ${
+                      activeJob.state === 'COMPLETED' ? 'badge-green' :
+                      activeJob.state === 'FAILED' ? 'badge-red' : 'badge-cyan'
+                    }`}>
+                      {activeJob.state}
+                    </span>
+                    {!['COMPLETED', 'FAILED'].includes(activeJob.state) && onNavigateToLive && (
+                      <button
+                        type="button"
+                        className="btn-ghost"
+                        onClick={() => onNavigateToLive(activeJob.id)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '0.3rem 0.55rem', fontSize: '0.7rem' }}
+                      >
+                        <Radio size={12} /> Open Live Dashboard
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
