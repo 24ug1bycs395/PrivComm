@@ -4,7 +4,7 @@ An end-to-end cybersecurity framework for analyzing network capture files (`.pca
 
 ---
 
-## 🏗 System Architecture
+##  System Architecture
 
 ```text
                .pcap / .pcapng Capture OR strongSwan Testbed
@@ -40,7 +40,7 @@ An end-to-end cybersecurity framework for analyzing network capture files (`.pca
 
 ---
 
-## ⚡ Quick Start with Docker (Recommended)
+##  Quick Start with Docker (Recommended)
 
 Run the entire platform (Vite React Frontend + FastAPI Backend + TShark Sniffer + ML Models) inside an optimized multi-stage Docker container.
 
@@ -85,7 +85,7 @@ docker run --rm -p 8000:8000 `
 
 ---
 
-## 🛠️ Local Development & Manual Build
+##  Local Development & Manual Build
 
 ### 1. Prerequisites
 - **Python**: 3.10+
@@ -129,7 +129,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 ---
 
-## 🧪 strongSwan IPsec VPN Testbed (VirtualBox / Vagrant)
+##  strongSwan IPsec VPN Testbed (VirtualBox / Vagrant)
 
 The platform includes an automated 3-node strongSwan validation environment for generating live IKEv1/IKEv2/ESP traffic and security policy violations:
 - **VM 1 (Initiator)**: `192.168.56.10` (strongSwan 5.x)
@@ -155,7 +155,7 @@ vagrant destroy -f
 
 ---
 
-## 💻 CLI & Batch Analysis Commands
+##  CLI & Batch Analysis Commands
 
 ### Analyze a Single Capture File
 Analyze a `.pcap` or `.pcapng` file and export both JSON and Executive HTML reports:
@@ -172,7 +172,7 @@ Process all `.pcap` / `.pcapng` files in a directory and generate individual rep
 python main.py batch --input samples/ --output results/
 ```
 
-## 🔬 Testing & Validation
+##  Testing & Validation
 
 ```bash
 # Run integration verification tests (Health, Testbed, Analysis, Vault)

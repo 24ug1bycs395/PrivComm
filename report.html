@@ -360,10 +360,10 @@
                 ← Back to Home
             </a>
             <a href="/dashboard.html" class="btn btn-secondary">
-                📊 Live Dashboard
+                 Live Dashboard
             </a>
             <button type="button" class="btn btn-primary" onclick="window.print()">
-                🖨️ Print / Save as PDF
+                 Print / Save as PDF
             </button>
         </div>
     </div>
@@ -372,7 +372,7 @@
     <div class="container" id="reportContent">
         <div class="report-header">
             <div>
-                <h1 id="repFilename">🛡 IPsec VPN Executive Security Report</h1>
+                <h1 id="repFilename"> IPsec VPN Executive Security Report</h1>
                 <p id="repMeta">Loading analysis session details...</p>
             </div>
             <div>
@@ -401,7 +401,7 @@
             </div>
         </div>
 
-        <div class="section-title">📊 3x3 Threat Matrix (Severity vs Likelihood)</div>
+        <div class="section-title"> 3x3 Threat Matrix (Severity vs Likelihood)</div>
         <div class="matrix-container">
             <div class="matrix-grid">
                 <div></div>
@@ -426,7 +426,7 @@
             </div>
         </div>
 
-        <div class="section-title">🔑 Cryptographic & Protocol Parameters</div>
+        <div class="section-title"> Cryptographic & Protocol Parameters</div>
         <table>
             <thead>
                 <tr>
@@ -464,12 +464,12 @@
             </tbody>
         </table>
 
-        <div class="section-title">💡 Plain-English Component Rationale (For Non-Experts)</div>
+        <div class="section-title"> Plain-English Component Rationale (For Non-Experts)</div>
         <div id="repExplainContainer">
             <!-- Default static fallback cards if no dynamic data -->
             <div class="finding-card LOW">
                 <div class="finding-header">
-                    <span class="finding-title">📞 Modern Tunnel Negotiator (IKEv2)</span>
+                    <span class="finding-title"> Modern Tunnel Negotiator (IKEv2)</span>
                     <span class="badge badge-secure">SECURE</span>
                 </div>
                 <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> Establishes and manages
@@ -480,7 +480,7 @@
             </div>
             <div class="finding-card LOW">
                 <div class="finding-header">
-                    <span class="finding-title">🔒 Bank-Grade Vault Lock (AES-256-GCM)</span>
+                    <span class="finding-title"> Bank-Grade Vault Lock (AES-256-GCM)</span>
                     <span class="badge badge-secure">SECURE</span>
                 </div>
                 <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> High-speed encryption
@@ -490,7 +490,7 @@
             </div>
             <div class="finding-card LOW">
                 <div class="finding-header">
-                    <span class="finding-title">🤝 Elliptic Curve Secret Handshake (DH Group 19)</span>
+                    <span class="finding-title"> Elliptic Curve Secret Handshake (DH Group 19)</span>
                     <span class="badge badge-secure">SECURE</span>
                 </div>
                 <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> Allows two servers to
@@ -500,7 +500,7 @@
             </div>
             <div class="finding-card LOW">
                 <div class="finding-header">
-                    <span class="finding-title">🔑 Temporary One-Time Keys (PFS Enforced)</span>
+                    <span class="finding-title"> Temporary One-Time Keys (PFS Enforced)</span>
                     <span class="badge badge-secure">SECURE</span>
                 </div>
                 <p style="font-size: 13px; margin: 4px 0;"><strong>Plain-English Role:</strong> Generates fresh session
@@ -510,11 +510,11 @@
             </div>
         </div>
 
-        <div class="section-title">🚨 Security Assessment & Actionable Recommendations</div>
+        <div class="section-title"> Security Assessment & Actionable Recommendations</div>
         <div id="repFindingsContainer">
             <div class="finding-card LOW">
                 <div class="finding-header">
-                    <span class="finding-title">✓ No Policy Violations Detected</span>
+                    <span class="finding-title"> No Policy Violations Detected</span>
                     <span class="badge badge-secure">COMPLIANT</span>
                 </div>
                 <p style="font-size: 13px; margin: 4px 0 0 0;">The IPsec configuration meets all corporate security
@@ -546,7 +546,7 @@
             const sec = data.security_assessment || {};
             const explain = data.explainability || [];
 
-            document.getElementById('repFilename').textContent = `🛡 IPsec VPN Executive Report: ${cap.filename || filename}`;
+            document.getElementById('repFilename').textContent = ` IPsec VPN Executive Report: ${cap.filename || filename}`;
             document.getElementById('repMeta').textContent = `Filepath: ${cap.filepath || filename} | Total Packets: ${cap.packet_count || 12}`;
 
             const riskLevel = sec.risk_level || "SECURE";

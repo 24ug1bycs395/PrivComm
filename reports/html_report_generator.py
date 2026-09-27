@@ -223,7 +223,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="container">
         <div class="header">
             <div>
-                <h1>🛡 IPsec VPN Executive Security Report</h1>
+                <h1> IPsec VPN Executive Security Report</h1>
                 <p>Generated for: <strong>{{ report.capture.filename }}</strong> | Packets: {{ report.capture.packet_count }}
                 {% if report.metadata_exposure and report.metadata_exposure.get('source_ip') %}
                 | Outer IP Pair: <strong>{{ report.metadata_exposure.source_ip }} &rarr; {{ report.metadata_exposure.destination_ip }}</strong> ({{ report.metadata_exposure.get('ip_version', 'IPv4') }})
@@ -262,7 +262,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
         </div>
 
-        <div class="section-title">📊 3x3 Threat Matrix (Severity vs Likelihood)</div>
+        <div class="section-title"> 3x3 Threat Matrix (Severity vs Likelihood)</div>
         <div class="matrix-container">
             <div class="matrix-grid">
                 <div></div>
@@ -287,7 +287,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
         </div>
 
-        <div class="section-title">🔑 Cryptographic & Protocol Parameters</div>
+        <div class="section-title"> Cryptographic & Protocol Parameters</div>
         <table>
             <thead>
                 <tr>
@@ -325,7 +325,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </tbody>
         </table>
 
-        <div class="section-title">💡 Plain-English Component Rationale (For Non-Experts)</div>
+        <div class="section-title"> Plain-English Component Rationale (For Non-Experts)</div>
         {% if report.explainability %}
             {% for item in report.explainability %}
             <div class="finding-card {{ item.status }}">
@@ -339,7 +339,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             {% endfor %}
         {% endif %}
 
-        <div class="section-title">🚨 Security Assessment & Actionable Recommendations</div>
+        <div class="section-title"> Security Assessment & Actionable Recommendations</div>
 
         {% if report.security_assessment.findings %}
             {% for finding in report.security_assessment.findings %}
@@ -355,7 +355,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         {% else %}
             <div class="finding-card LOW">
                 <div class="finding-header">
-                    <span class="finding-title">✓ No Policy Violations Detected</span>
+                    <span class="finding-title"> No Policy Violations Detected</span>
                     <span class="badge badge-secure">COMPLIANT</span>
                 </div>
                 <p>The IPsec configuration meets all corporate security baselines. No weak ciphers or deprecated DH groups observed.</p>

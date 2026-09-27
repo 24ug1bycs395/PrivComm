@@ -167,6 +167,7 @@ class TestbedOrchestrator:
 
             await SSHController.run_command(
                 topology.responder,
+                "sudo swanctl --unload-all >/dev/null 2>&1 || true; "
                 "sudo swanctl --load-all || sudo ipsec restart || true",
                 on_event=resp_cb, vm_role="responder"
             )
@@ -193,6 +194,7 @@ class TestbedOrchestrator:
 
             await SSHController.run_command(
                 topology.initiator,
+                "sudo swanctl --unload-all >/dev/null 2>&1 || true; "
                 "sudo swanctl --load-all || sudo ipsec restart || true",
                 on_event=init_cb, vm_role="initiator"
             )
@@ -297,6 +299,21 @@ class TestbedOrchestrator:
                  output=f"Injecting {scenario.traffic_profile} traffic ({scenario.packet_count} packets) through tunnel...",
                  status="running")
 
+            emit(
+                "initiator",
+                topology.initiator.host,
+                "packet_batch",
+                phase="TRAFFIC_INJECTION",
+                packet_count=scenario.packet_count,
+                bytes=None,
+                protocol="ESP",
+                source=topology.initiator.host,
+                destination=topology.responder.host,
+                profile=scenario.traffic_profile,
+                status="running",
+                output=f"Packet transfer started: {scenario.packet_count} {scenario.traffic_profile} packets.",
+            )
+
             await SSHController.run_command(
                 topology.initiator,
                 traffic_cmd,
@@ -307,6 +324,21 @@ class TestbedOrchestrator:
                  phase="TRAFFIC_INJECTION",
                  output=f"Traffic injection complete — {scenario.packet_count} packets transmitted",
                  status="success")
+
+            emit(
+                "observer",
+                topology.observer.host,
+                "packet_batch",
+                phase="TRAFFIC_INJECTION",
+                packet_count=scenario.packet_count,
+                bytes=None,
+                protocol="ESP",
+                source=topology.initiator.host,
+                destination=topology.responder.host,
+                profile=scenario.traffic_profile,
+                status="success",
+                output=f"Observer recorded the transfer window for {scenario.packet_count} packets.",
+            )
 
             emit("observer", topology.observer.host, "status",
                  phase="TRAFFIC_INJECTION",

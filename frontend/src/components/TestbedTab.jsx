@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Play, RefreshCw, Download, ArrowRight, WifiOff } from "lucide-react";
 
-const STAGES = ["CONFIG","RESPONDER","INITIATOR","CAPTURE","TUNNEL","TRAFFIC","PCAP","AI"];
+const STAGES = ["CONFIG", "RESPONDER", "INITIATOR", "CAPTURE", "TUNNEL", "TRAFFIC", "PCAP", "AI"];
 
 const STAGE_LINES = {
   CONFIG: {
@@ -345,22 +345,22 @@ function TunnelViz({ stage, isRunning, packetPos }) {
           <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
             {tunnelActive
               ? ["IKE_SA_INIT", "IKE_AUTH", "ESP SA"].map((lbl, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      fontFamily: "JetBrains Mono, monospace",
-                      fontSize: "0.63rem",
-                      fontWeight: 700,
-                      color: "#3fb950",
-                      padding: "3px 10px",
-                      border: "1px solid rgba(63,185,80,0.5)",
-                      borderRadius: "4px",
-                      background: "rgba(63,185,80,0.08)",
-                    }}
-                  >
-                    {lbl}
-                  </div>
-                ))
+                <div
+                  key={i}
+                  style={{
+                    fontFamily: "JetBrains Mono, monospace",
+                    fontSize: "0.63rem",
+                    fontWeight: 700,
+                    color: "#3fb950",
+                    padding: "3px 10px",
+                    border: "1px solid rgba(63,185,80,0.5)",
+                    borderRadius: "4px",
+                    background: "rgba(63,185,80,0.08)",
+                  }}
+                >
+                  {lbl}
+                </div>
+              ))
               : (
                 <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.65rem", color: isRunning ? "#58a6ff" : "#484f58" }}>
                   {isRunning ? `Provisioning... [${stage || "INIT"}]` : "Select a scenario and click Deploy & Run"}
@@ -505,12 +505,12 @@ function LinuxTerminal({ title, ip, role, lines, isActive }) {
                   color: isDivider
                     ? "#30363d"
                     : isCmd
-                    ? "#58a6ff"
-                    : isSuccess
-                    ? "#3fb950"
-                    : isError
-                    ? "#f85149"
-                    : "#c9d1d9",
+                      ? "#58a6ff"
+                      : isSuccess
+                        ? "#3fb950"
+                        : isError
+                          ? "#f85149"
+                          : "#c9d1d9",
                   opacity: isLast ? 1 : 0.88,
                   paddingBottom: "2px",
                 }}
@@ -649,8 +649,8 @@ function StageBar({ currentStage }) {
                 background: done
                   ? "rgba(63,185,80,0.13)"
                   : active
-                  ? "rgba(88,166,255,0.15)"
-                  : "rgba(48,54,61,0.5)",
+                    ? "rgba(88,166,255,0.15)"
+                    : "rgba(48,54,61,0.5)",
                 border: `1px solid ${done ? "#3fb950" : active ? "#58a6ff" : "#30363d"}`,
                 transition: "all 0.3s ease",
               }}
@@ -817,14 +817,14 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
     try {
       const r = await fetch("/api/testbed/scenarios");
       if (r.ok) setScenarios(await r.json());
-    } catch {}
+    } catch { }
   };
 
   const fetchJobHistory = async () => {
     try {
       const r = await fetch("/api/testbed/jobs");
       if (r.ok) setJobHistory(await r.json());
-    } catch {}
+    } catch { }
   };
 
   const handleLaunch = async () => {
