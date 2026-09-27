@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import TelemetryDashboard from './components/TelemetryDashboard';
+import LiveDashboardTab from './components/LiveDashboardTab';
 import AnalyzerWorkspace from './components/AnalyzerWorkspace';
 import TestbedTab from './components/TestbedTab';
 import HistoryVaultTab from './components/HistoryVaultTab';
@@ -37,6 +38,12 @@ export default function App() {
               onNavigateToTestbed={() => setActiveTab('testbed')}
               onNavigateToAnalyzer={() => setActiveTab('analyzer')}
               onNavigateToOverview={() => setActiveTab('overview')}
+            />
+          )}
+          {activeTab === 'live' && (
+            <LiveDashboardTab
+              onNavigateToTestbed={() => setActiveTab('testbed')}
+              onNavigateToAnalyzer={() => setActiveTab('analyzer')}
             />
           )}
           {activeTab === 'analyzer' && <AnalyzerWorkspace externalAnalysis={inspectedAnalysis} />}
