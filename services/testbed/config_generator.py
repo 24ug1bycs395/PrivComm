@@ -15,42 +15,60 @@ class StrongSwanConfigGenerator:
     """
 
     @staticmethod
-    def _map_ike_proposal(scenario: ScenarioDefinition) -> str:
-        """Maps scenario parameters to a strongSwan IKE proposal string."""
+    def _normalize_hash(scenario: ScenarioDefinition) -> Tuple[str, str]:
+        """
+        Extracts and normalizes the hash/integrity algorithm for strongSwan proposals.
+        Returns a tuple of (ike_prf, esp_integrity), e.g. ('prfsha256', 'sha256').
+        """
+        hash_val = getattr(scenario, "hash_algorithm", None) or scenario.integrity or "SHA-256"
+        h = str(hash_val).lower().replace("-", "").replace(" ", "")
+        if "384" in h:
+            return "prfsha384", "sha384"
+        elif "512" in h:
+            return "prfsha512", "sha512"
+        elif "md5" in h:
+            return "prfmd5", "md5"
+        elif "sha1" in h:
+            return "prfsha1", "sha1"
+        else:
+            return "prfsha256", "sha256"
+
+    @classmethod
+    def _map_ike_proposal(cls, scenario: ScenarioDefinition) -> str:
+        """Maps scenario parameters and chosen hash algorithm to a strongSwan IKE proposal string."""
         enc = scenario.encryption.lower()
+        prf, int_alg = cls._normalize_hash(scenario)
+
         if "gcm" in enc:
             if "256" in enc:
-                return "aes256gcm16-prfsha384-ecp384,aes256gcm16-prfsha256-ecp256"
+                return f"aes256gcm16-{prf}-ecp384,aes256gcm16-prfsha256-ecp256"
             else:
-                return "aes128gcm16-prfsha256-ecp256"
+                return f"aes128gcm16-{prf}-ecp256,aes128gcm16-prfsha256-ecp256"
         elif "3des" in enc:
-            return "3des-md5-modp1024"
+            return f"3des-{int_alg}-modp1024"
         elif "128" in enc:
-            return "aes128-sha256-modp2048"
+            return f"aes128-{int_alg}-modp2048"
         else:
-            return "aes256-sha384-modp2048"
+            return f"aes256-{int_alg}-modp2048"
 
-    @staticmethod
-    def _map_esp_proposal(scenario: ScenarioDefinition) -> str:
+    @classmethod
+    def _map_esp_proposal(cls, scenario: ScenarioDefinition) -> str:
         """
-        Maps scenario parameters to a strongSwan ESP proposal string.
-
-        PFS control:
-          - PFS enabled  → include a DH group in the proposal so strongSwan
-                           performs a CREATE_CHILD_SA rekeying with a new DH exchange.
-          - PFS disabled → omit the DH group; strongSwan derives CHILD SA keys
-                           from existing IKE SA material (no new DH exchange).
+        Maps scenario parameters and chosen hash algorithm to a strongSwan ESP proposal string.
+        For AEAD ciphers (GCM), integrity is authenticated within the cipher.
+        For CBC / 3DES, the integrity hash is explicitly bound into the ESP proposal.
         """
         enc = scenario.encryption.lower()
+        _, int_alg = cls._normalize_hash(scenario)
 
         if "gcm" in enc:
             base = "aes256gcm16" if "256" in enc else "aes128gcm16"
         elif "3des" in enc:
-            base = "3des-md5"
+            base = f"3des-{int_alg}"
         elif "128" in enc:
-            base = "aes128-sha256"
+            base = f"aes128-{int_alg}"
         else:
-            base = "aes256-sha384"
+            base = f"aes256-{int_alg}"
 
         if scenario.pfs:
             # Append DH group to enable PFS rekeying

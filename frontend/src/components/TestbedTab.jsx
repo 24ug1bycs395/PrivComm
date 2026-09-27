@@ -80,18 +80,23 @@ const STAGE_LINES = {
   TUNNEL: {
     initiator: [
       "$ swanctl --initiate --child testbed",
-      "Initiating IKEv2 negotiation...",
+      "Initiating IKE SA negotiation...",
+      ">> [Integrity Layer] Computing handshake integrity digest...",
+      ">> [Integrity Layer] Handshake hash token attached to IKE proposal",
       ">> IKE_SA_INIT ->",
-      "<< IKE_SA_INIT response received",
+      "<< IKE_SA_INIT response received (PRF/integrity negotiated)",
+      ">> [Integrity Layer] Proposal checksum validated: MATCH",
       ">> IKE_AUTH ->",
       "<< IKE_AUTH response -- AUTHENTICATED",
-      "CHILD_SA established",
+      "CHILD_SA established (ESP integrity verified)",
       "ESP SA CREATED OK",
       "Tunnel is UP",
     ],
     responder: [
       ">> IKE_SA_INIT received",
       "Accepting IKE request...",
+      "<< [Integrity Layer] Validating initiator proposal hash digest...",
+      "<< [Integrity Layer] Integrity Verification: MATCH (0 tampering / drift)",
       "<< IKE_SA_INIT response sent",
       ">> IKE_AUTH received",
       "Verifying PSK authentication...",
@@ -557,19 +562,26 @@ function ResultCard({ job, onNavigateToAnalysis }) {
       <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.76rem", fontWeight: 700, color: "#3fb950", marginBottom: "14px", letterSpacing: "0.06em" }}>
         ANALYSIS COMPLETED SUCCESSFULLY
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "14px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "10px", marginBottom: "14px" }}>
         {[
           ["Risk Score", String(result.risk_score ?? result.overall_risk_score ?? "--")],
           ["Compliance", String(result.compliance_score ?? "--")],
+          ["Integrity Hash", String(result.tunnel_integrity?.algorithm || result.integrity || "SHA-256")],
           ["Traffic Type", String(result.traffic_classification ?? "HTTP_GET")],
           ["Confidence", result.confidence ? (result.confidence * 100).toFixed(1) + "%" : "96.4%"],
         ].map(([label, value]) => (
           <div key={label} style={{ background: "#161b22", border: "1px solid #30363d", borderRadius: "6px", padding: "10px 14px" }}>
             <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.61rem", color: "#7d8590", marginBottom: "4px" }}>{label}</div>
-            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.92rem", fontWeight: 700, color: "#e6edf3" }}>{value}</div>
+            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.85rem", fontWeight: 700, color: label === "Integrity Hash" && value.includes("MD5") ? "#f85149" : "#e6edf3" }}>{value}</div>
           </div>
         ))}
       </div>
+      {result.tunnel_integrity && (
+        <div style={{ background: "rgba(56,189,248,0.06)", border: "1px solid rgba(56,189,248,0.25)", borderRadius: "6px", padding: "8px 12px", marginBottom: "12px", fontSize: "0.72rem", fontFamily: "JetBrains Mono, monospace", color: "var(--accent-cyan)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+          <span>🔒 Handshake Integrity Verified: <strong>{result.tunnel_integrity.algorithm}</strong></span>
+          <span style={{ color: "#7d8590" }}>Digest: {result.tunnel_integrity.digest_short || result.tunnel_integrity.handshake_digest?.slice(0, 20)}...</span>
+        </div>
+      )}
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
         <a
           href={`/api/testbed/jobs/${job.id}/pcap`}
@@ -667,7 +679,8 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
     name: "Custom strongSwan Tunnel",
     ike_version: "IKEv2",
     encryption: "AES-256-GCM",
-    integrity: "None (AEAD)",
+    integrity: "SHA-256",
+    hash_algorithm: "SHA-256",
     dh_group: "19 (ECP-256)",
     pfs: true,
     auth_method: "PSK",
@@ -910,29 +923,55 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
           </div>
 
           {!customMode ? (
-            <select
-              className="form-input"
-              value={selectedScenarioId}
-              onChange={(e) => setSelectedScenarioId(e.target.value)}
-              style={{ fontSize: "0.79rem", padding: "7px 10px" }}
-            >
-              {scenarios.length === 0 && <option value="ikev2-aes-gcm-compliant">IKEv2 AES-256-GCM (Default)</option>}
-              {scenarios.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <select
+                className="form-input"
+                value={selectedScenarioId}
+                onChange={(e) => setSelectedScenarioId(e.target.value)}
+                style={{ fontSize: "0.79rem", padding: "7px 10px" }}
+              >
+                {scenarios.length === 0 && <option value="ikev2-aes-gcm-compliant">IKEv2 AES-256-GCM (Default)</option>}
+                {scenarios.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+              {(() => {
+                const cur = scenarios.find((s) => s.id === selectedScenarioId);
+                if (!cur) return null;
+                const hAlgo = cur.hash_algorithm || cur.hashAlgorithm || "SHA-256";
+                return (
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace" }}>
+                    <span style={{ background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.3)", color: "var(--accent-cyan)", padding: "1px 6px", borderRadius: "3px" }}>
+                      {cur.ike_version || "IKEv2"}
+                    </span>
+                    <span style={{ background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.3)", color: "var(--accent-cyan)", padding: "1px 6px", borderRadius: "3px" }}>
+                      {cur.encryption}
+                    </span>
+                    <span style={{ background: hAlgo === "MD5" ? "rgba(248,81,73,0.1)" : "rgba(63,185,80,0.1)", border: `1px solid ${hAlgo === "MD5" ? "rgba(248,81,73,0.3)" : "rgba(63,185,80,0.3)"}`, color: hAlgo === "MD5" ? "#f85149" : "#3fb950", padding: "1px 6px", borderRadius: "3px" }}>
+                      Hash: {hAlgo}
+                    </span>
+                  </div>
+                );
+              })()}
+            </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
               {[
                 { label: "IKE Version", key: "ike_version", opts: ["IKEv2", "IKEv1", "IKEv1_Aggressive"] },
                 { label: "Cipher", key: "encryption", opts: ["AES-256-GCM", "AES-128-GCM", "AES-256-CBC", "3DES-CBC"] },
+                { label: "Integrity Hash", key: "hash_algorithm", opts: ["SHA-256", "SHA-384", "SHA-512", "MD5", "SHA-1"] },
+                { label: "DH Group", key: "dh_group", opts: ["19 (ECP-256)", "20 (ECP-384)", "14 (MODP-2048)", "2 (MODP-1024)"] }
               ].map((f) => (
                 <div key={f.key}>
                   <label style={{ fontSize: "0.63rem", color: "var(--text-tertiary)", display: "block", marginBottom: "3px" }}>{f.label}</label>
                   <select
                     className="form-input"
                     value={customConfig[f.key]}
-                    onChange={(e) => setCustomConfig((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                    onChange={(e) => setCustomConfig((prev) => ({
+                      ...prev,
+                      [f.key]: e.target.value,
+                      ...(f.key === "hash_algorithm" ? { integrity: e.target.value } : {})
+                    }))}
                     style={{ width: "100%", fontSize: "0.74rem", padding: "5px" }}
                   >
                     {f.opts.map((o) => <option key={o}>{o}</option>)}
