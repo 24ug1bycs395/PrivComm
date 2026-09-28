@@ -6,7 +6,6 @@ import AnalyzerWorkspace from './components/AnalyzerWorkspace';
 import TestbedTab from './components/TestbedTab';
 import HistoryVaultTab from './components/HistoryVaultTab';
 import Overview from './components/Overview';
-import ThreatMatrixTab from './components/ThreatMatrixTab';
 import ComplianceTab from './components/ComplianceTab';
 import { ThemeProvider } from './ThemeContext';
 
@@ -14,6 +13,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
   const [inspectedAnalysis, setInspectedAnalysis] = useState(null);
   const [liveJobId, setLiveJobId] = useState(null);
+  const [liveDashboardEnabled, setLiveDashboardEnabled] = useState(false);
 
   const handleNavigateToAnalysis = (analysisData) => {
     setInspectedAnalysis(analysisData);
@@ -29,7 +29,11 @@ export default function App() {
         <div className="ambient-glow-orb orb-bottom" aria-hidden="true" />
 
         {/* Sticky Glass Navbar */}
-        <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Navbar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          liveDashboardEnabled={liveDashboardEnabled}
+        />
 
         {/* Main Tab Content */}
         <main className="main-content">
@@ -56,6 +60,7 @@ export default function App() {
                 setLiveJobId(jobId);
                 setActiveTab('live');
               }}
+              onLiveAvailabilityChange={setLiveDashboardEnabled}
             />
           )}
           {activeTab === 'vault' && <HistoryVaultTab onSelectAnalysis={handleNavigateToAnalysis} />}
@@ -65,7 +70,6 @@ export default function App() {
               onViewTelemetry={() => setActiveTab('dashboard')}
             />
           )}
-          {activeTab === 'threat-matrix' && <ThreatMatrixTab />}
           {activeTab === 'compliance' && <ComplianceTab />}
         </main>
 
