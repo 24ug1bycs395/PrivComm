@@ -9,7 +9,6 @@ const tabs = [
   { id: 'testbed',      label: 'Testbed',          icon: Server },
   { id: 'vault',        label: 'Vault',            icon: Database },
   { id: 'overview',     label: 'Architecture',     icon: Layers },
-  { id: 'threat-matrix',label: 'Threats',          icon: Shield },
   { id: 'compliance',   label: 'Compliance',       icon: FileCheck },
 ];
 

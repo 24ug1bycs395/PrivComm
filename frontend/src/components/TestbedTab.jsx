@@ -1104,11 +1104,10 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
             padding: "12px 18px"
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-              <div style={{ display: "flex", gap: "4px" }}>
+              <div className="testbed-mode-switch" role="tablist" aria-label="Scenario mode">
                 <button
                   type="button"
                   className={`testbed-mode-button${!customMode ? " active" : ""}`}
-                  style={{ fontSize: "0.76rem", padding: "5px 13px" }}
                   onClick={() => setCustomMode(false)}
                 >
                   Presets
@@ -1116,7 +1115,6 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
                 <button
                   type="button"
                   className={`testbed-mode-button${customMode ? " active" : ""}`}
-                  style={{ fontSize: "0.76rem", padding: "5px 13px" }}
                   onClick={() => setCustomMode(true)}
                 >
                   Custom
@@ -1125,17 +1123,18 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
 
               {!customMode ? (
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                  <select
-                    className="form-input testbed-scenario-select"
-                    value={selectedScenarioId}
-                    onChange={(e) => setSelectedScenarioId(e.target.value)}
-                    style={{ fontSize: "0.79rem", padding: "7px 10px", minWidth: "260px" }}
-                  >
-                    {scenarios.length === 0 && <option value="ikev2-aes-gcm-compliant">IKEv2 AES-256-GCM (Default)</option>}
-                    {scenarios.map((s) => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
+                  <div className="testbed-select-wrap">
+                    <select
+                      className="form-input testbed-scenario-select"
+                      value={selectedScenarioId}
+                      onChange={(e) => setSelectedScenarioId(e.target.value)}
+                    >
+                      {scenarios.length === 0 && <option value="ikev2-aes-gcm-compliant">IKEv2 AES-256-GCM (Default)</option>}
+                      {scenarios.map((s) => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </select>
+                  </div>
                   {(() => {
                     const cur = scenarios.find((s) => s.id === selectedScenarioId);
                     if (!cur) return null;
@@ -1173,7 +1172,6 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
                           [f.key]: e.target.value,
                           ...(f.key === "hash_algorithm" ? { integrity: e.target.value } : {})
                         }))}
-                        style={{ fontSize: "0.74rem", padding: "4px 8px" }}
                       >
                         {f.opts.map((o) => <option key={o}>{o}</option>)}
                       </select>
