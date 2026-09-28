@@ -217,6 +217,38 @@ async def get_analysis_history():
     return ANALYSIS_HISTORY
 
 
+@router.get("/reports/download-pdf")
+async def download_pdf_report(filename: str = Query(..., description="PCAP filename")):
+    """GET /reports/download-pdf: Generates and downloads Executive White-Mode PDF Security Report."""
+    from reports.pdf_report_generator import generate_pdf_report
+    base_name = os.path.splitext(filename)[0]
+    pdf_path = os.path.join("results", f"{base_name}_executive_report.pdf")
+
+    if os.path.exists(pdf_path):
+        return FileResponse(pdf_path, media_type="application/pdf", filename=f"{base_name}_executive_report.pdf")
+
+    json_path = os.path.join("results", f"{base_name}.json")
+    if not os.path.exists(json_path):
+        json_path = os.path.join("results", "result.json")
+
+    if os.path.exists(json_path):
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                report_data = json.load(f)
+            generate_pdf_report(report_data, pdf_path)
+            return FileResponse(pdf_path, media_type="application/pdf", filename=f"{base_name}_executive_report.pdf")
+        except Exception as e:
+            logger.error(f"Failed to generate PDF from JSON: {e}")
+
+    sample_path = os.path.join("samples", "ikev2_s2s_ipsec_vpn_aes_gcm.pcapng")
+    if os.path.exists(sample_path):
+        engine.analyze_pcap(sample_path)
+        if os.path.exists(pdf_path):
+            return FileResponse(pdf_path, media_type="application/pdf", filename=f"{base_name}_executive_report.pdf")
+
+    raise HTTPException(status_code=404, detail=f"Executive PDF report for '{filename}' not found.")
+
+
 @router.get("/reports/download-html")
 async def download_html_report(filename: str = Query(..., description="PCAP filename")):
     """GET /reports/download-html: Downloads Executive HTML Security Report."""

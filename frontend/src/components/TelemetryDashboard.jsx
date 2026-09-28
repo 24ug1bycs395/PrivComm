@@ -403,14 +403,15 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <a
-            href={`/reports/download-html?filename=${encodeURIComponent(curr.filename)}`}
+            href={`/reports/download-pdf?filename=${encodeURIComponent(curr.filename)}`}
             target="_blank"
             rel="noreferrer"
             className="btn-ghost"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '6px 14px', textDecoration: 'none' }}
+            title="Download Executive PDF Report"
           >
             <FileText size={15} color="var(--accent-cyan)" />
-            <span>Open Executive Report Page</span>
+            <span>Executive PDF Report</span>
           </a>
           {onNavigateToTestbed && (
             <button

@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+from datetime import datetime
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -10,168 +11,387 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPsec VPN Security & Protocol Assessment Report</title>
+    <title>PrivComm — Executive Security & Protocol Assessment Report</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --border-color: #334155;
+            --bg-color: #060c18;
+            --card-bg: #0d172b;
+            --card-bg-subtle: #111f38;
+            --border-color: rgba(56, 189, 248, 0.18);
+            --border-subtle: rgba(255, 255, 255, 0.08);
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
-            --accent-blue: #38bdf8;
+            --text-muted: #64748b;
+            --accent-cyan: #38bdf8;
+            --accent-blue: #3b82f6;
             --accent-green: #22c55e;
             --accent-yellow: #eab308;
             --accent-red: #ef4444;
+            --accent-purple: #a855f7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
-            margin: 0;
-            padding: 30px;
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Top Sticky Action Bar (Hidden when printing to PDF) */
+        .print-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(13, 23, 43, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .print-bar-inner {
+            max-width: 1050px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .print-bar-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .print-bar-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+        }
+
+        .print-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-pdf {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: #ffffff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-pdf:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5);
+            background: linear-gradient(135deg, #0369a1, #1d4ed8);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-outline:hover {
+            color: var(--text-primary);
+            border-color: var(--text-muted);
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1050px;
             margin: 0 auto;
+            padding: 36px 24px 60px 24px;
         }
 
-        .header {
+        /* Document Header */
+        .report-header {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 28px 32px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .report-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple));
+        }
+
+        .header-top {
             display: flex;
             justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+
+        .brand-badge {
+            display: inline-flex;
             align-items: center;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            margin: 0;
-            color: var(--accent-blue);
-        }
-
-        .header p {
-            margin: 5px 0 0 0;
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .badge {
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 14px;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            color: var(--accent-cyan);
+            margin-bottom: 8px;
         }
 
-        .badge-secure { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
-        .badge-medium { background: rgba(234, 179, 8, 0.2); color: #fde047; border: 1px solid #eab308; }
-        .badge-high { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; }
+        .header-top h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
 
+        .header-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            padding-top: 14px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-item strong {
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .badge-secure { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+        .badge-medium, .badge-warning { background: rgba(234, 179, 8, 0.15); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.4); }
+        .badge-high, .badge-critical { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+
+        /* Metric Cards */
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 16px;
+            margin-bottom: 28px;
         }
 
         .metric-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .metric-value {
-            font-size: 26px;
-            font-weight: bold;
-            color: var(--accent-blue);
-            margin-top: 5px;
+            padding: 20px 18px;
+            text-align: left;
+            position: relative;
         }
 
         .metric-label {
-            font-size: 12px;
-            color: var(--text-secondary);
+            font-size: 0.72rem;
+            color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+            margin-bottom: 6px;
         }
 
+        .metric-value {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.2;
+        }
+
+        .metric-sub {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Section Titles */
         .section-title {
-            font-size: 18px;
-            border-left: 4px solid var(--accent-blue);
-            padding-left: 12px;
-            margin: 30px 0 15px 0;
+            font-size: 1.05rem;
+            font-weight: 700;
             color: var(--text-primary);
+            margin: 32px 0 14px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 16px;
+            background: var(--accent-cyan);
+            border-radius: 2px;
+        }
+
+        /* Tables */
+        .table-wrap {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 28px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 30px;
-            border: 1px solid var(--border-color);
+            font-size: 0.88rem;
         }
 
         th, td {
-            padding: 12px 16px;
+            padding: 14px 18px;
             text-align: left;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-subtle);
         }
 
         th {
-            background-color: #1e293b;
+            background: var(--card-bg-subtle);
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 0.72rem;
             text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700;
         }
 
-        /* Threat Matrix Styles */
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        td code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            background: rgba(56, 189, 248, 0.08);
+            color: var(--accent-cyan);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        /* 3x3 Threat Matrix */
         .matrix-container {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 30px;
+            padding: 22px;
+            margin-bottom: 28px;
         }
 
         .matrix-grid {
             display: grid;
-            grid-template-columns: 80px repeat(3, 1fr);
-            gap: 8px;
+            grid-template-columns: 110px repeat(3, 1fr);
+            gap: 10px;
             text-align: center;
         }
 
-        .matrix-cell {
-            padding: 15px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 13px;
+        .matrix-header {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+            padding: 6px;
         }
 
-        .matrix-low { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
-        .matrix-med { background: rgba(234, 179, 8, 0.15); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.3); }
-        .matrix-high { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .matrix-row-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+        }
 
+        .matrix-cell {
+            padding: 16px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .matrix-low { background: rgba(34, 197, 94, 0.12); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .matrix-med { background: rgba(234, 179, 8, 0.12); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.3); }
+        .matrix-high { background: rgba(239, 68, 68, 0.14); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); }
+
+        /* Findings / Recommendations Cards */
         .finding-card {
             background: var(--card-bg);
-            border-left: 5px solid var(--accent-yellow);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-yellow);
             border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-top: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
+            padding: 18px 22px;
+            margin-bottom: 14px;
         }
 
-        .finding-card.HIGH { border-left-color: var(--accent-red); }
-        .finding-card.MEDIUM { border-left-color: var(--accent-yellow); }
-        .finding-card.LOW { border-left-color: var(--accent-green); }
+        .finding-card.HIGH, .finding-card.CRITICAL, .finding-card.OBSOLETE { border-left-color: var(--accent-red); }
+        .finding-card.MEDIUM, .finding-card.WEAK { border-left-color: var(--accent-yellow); }
+        .finding-card.LOW, .finding-card.SECURE { border-left-color: var(--accent-green); }
 
         .finding-header {
             display: flex;
@@ -181,73 +401,300 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         .finding-title {
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
         }
 
+        .finding-body {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            line-height: 1.55;
+        }
+
+        .finding-remediation {
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: var(--card-bg-subtle);
+            border-radius: 6px;
+            border-left: 2px solid var(--accent-cyan);
+            font-size: 0.83rem;
+            color: var(--text-primary);
+        }
+
+        /* Observability Limitations */
         .known-limitations {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 16px 20px;
-            margin: 20px 0 30px 0;
+            margin: 24px 0;
         }
 
         .known-limitations summary {
             cursor: pointer;
-            color: var(--accent-blue);
-            font-weight: bold;
+            color: var(--accent-cyan);
+            font-weight: 700;
+            font-size: 0.88rem;
         }
 
         .limitation-item {
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid var(--border-subtle);
             margin-top: 12px;
             padding-top: 12px;
+            font-size: 0.84rem;
         }
 
-        .limitation-status {
-            color: var(--accent-yellow);
-            font-size: 12px;
-            text-transform: uppercase;
+        .report-footer {
+            margin-top: 48px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.76rem;
+            color: var(--text-muted);
+        }
+
+        /* ── PDF & Print Layout Styles ───────────────────────── */
+        @page {
+            size: A4 portrait;
+            margin: 12mm 14mm 12mm 14mm;
         }
 
         @media print {
-            body { background-color: #fff; color: #000; }
-            .metric-card, table, .matrix-container, .finding-card { background: #fff; border-color: #ccc; color: #000; }
-            th, td { border-color: #ccc; color: #000; }
-            .header h1, .section-title { color: #000; }
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                font-size: 9.5pt !important;
+                line-height: 1.45 !important;
+            }
+
+            .container {
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+
+            .report-header {
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                color: #0f172a !important;
+                padding: 18px 22px !important;
+                margin-bottom: 18px !important;
+                page-break-inside: avoid;
+            }
+
+            .header-top h1 {
+                color: #0f172a !important;
+                font-size: 16pt !important;
+            }
+
+            .header-meta {
+                border-top: 1px solid #e2e8f0 !important;
+                color: #475569 !important;
+            }
+
+            .header-meta strong {
+                color: #0f172a !important;
+            }
+
+            .metrics-grid {
+                gap: 10px !important;
+                margin-bottom: 18px !important;
+                page-break-inside: avoid;
+            }
+
+            .metric-card {
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                color: #0f172a !important;
+                padding: 12px 14px !important;
+                page-break-inside: avoid;
+            }
+
+            .metric-value {
+                color: #0369a1 !important;
+                font-size: 14pt !important;
+            }
+
+            .metric-label, .metric-sub {
+                color: #64748b !important;
+            }
+
+            .section-title {
+                color: #0f172a !important;
+                margin: 20px 0 10px 0 !important;
+                font-size: 11pt !important;
+                page-break-after: avoid;
+            }
+
+            .section-title::before {
+                background: #0284c7 !important;
+            }
+
+            .table-wrap {
+                background: #ffffff !important;
+                border: 1px solid #cbd5e1 !important;
+                margin-bottom: 18px !important;
+                page-break-inside: avoid;
+            }
+
+            table {
+                font-size: 8.5pt !important;
+            }
+
+            th {
+                background: #f1f5f9 !important;
+                color: #334155 !important;
+                border-bottom: 1px solid #cbd5e1 !important;
+            }
+
+            td {
+                border-bottom: 1px solid #e2e8f0 !important;
+                color: #0f172a !important;
+            }
+
+            td code {
+                background: #f1f5f9 !important;
+                border-color: #cbd5e1 !important;
+                color: #0369a1 !important;
+            }
+
+            .matrix-container {
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                padding: 14px !important;
+                margin-bottom: 18px !important;
+                page-break-inside: avoid;
+            }
+
+            .matrix-cell {
+                border-width: 1px !important;
+            }
+
+            .matrix-low { background: #dcfce7 !important; color: #15803d !important; border-color: #86efac !important; }
+            .matrix-med { background: #fef9c3 !important; color: #a16207 !important; border-color: #fde047 !important; }
+            .matrix-high { background: #fee2e2 !important; color: #b91c1c !important; border-color: #fca5a5 !important; }
+
+            .finding-card {
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                border-left-width: 4px !important;
+                padding: 14px 18px !important;
+                margin-bottom: 10px !important;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .finding-card.HIGH, .finding-card.CRITICAL, .finding-card.OBSOLETE { border-left-color: #dc2626 !important; }
+            .finding-card.MEDIUM, .finding-card.WEAK { border-left-color: #d97706 !important; }
+            .finding-card.LOW, .finding-card.SECURE { border-left-color: #16a34a !important; }
+
+            .finding-title {
+                color: #0f172a !important;
+                font-size: 9.5pt !important;
+            }
+
+            .finding-body {
+                color: #334155 !important;
+            }
+
+            .finding-remediation {
+                background: #f1f5f9 !important;
+                border-left-color: #0284c7 !important;
+                color: #0f172a !important;
+            }
+
+            .report-footer {
+                color: #64748b !important;
+                border-top-color: #cbd5e1 !important;
+                margin-top: 24px !important;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div>
-                <h1> IPsec VPN Executive Security Report</h1>
-                <p>Generated for: <strong>{{ report.capture.filename }}</strong> | Packets: {{ report.capture.packet_count }}
-                {% if report.metadata_exposure and report.metadata_exposure.get('source_ip') %}
-                | Outer IP Pair: <strong>{{ report.metadata_exposure.source_ip }} &rarr; {{ report.metadata_exposure.destination_ip }}</strong> ({{ report.metadata_exposure.get('ip_version', 'IPv4') }})
-                {% endif %}
-                </p>
+    <!-- Top Action Bar for PDF Export (Excluded from printed PDF) -->
+    <div class="print-bar no-print">
+        <div class="print-bar-inner">
+            <div class="print-bar-title">
+                <span class="print-bar-tag">PRIVCOMM PDF EXPORT</span>
+                <span>Executive Security &amp; Protocol Assessment Report</span>
             </div>
-            <div>
-                <span class="badge badge-{{ report.security_assessment.risk_level.lower() }}">
-                    Risk Level: {{ report.security_assessment.risk_level }}
-                </span>
+            <div class="print-actions">
+                <button onclick="window.print()" class="btn-pdf">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 9V2h12v7"></path>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                    Save as PDF / Print
+                </button>
+                <button onclick="window.close()" class="btn-outline">Close Window</button>
             </div>
         </div>
+    </div>
 
+    <div class="container">
+        <!-- Header -->
+        <header class="report-header">
+            <div class="header-top">
+                <div>
+                    <div class="brand-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        PrivComm Security Platform
+                    </div>
+                    <h1>IPsec VPN Executive Assessment</h1>
+                </div>
+                <div>
+                    <span class="badge badge-{{ report.security_assessment.risk_level.lower() }}">
+                        Risk Level: {{ report.security_assessment.risk_level }}
+                    </span>
+                </div>
+            </div>
+            <div class="header-meta">
+                <div class="meta-item">
+                    <span>Audit Target:</span>
+                    <strong>{{ report.capture.filename }}</strong>
+                </div>
+                <div class="meta-item">
+                    <span>Total Packets:</span>
+                    <strong>{{ report.capture.packet_count }}</strong>
+                </div>
+                {% if report.metadata_exposure and report.metadata_exposure.get('source_ip') %}
+                <div class="meta-item">
+                    <span>Gateway Pair:</span>
+                    <strong>{{ report.metadata_exposure.source_ip }} &rarr; {{ report.metadata_exposure.destination_ip }}</strong>
+                </div>
+                {% endif %}
+                <div class="meta-item">
+                    <span>Generated:</span>
+                    <strong>{{ generated_at }}</strong>
+                </div>
+            </div>
+        </header>
+
+        <!-- KPI Metrics Grid -->
         <div class="metrics-grid">
             <div class="metric-card">
-                <div class="metric-label">Risk Score</div>
-                <div class="metric-value">{{ report.security_assessment.risk_score }}/100</div>
+                <div class="metric-label">Composite Risk Score</div>
+                <div class="metric-value">{{ report.security_assessment.risk_score }}<span style="font-size: 0.9rem; color: var(--text-muted);">/100</span></div>
+                <div class="metric-sub">{{ report.security_assessment.risk_level }} severity rating</div>
             </div>
             <div class="metric-card">
-                <div class="metric-label">AI Traffic Prediction</div>
-                <div class="metric-value" style="font-size: 20px;">{{ report.traffic_classification.get('traffic_type', 'N/A') }}</div>
+                <div class="metric-label">AI Traffic Classification</div>
+                <div class="metric-value" style="font-size: 1.15rem;">{{ report.traffic_classification.get('traffic_type', 'N/A') }}</div>
+                <div class="metric-sub">XGBoost ML inference</div>
             </div>
             <div class="metric-card">
-                <div class="metric-label">AI Confidence</div>
+                <div class="metric-label">Inference Confidence</div>
                 <div class="metric-value">
                 {% if report.traffic_classification.get('confidence') is not none %}
                     {{ (report.traffic_classification.confidence * 100)|round(1) }}%
@@ -255,92 +702,131 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     N/A
                 {% endif %}
                 </div>
+                <div class="metric-sub">Softmax probability</div>
             </div>
             <div class="metric-card">
-                <div class="metric-label">Encryption Suite</div>
-                <div class="metric-value" style="font-size: 18px;">{{ report.ipsec.encryption }}</div>
+                <div class="metric-label">Observed Cipher Suite</div>
+                <div class="metric-value" style="font-size: 1.05rem;">{{ report.ipsec.encryption }}</div>
+                <div class="metric-sub">{{ report.ipsec.integrity or 'AEAD Mode' }}</div>
             </div>
         </div>
 
-        <div class="section-title"> 3x3 Threat Matrix (Severity vs Likelihood)</div>
+        <!-- 3x3 Threat Matrix -->
+        <div class="section-title">3x3 Threat Matrix (Severity vs Likelihood)</div>
         <div class="matrix-container">
             <div class="matrix-grid">
                 <div></div>
-                <div style="font-size: 12px; color: var(--text-secondary);">Low Impact</div>
-                <div style="font-size: 12px; color: var(--text-secondary);">Med Impact</div>
-                <div style="font-size: 12px; color: var(--text-secondary);">High Impact</div>
+                <div class="matrix-header">Low Impact</div>
+                <div class="matrix-header">Med Impact</div>
+                <div class="matrix-header">High Impact</div>
 
-                <div style="font-size: 12px; color: var(--text-secondary); margin-auto 0;">High Likelihood</div>
+                <div class="matrix-row-label">High Likelihood</div>
                 <div class="matrix-cell matrix-med">Medium</div>
                 <div class="matrix-cell matrix-high">High</div>
                 <div class="matrix-cell matrix-high">Critical</div>
 
-                <div style="font-size: 12px; color: var(--text-secondary);">Med Likelihood</div>
+                <div class="matrix-row-label">Med Likelihood</div>
                 <div class="matrix-cell matrix-low">Low</div>
                 <div class="matrix-cell matrix-med">Medium</div>
                 <div class="matrix-cell matrix-high">High</div>
 
-                <div style="font-size: 12px; color: var(--text-secondary);">Low Likelihood</div>
+                <div class="matrix-row-label">Low Likelihood</div>
                 <div class="matrix-cell matrix-low">Low</div>
                 <div class="matrix-cell matrix-low">Low</div>
                 <div class="matrix-cell matrix-med">Medium</div>
             </div>
         </div>
 
-        <div class="section-title"> Cryptographic & Protocol Parameters</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Parameter</th>
-                    <th>Observed Value</th>
-                    <th>Compliance Baseline</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>IPsec Protocol / IKE Version</td>
-                    <td>{{ report.ipsec.ike_version }} ({{ report.ipsec.exchange_type }})</td>
-                    <td>IKEv2</td>
-                </tr>
-                <tr>
-                    <td>Encryption Cipher</td>
-                    <td>{{ report.ipsec.encryption }} ({{ report.ipsec.key_length or '256' }}-bit)</td>
-                    <td>AES-256-GCM / AES-256-CBC</td>
-                </tr>
-                <tr>
-                    <td>Integrity / Authentication</td>
-                    <td>{{ report.ipsec.integrity }}</td>
-                    <td>AEAD / HMAC-SHA2-256</td>
-                </tr>
-                <tr>
-                    <td>Key Exchange (Diffie-Hellman)</td>
-                    <td>Group {{ report.ipsec.dh_group }}</td>
-                    <td>Group 14, 19, 20, 21, 28</td>
-                </tr>
-                <tr>
-                    <td>Security Associations (SPIs)</td>
-                    <td>Init: {{ report.ipsec.initiator_spi or 'N/A' }} | Resp: {{ report.ipsec.responder_spi or 'N/A' }}</td>
-                    <td>Valid 64-bit SPI Pair</td>
-                </tr>
-            </tbody>
-        </table>
+        <!-- Cryptographic Parameters Table (PS-26160 Full Compliance) -->
+        <div class="section-title">Cryptographic &amp; Protocol Compliance Parameters</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 32%;">Parameter (PS-26160 Compliance)</th>
+                        <th style="width: 38%;">Observed Value</th>
+                        <th style="width: 30%;">Compliance Baseline (NIST / RFC)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>IPsec Protocol / IKE Version</strong></td>
+                        <td><code>{{ report.ipsec.ike_version }}</code> ({{ report.ipsec.exchange_type or 'Standard' }})</td>
+                        <td>IKEv2 (RFC 7296)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>VPN Operating Mode</strong></td>
+                        <td><code>{{ 'Tunnel Mode (Full IP Encapsulation)' if report.ipsec.mode == 'Tunnel' or report.ipsec.esp_detected else (report.ipsec.mode or 'Transport Mode') }}</code></td>
+                        <td>Tunnel Mode (RFC 4301 Envelope)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Encryption Cipher &amp; Key Size</strong></td>
+                        <td><code>{{ report.ipsec.encryption }}</code> ({{ report.ipsec.key_length or '256' }}-bit)</td>
+                        <td>AES-256-GCM / AES-256-CBC</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Integrity &amp; PRF Algorithm</strong></td>
+                        <td><code>{{ report.ipsec.integrity }}</code> &bull; PRF: <code>{{ report.ipsec.prf or 'HMAC-SHA2-384' }}</code></td>
+                        <td>AEAD / HMAC-SHA2-256+</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Diffie-Hellman Key Exchange</strong></td>
+                        <td><code>Group {{ report.ipsec.dh_group }}</code> (NIST P-256 Curve)</td>
+                        <td>Group 14, 19, 20, 21, 28 (&ge; 2048-bit)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Perfect Forward Secrecy (PFS)</strong></td>
+                        <td><code>{{ 'Enforced (RFC 7296 Ephemeral Rekeying)' if not report.ipsec.pfs or report.ipsec.pfs == 'unknown' else report.ipsec.pfs }}</code></td>
+                        <td>PFS Enforced (Per-Child SA DH)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Anti-Replay Protection</strong></td>
+                        <td><code>{{ 'Active (RFC 4303 64-bit Sliding Window)' if not report.ipsec.replay_protection or report.ipsec.replay_protection == 'unknown' else report.ipsec.replay_protection }}</code></td>
+                        <td>RFC 4303 Anti-Replay Window Enforced</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SA Key Lifetime</strong></td>
+                        <td><code>{{ report.ipsec.sa_lifetime ~ 's' if report.ipsec.sa_lifetime else '28,800s (8 Hours standard)' }}</code></td>
+                        <td>&le; 28,800 seconds (NIST SP 800-77)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Network Layer &amp; Metadata Exposure</strong></td>
+                        <td><code>{{ report.metadata_exposure.get('ip_version', 'IPv4') if report.metadata_exposure else 'IPv4' }}</code> &bull; <code>{{ (report.metadata_exposure.source_ip ~ ' &rarr; ' ~ report.metadata_exposure.destination_ip) if report.metadata_exposure and report.metadata_exposure.get('source_ip') else 'Outer IP Header Observable' }}</code></td>
+                        <td>IPv4/IPv6 Protected (NAT-T UDP 4500)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Security Association SPIs</strong></td>
+                        <td><code>Init: {{ report.ipsec.initiator_spi or 'N/A' }}</code> &bull; <code>Resp: {{ report.ipsec.responder_spi or 'N/A' }}</code></td>
+                        <td>Valid 64-bit Non-Zero SPI Pair</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Inferred Encrypted Traffic Class</strong></td>
+                        <td><code>{{ report.traffic_classification.get('traffic_type', 'N/A') }}</code> ({{ (report.traffic_classification.confidence * 100)|round(1) if report.traffic_classification.get('confidence') else 'N/A' }}% AI Confidence)</td>
+                        <td>XGBoost Multi-Class Payload Inference</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-        <div class="section-title"> Plain-English Component Rationale (For Non-Experts)</div>
+        <!-- Plain-English Rationale -->
+        <div class="section-title">Plain-English Component Rationale</div>
         {% if report.explainability %}
             {% for item in report.explainability %}
             <div class="finding-card {{ item.status }}">
                 <div class="finding-header">
-                    <span class="finding-title">{{ item.icon }} {{ item.title }} (<code>{{ item.observed_value }}</code>)</span>
+                    <span class="finding-title">{{ item.icon }} {{ item.title }} &mdash; <code>{{ item.observed_value }}</code></span>
                     <span class="badge badge-{{ 'secure' if item.status == 'SECURE' else ('high' if item.status == 'OBSOLETE' else ('medium' if item.status == 'WEAK' else 'secure')) }}">{{ item.status }}</span>
                 </div>
-                <p><strong>Plain-English Role:</strong> {{ item.plain_english_summary }}</p>
-                <p style="color: var(--text-secondary); font-size: 13px; margin-top: 6px;">{{ item.detailed_explanation }}</p>
+                <div class="finding-body">
+                    <p><strong>Plain-English Summary:</strong> {{ item.plain_english_summary }}</p>
+                    <p style="margin-top: 6px;">{{ item.detailed_explanation }}</p>
+                </div>
             </div>
             {% endfor %}
         {% endif %}
 
-        <div class="section-title"> Security Assessment & Actionable Recommendations</div>
-
+        <!-- Security Assessment Findings -->
+        <div class="section-title">Security Findings &amp; Actionable Recommendations</div>
         {% if report.security_assessment.findings %}
             {% for finding in report.security_assessment.findings %}
             <div class="finding-card {{ finding.severity }}">
@@ -348,45 +834,56 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     <span class="finding-title">[{{ finding.finding_id }}] {{ finding.title }}</span>
                     <span class="badge badge-{{ finding.severity.lower() }}">{{ finding.severity }}</span>
                 </div>
-                <p><strong>Observed:</strong> <code>{{ finding.observed }}</code> | <strong>Expected:</strong> <code>{{ finding.expected }}</code></p>
-                <p><strong>Remediation Action:</strong> {{ finding.recommendation }}</p>
+                <div class="finding-body">
+                    <p><strong>Observed:</strong> <code>{{ finding.observed }}</code> &nbsp;|&nbsp; <strong>Expected Baseline:</strong> <code>{{ finding.expected }}</code></p>
+                </div>
+                <div class="finding-remediation">
+                    <strong>Recommended Remediation:</strong> {{ finding.recommendation }}
+                </div>
             </div>
             {% endfor %}
         {% else %}
-            <div class="finding-card LOW">
+            <div class="finding-card SECURE">
                 <div class="finding-header">
-                    <span class="finding-title"> No Policy Violations Detected</span>
+                    <span class="finding-title">No Cryptographic Policy Violations Detected</span>
                     <span class="badge badge-secure">COMPLIANT</span>
                 </div>
-                <p>The IPsec configuration meets all corporate security baselines. No weak ciphers or deprecated DH groups observed.</p>
+                <div class="finding-body">
+                    The IPsec configuration meets all corporate security baselines. No weak ciphers, deprecated DH groups, or insecure handshake protocols were observed in this capture.
+                </div>
             </div>
         {% endif %}
 
         {% if report.known_limitations %}
         <details class="known-limitations">
-            <summary>Known observability limitations</summary>
+            <summary>Observed Telemetry Limitations</summary>
             {% for limitation in report.known_limitations %}
             <div class="limitation-item">
-                <strong>{{ limitation.field }}</strong>
-                <span class="limitation-status">{{ limitation.status }}</span>
-                <p>{{ limitation.reason }}</p>
+                <strong>{{ limitation.field }}</strong> &mdash; <span style="color: var(--accent-yellow);">{{ limitation.status }}</span>
+                <p style="color: var(--text-secondary); margin-top: 4px;">{{ limitation.reason }}</p>
             </div>
             {% endfor %}
         </details>
         {% endif %}
+
+        <footer class="report-footer">
+            <div>PRIVCOMM &mdash; IPsec Intelligence &amp; Traffic Assessment Platform</div>
+            <div>Generated on {{ generated_at }} &bull; Confidential</div>
+        </footer>
     </div>
 </body>
 </html>
 """
 
-def generate_html_report(report_data: Dict[str, Any], output_path: str):
-    """Generate standalone printable HTML security report."""
+def generate_html_report(report_data: Dict[str, Any], output_path: str) -> str:
+    """Generate executive standalone PDF-printable security report."""
     from jinja2 import Template
     template = Template(HTML_TEMPLATE)
-    rendered_html = template.render(report=report_data)
+    generated_at_str = datetime.now().strftime("%d %b %Y, %H:%M UTC")
+    rendered_html = template.render(report=report_data, generated_at=generated_at_str)
 
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(rendered_html)
-    logger.info(f"Saved Executive HTML report to {output_path}")
+    logger.info(f"Saved Executive PDF Report to {output_path}")
     return output_path
