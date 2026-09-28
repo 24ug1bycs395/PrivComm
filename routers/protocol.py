@@ -2,12 +2,15 @@ import os
 import shutil
 import tempfile
 import json
+import logging
 from pydantic import BaseModel
 from fastapi import APIRouter, UploadFile, File, HTTPException, status, Query
 from fastapi.responses import FileResponse, JSONResponse
 
 from models.protocol_analysis import ProtocolAnalysisResult
 from services.protocol_engine import ProtocolIdentificationEngine
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Protocol Identification & Assessment"])
 engine = ProtocolIdentificationEngine()
@@ -223,10 +226,6 @@ async def download_pdf_report(filename: str = Query(..., description="PCAP filen
     from reports.pdf_report_generator import generate_pdf_report
     base_name = os.path.splitext(filename)[0]
     pdf_path = os.path.join("results", f"{base_name}_executive_report.pdf")
-
-    if os.path.exists(pdf_path):
-        return FileResponse(pdf_path, media_type="application/pdf", filename=f"{base_name}_executive_report.pdf")
-
     json_path = os.path.join("results", f"{base_name}.json")
     if not os.path.exists(json_path):
         json_path = os.path.join("results", "result.json")
@@ -239,6 +238,9 @@ async def download_pdf_report(filename: str = Query(..., description="PCAP filen
             return FileResponse(pdf_path, media_type="application/pdf", filename=f"{base_name}_executive_report.pdf")
         except Exception as e:
             logger.error(f"Failed to generate PDF from JSON: {e}")
+
+    if os.path.exists(pdf_path):
+        return FileResponse(pdf_path, media_type="application/pdf", filename=f"{base_name}_executive_report.pdf")
 
     sample_path = os.path.join("samples", "ikev2_s2s_ipsec_vpn_aes_gcm.pcapng")
     if os.path.exists(sample_path):
