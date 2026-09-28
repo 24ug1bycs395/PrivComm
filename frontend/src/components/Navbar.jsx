@@ -42,19 +42,6 @@ export default function Navbar({ activeTab, setActiveTab }) {
               flexShrink: 0
             }}
           >
-            <div style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '4px',
-              background: 'var(--accent-blue)',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 6px rgba(37,99,235,0.3)'
-            }}>
-              <Shield size={16} strokeWidth={2.5} />
-            </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
               <span style={{
                 fontFamily: 'var(--font-mono)',
@@ -103,12 +90,6 @@ export default function Navbar({ activeTab, setActiveTab }) {
 
           {/* Right controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-
-            {/* Live badge */}
-            <div className="header-status-badge" aria-label="System Status: Operational">
-              <span className="live-dot" aria-hidden="true" />
-              <span>LIVE</span>
-            </div>
 
             {/* Theme toggle */}
             <button

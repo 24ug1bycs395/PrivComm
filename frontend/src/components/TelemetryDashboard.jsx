@@ -396,9 +396,6 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         gap: '12px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: '0.05em' }}>
-            CYBER SENTINEL
-          </span>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
             / Live Telemetry & Analytics Dashboard
           </span>
@@ -597,14 +594,6 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
             <div className="matrix-cell matrix-med">Medium</div>
           </div>
 
-          <button
-            type="button"
-            className="threat-matrix-open-button"
-            onClick={() => setIsThreatMatrixOpen(true)}
-          >
-            <Shield size={15} />
-            View threat matrix details
-          </button>
         </div>
 
         {/* AI Encrypted Traffic Probability Breakdown */}

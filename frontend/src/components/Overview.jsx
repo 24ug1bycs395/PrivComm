@@ -280,9 +280,8 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
         </div>
 
         {/* RIGHT COLUMN: Interactive Architecture Blueprint Chassis */}
-        <div className="blueprint-frame" style={{ position: 'sticky', top: '90px', padding: 0, overflow: 'hidden' }}>
-          {/* Interactive CRT-Inspired IPSec Tunnel Visualizer */}
-          <PrivCommTunnelVisualizer />
+        <div className="blueprint-frame" style={{ position: 'static', alignSelf: 'center', padding: 0, overflow: 'hidden' }}>
+          <PrivCommTunnelVisualizer showHeader={false} showTelemetry={false} />
         </div>
       </section>
 
