@@ -661,8 +661,8 @@ export function PrivCommTunnelVisualizer({
 
       // Clean, minimal callouts positioned with plenty of breathing room
       drawLeader('SENDER GATEWAY', gunX - 10, neckTop - 20, { x: gunX - 10, y: neckTop });
-      drawLeader('AES-256-GCM / ESP', w * 0.32, neckTop - 26, { x: w * 0.32, y: neckTop - 12 });
-      drawLeader('IPSEC ENCRYPTED TUNNEL', w * 0.59, screenTop + 14, { x: w * 0.59, y: centerY - 24 });
+      drawLeader('AES-256-GCM / ESP', w * 0.32, neckBottom + 42, { x: w * 0.32, y: neckBottom + 16 });
+      drawLeader('IPSEC ENCRYPTED TUNNEL', w * 0.59, screenTop - 16, { x: w * 0.59, y: screenTop + 4 });
       drawLeader('RECEIVER GATEWAY', targetX, screenTop - 18, { x: targetX, y: screenTop });
       drawLeader('PLAINTEXT EGRESS', w * 0.94, centerY + 32, { x: targetX + 16, y: centerY });
 

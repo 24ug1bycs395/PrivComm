@@ -67,7 +67,7 @@ const steps = [
 
 /* ── Capability Highlights ──────────────────────────────────────────── */
 const capabilities = [
-  { icon: Cpu,        label: 'XGBoost Traffic Classification',  sub: 'ML-driven IKE/ESP classification · 99.4% accuracy' },
+  { icon: Cpu,        label: 'XGBoost Traffic Classification',  sub: 'ML-driven IKE/ESP classification · 92.14% accuracy' },
   { icon: Zap,        label: 'Real-Time PCAP Dissection',       sub: 'Zero-latency protocol stream parser (<80ms)' },
   { icon: Database,   label: 'Analysis Persistence Vault',      sub: 'Tamper-evident SQLite/Supabase session ledger' },
   { icon: TrendingUp, label: 'CVSS Risk Score Engine',          sub: 'Automated cryptographic debt quantification' },
@@ -235,7 +235,7 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <span style={{ color: 'var(--text-tertiary)' }}>CLASSIFICATION ACCURACY</span>
               <span className="leader-dots" />
-              <strong style={{ color: 'var(--accent-blue)' }}>99.4% (XGBoost)</strong>
+              <strong style={{ color: 'var(--accent-blue)' }}>92.14% (XGBoost)</strong>
             </div>
           </div>
         </div>

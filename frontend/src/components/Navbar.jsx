@@ -51,18 +51,6 @@ export default function Navbar({ activeTab, setActiveTab }) {
               }}>
                 PRIVCOMM
               </span>
-              <span style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.62rem',
-                fontWeight: 700,
-                color: 'var(--accent-blue)',
-                padding: '1px 5px',
-                border: '1px solid var(--border-blueprint, rgba(37,99,235,0.25))',
-                borderRadius: '3px',
-                background: 'var(--accent-blue-dim)'
-              }}>
-                v2.4
-              </span>
             </div>
           </div>
 
