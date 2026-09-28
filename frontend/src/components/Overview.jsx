@@ -138,30 +138,6 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
         {/* LEFT COLUMN: Editorial Narrative & Specifications */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-          {/* Technical Spec Tag */}
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--accent-blue)',
-            marginBottom: '16px',
-          }}>
-            <span style={{
-              display: 'inline-block',
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: 'var(--accent-blue)',
-              boxShadow: '0 0 6px var(--accent-blue)',
-            }} />
-            [ SYS_SPEC // NIST SP 800-77 REV 1 · NSA CSfC 4.1 · FIPS 140-3 ]
-          </div>
-
           {/* Large Retro Blueprint Header */}
           <h1 style={{
             fontFamily: 'var(--font-mono)',
@@ -261,21 +237,6 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
               <span className="leader-dots" />
               <strong style={{ color: 'var(--accent-blue)' }}>99.4% (XGBoost)</strong>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ color: 'var(--text-tertiary)' }}>DISSECTION LATENCY</span>
-              <span className="leader-dots" />
-              <strong style={{ color: 'var(--text-primary)' }}>&lt;80ms STREAM TAP</strong>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ color: 'var(--text-tertiary)' }}>CIPHER SUITES AUDITED</span>
-              <span className="leader-dots" />
-              <strong style={{ color: 'var(--text-primary)' }}>200+ PROFILES</strong>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ color: 'var(--text-tertiary)' }}>SOVEREIGN PRIVACY</span>
-              <span className="leader-dots" />
-              <strong style={{ color: '#16a34a' }}>ZERO EXTERNAL EGRESS</strong>
-            </div>
           </div>
         </div>
 
@@ -291,17 +252,6 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
       {/* ─── Six-Stage Pipeline: Table of Contents Style (makingsoftware.com style) ─── */}
       <section style={{ marginBottom: '64px' }}>
         <div style={{ marginBottom: '32px' }}>
-          <div style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.74rem',
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: 'var(--accent-blue)',
-            marginBottom: '6px',
-          }}>
-            [ SPEC_SEC_02 // EXECUTION PIPELINE ]
-          </div>
           <h2 style={{
             fontFamily: 'var(--font-mono)',
             fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
@@ -426,17 +376,6 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
       {/* ─── Capabilities Matrix (Hardware Manual Style) ────────────── */}
       <section style={{ marginBottom: '64px' }}>
         <div style={{ marginBottom: '32px' }}>
-          <div style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.74rem',
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: 'var(--accent-blue)',
-            marginBottom: '6px',
-          }}>
-            [ SPEC_SEC_03 // CORE CAPABILITIES ]
-          </div>
           <h2 style={{
             fontFamily: 'var(--font-mono)',
             fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
@@ -527,17 +466,6 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
       {/* ─── Interactive Architecture FAQ Console (makingsoftware.com style) ─── */}
       <section style={{ marginBottom: '64px' }}>
         <div style={{ marginBottom: '28px' }}>
-          <div style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.74rem',
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: 'var(--accent-blue)',
-            marginBottom: '6px',
-          }}>
-            [ SPEC_SEC_04 // INTERACTIVE ARCHITECTURE CONSOLE ]
-          </div>
           <h2 style={{
             fontFamily: 'var(--font-mono)',
             fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
@@ -700,17 +628,6 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
           marginBottom: '32px',
         }}
       >
-        <div style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.72rem',
-          fontWeight: 700,
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: 'var(--accent-blue)',
-          marginBottom: '10px',
-        }}>
-          [ INITIATE_SESSION // READY FOR INGESTION ]
-        </div>
         <h2 style={{
           fontFamily: 'var(--font-mono)',
           fontSize: 'clamp(1.6rem, 3.2vw, 2.2rem)',

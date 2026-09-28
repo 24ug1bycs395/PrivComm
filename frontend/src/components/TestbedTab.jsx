@@ -1,9 +1,65 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Play, RefreshCw, Download, ArrowRight, WifiOff, Activity, ShieldAlert, CheckCircle2, AlertTriangle, Radio, Server, Zap, Shield } from "lucide-react";
+import { Play, RefreshCw, Download, ArrowRight, WifiOff, Activity, ShieldAlert, CheckCircle2, AlertTriangle, Radio, Server, Zap, Shield, ChevronDown } from "lucide-react";
 import AttackSimulator from "./AttackSimulator";
 import { useTheme } from "../ThemeContext";
 
 const STAGES = ["CONFIG", "RESPONDER", "INITIATOR", "CAPTURE", "TUNNEL", "TRAFFIC", "PCAP", "AI"];
+
+function ThemedScenarioSelect({ scenarios, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+  const options = scenarios.length > 0
+    ? scenarios
+    : [{ id: "ikev2-aes-gcm-compliant", name: "IKEv2 AES-256-GCM Tunnel / IPv4 (Zero-Trust Compliant)" }];
+  const selected = options.find((option) => option.id === value) || options[0];
+
+  useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
+
+  return (
+    <div ref={menuRef} className="testbed-select-wrap testbed-themed-select">
+      <button
+        type="button"
+        className="testbed-themed-select-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") setOpen(false);
+          if (event.key === "ArrowDown") setOpen(true);
+        }}
+      >
+        <span>{selected.name}</span>
+        <ChevronDown size={15} aria-hidden="true" />
+      </button>
+
+      {open && (
+        <div className="testbed-themed-select-menu" role="listbox" aria-label="Testbed scenario presets">
+          {options.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              role="option"
+              aria-selected={option.id === value}
+              className={`testbed-themed-select-option${option.id === value ? " selected" : ""}`}
+              onClick={() => {
+                onChange(option.id);
+                setOpen(false);
+              }}
+            >
+              {option.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const PREVIEW_LINES = {
   initiator: ["$ testbedctl preflight --initiator", "PREVIEW ONLY — waiting for backend deployment", "$ swanctl --list-sas"],
@@ -1018,11 +1074,11 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
               borderRadius: "4px",
               fontSize: "0.7rem",
               fontWeight: 700,
-              background: nodeStatus.all_online ? "var(--status-success-dim)" : "var(--status-warning-dim)",
-              color: nodeStatus.all_online ? "var(--status-success)" : "var(--status-warning)",
-              border: `1px solid ${nodeStatus.all_online ? "var(--status-success-border)" : "var(--status-warning-border)"}`
+              background: "var(--accent-blue-dim)",
+              color: "var(--accent-blue)",
+              border: "1px solid var(--border-blueprint)"
             }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: nodeStatus.all_online ? "var(--status-success-dot)" : "var(--status-warning-dot)" }} />
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-blue)" }} />
               {nodeStatus.online_count}/{nodeStatus.total_nodes} Nodes Online
             </span>
           ) : (
@@ -1050,13 +1106,13 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
                   gap: "6px",
                   padding: "4px 10px",
                   borderRadius: "6px",
-            background: isOnline ? "var(--status-success-dim)" : "var(--status-danger-dim)",
-            border: `1px solid ${isOnline ? "var(--status-success-border)" : "var(--status-danger-border)"}`,
-            color: isOnline ? "var(--status-success)" : "var(--status-danger)"
+            background: "var(--accent-blue-dim)",
+            border: "1px solid var(--border-blueprint)",
+            color: "var(--accent-blue)"
                 }}
                 title={probeInfo?.details || `${n.label} at ${n.host}`}
               >
-                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: isOnline ? "var(--status-success-dot)" : "var(--status-danger-dot)" }} />
+                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-blue)" }} />
                 <span>{n.label}</span>
                 <span style={{ color: "var(--text-tertiary)", fontSize: "0.66rem" }}>{n.host}</span>
                 {latency !== undefined && latency !== null && (
@@ -1123,18 +1179,11 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
 
               {!customMode ? (
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                  <div className="testbed-select-wrap">
-                    <select
-                      className="form-input testbed-scenario-select"
-                      value={selectedScenarioId}
-                      onChange={(e) => setSelectedScenarioId(e.target.value)}
-                    >
-                      {scenarios.length === 0 && <option value="ikev2-aes-gcm-compliant">IKEv2 AES-256-GCM (Default)</option>}
-                      {scenarios.map((s) => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <ThemedScenarioSelect
+                    scenarios={scenarios}
+                    value={selectedScenarioId}
+                    onChange={setSelectedScenarioId}
+                  />
                   {(() => {
                     const cur = scenarios.find((s) => s.id === selectedScenarioId);
                     if (!cur) return null;
