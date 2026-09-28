@@ -5,7 +5,7 @@ import {
   TrendingUp, GitBranch, Globe, Award, ChevronRight, Terminal,
   ExternalLink, Layers, Check
 } from 'lucide-react';
-import TopologyCanvas from './TopologyCanvas';
+import PrivCommTunnelVisualizer from './PrivCommTunnelVisualizer';
 
 /* ── Pipeline Steps (makingsoftware.com Chapter Breakdown) ──────────── */
 const steps = [
@@ -280,49 +280,9 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
         </div>
 
         {/* RIGHT COLUMN: Interactive Architecture Blueprint Chassis */}
-        <div className="blueprint-frame" style={{ position: 'sticky', top: '90px' }}>
-          {/* Blueprint Header */}
-          <div className="blueprint-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: 'var(--accent-blue)', fontWeight: 800 }}>FIG_001 //</span>
-              <span>NETWORK TOPOLOGY &amp; CRYPTOGRAPHIC MESH</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '0.68rem' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} />
-              <span>STATE: VERIFIED</span>
-            </div>
-          </div>
-
-          {/* Interactive Topology Canvas */}
-          <div style={{ background: 'var(--bg-secondary)', padding: '4px' }}>
-            <TopologyCanvas />
-          </div>
-
-          {/* Blueprint Footer Metadata */}
-          <div style={{
-            padding: '12px 18px',
-            background: 'var(--bg-card)',
-            borderTop: '1px solid var(--border-blueprint, rgba(37,99,235,0.2))',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.72rem',
-            color: 'var(--text-secondary)',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-            gap: '8px',
-          }}>
-            <div>
-              <span style={{ display: 'block', color: 'var(--text-tertiary)', fontSize: '0.64rem' }}>GATEWAY ALPHA</span>
-              <strong>192.168.56.10 (IKEv2)</strong>
-            </div>
-            <div>
-              <span style={{ display: 'block', color: 'var(--text-tertiary)', fontSize: '0.64rem' }}>GATEWAY BETA</span>
-              <strong>192.168.56.20 (IKEv2)</strong>
-            </div>
-            <div>
-              <span style={{ display: 'block', color: 'var(--text-tertiary)', fontSize: '0.64rem' }}>ACTIVE CIPHER</span>
-              <strong style={{ color: 'var(--accent-blue)' }}>AES-256-GCM / DH-19</strong>
-            </div>
-          </div>
+        <div className="blueprint-frame" style={{ position: 'sticky', top: '90px', padding: 0, overflow: 'hidden' }}>
+          {/* Interactive CRT-Inspired IPSec Tunnel Visualizer */}
+          <PrivCommTunnelVisualizer />
         </div>
       </section>
 
