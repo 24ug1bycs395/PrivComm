@@ -1343,6 +1343,129 @@ h1, h2, h3, h4, h5, h6 {
 .attack-session-main span { margin-left: auto; color: var(--text-tertiary); font-size: 0.65rem; text-transform: uppercase; }
 .attack-session ul { margin: 0.45rem 0 0 1.45rem; padding: 0; color: var(--text-secondary); font-size: 0.68rem; line-height: 1.55; }
 
+/* Testbed scenario controls */
+.testbed-mode-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--border-default);
+  border-radius: 9px;
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.testbed-mode-button {
+  min-height: 30px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 0.74rem;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.testbed-mode-button:hover {
+  color: var(--text-primary);
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.testbed-mode-button.active {
+  color: #e0f2fe;
+  border-color: rgba(56, 189, 248, 0.38);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.26), rgba(37, 99, 235, 0.22));
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.18);
+}
+
+.testbed-select-wrap {
+  position: relative;
+  min-width: 280px;
+}
+
+.testbed-select-wrap::after {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--text-secondary);
+  border-bottom: 1.5px solid var(--text-secondary);
+  content: "";
+  pointer-events: none;
+  transform: translateY(-65%) rotate(45deg);
+}
+
+.testbed-scenario-select,
+.testbed-custom-select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  outline: none;
+  color: var(--text-primary);
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.96));
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.testbed-scenario-select {
+  width: 100%;
+  min-width: 280px;
+  padding: 9px 38px 9px 13px;
+  font-size: 0.79rem;
+  font-weight: 650;
+}
+
+.testbed-custom-select {
+  min-width: 92px;
+  padding: 6px 26px 6px 9px;
+  font-size: 0.74rem;
+}
+
+.testbed-scenario-select:hover,
+.testbed-custom-select:hover {
+  border-color: rgba(56, 189, 248, 0.58);
+  background: linear-gradient(180deg, rgba(30, 64, 89, 0.98), rgba(15, 23, 42, 0.98));
+}
+
+.testbed-scenario-select:focus,
+.testbed-custom-select:focus,
+.testbed-mode-button:focus-visible,
+.testbed-deploy-button:focus-visible,
+.testbed-live-button:focus-visible {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.16);
+}
+
+.testbed-deploy-button,
+.testbed-live-button {
+  min-height: 38px;
+  border-radius: 8px;
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.testbed-deploy-button:hover:not(:disabled),
+.testbed-live-button:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.testbed-deploy-button:disabled,
+.testbed-live-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+@media (max-width: 760px) {
+  .testbed-select-wrap,
+  .testbed-scenario-select {
+    min-width: min(280px, 100%);
+  }
+}
+
 @media (max-width: 760px) {
   .attack-simulator-header { align-items: flex-start; flex-direction: column; }
   .attack-option-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
