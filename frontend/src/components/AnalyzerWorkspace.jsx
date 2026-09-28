@@ -283,10 +283,12 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                 </span>
               </div>
             </div>
-            <span className="btn btn-primary btn-sm">Run Audit</span>
+            <span className="btn btn-primary btn-sm">
+              {loading && activeFilename.includes('ikev2') ? 'Auditing...' : 'Run Audit'}
+            </span>
           </div>
 
-          <div className="sample-row-card" onClick={() => handleLoadSample('ikev1-weak')}>
+          <div className="sample-row-card" onClick={() => !loading && handleLoadSample('ikev1-weak')}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: 'rgba(220, 38, 38, 0.1)', color: 'var(--accent-red)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <AlertTriangle size={18} />
@@ -300,30 +302,12 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                 </span>
               </div>
             </div>
-            <span className="btn btn-secondary btn-sm">Run Audit</span>
+            <span className="btn btn-secondary btn-sm">
+              {loading && activeFilename.includes('IKEv1') ? 'Auditing...' : 'Run Audit'}
+            </span>
           </div>
         </div>
       </div>
-
-      {/* Pipeline Status Logs Stream */}
-      {loading && (
-        <div className="console-box">
-          <div className="console-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span className="live-dot" style={{ background: 'var(--accent-cyan)', boxShadow: '0 0 8px var(--accent-cyan)' }}></span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Executing Intelligence Pipeline...</span>
-            </div>
-            <span style={{ color: 'var(--accent-cyan)', fontSize: '0.72rem', background: 'var(--accent-cyan-dim)', padding: '2px 8px', borderRadius: '4px' }}>
-              DISSECTION &amp; INFERENCE ACTIVE
-            </span>
-          </div>
-          {pipelineLogs.map((log, idx) => (
-            <div key={idx} style={{ color: idx === pipelineLogs.length - 1 ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}>
-              {log}
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* Error Banner */}
       {errorNotice && (
@@ -334,7 +318,7 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
       )}
 
       {/* LIVE RESULTS DASHBOARD */}
-      {analysisResult && !loading && (
+      {analysisResult && (
         <div className="results-container">
           {/* Top File Banner */}
           <div className="file-banner">
