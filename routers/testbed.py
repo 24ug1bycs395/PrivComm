@@ -33,21 +33,24 @@ async def get_attack_simulations():
 
 
 @router.post("/attack-simulations", summary="Start a safe isolated attack simulation")
-async def create_attack_simulation(request: AttackSimulationRequest):
-    """Start a telemetry-only simulation; no packet or host networking changes are made."""
+async def create_attack_simulation(request: AttackSimulationRequest, fallback: Optional[bool] = Query(None)):
+    """Start a telemetry-only simulation; supports live testbed and offline fallback mode."""
+    allow_fallback = fallback if fallback is not None else (request.fallback or request.mode == "simulated")
     node_status = await _check_testbed_nodes(request.topology or TestbedTopology())
-    if not node_status["all_online"]:
+    is_live = node_status["all_online"]
+
+    if not is_live and not allow_fallback:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={
-                "message": "All three testbed nodes must be online before starting an attack simulation.",
+                "message": "All three testbed nodes must be online before starting an attack simulation, or enable fallback mode.",
                 "online_count": node_status["online_count"],
                 "total_nodes": node_status["total_nodes"],
                 "nodes": node_status["nodes"],
             },
         )
     try:
-        return start_attack(request)
+        return start_attack(request, is_fallback=(not is_live))
     except RuntimeError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
 
