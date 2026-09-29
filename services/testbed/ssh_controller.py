@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import logging
 import os
 import time
@@ -12,6 +13,136 @@ logger = logging.getLogger("testbed.ssh_controller")
 EventCallback = Optional[Callable[[Dict[str, Any]], None]]
 
 
+class SSHSession:
+    """Reusable SSH connection for a single testbed node and job phase."""
+
+    def __init__(self, vm_config: VMHostConfig, on_event: EventCallback = None, vm_role: str = "system"):
+        self.vm_config = vm_config
+        self.on_event = on_event
+        self.vm_role = vm_role
+        self.conn = None
+
+    def _emit(self, event_type: str, command: str, **kwargs):
+        if self.on_event:
+            self.on_event({
+                "vm": self.vm_role,
+                "host": self.vm_config.host,
+                "type": event_type,
+                "command": command,
+                **kwargs,
+            })
+
+    async def __aenter__(self):
+        if self.vm_config.is_simulated:
+            return self
+
+        try:
+            import asyncssh
+
+            docker_host = os.environ.get("DOCKER_HOST_GATEWAY", "host.docker.internal")
+            docker_ports = {
+                "initiator": 2201,
+                "responder": 2202,
+                "observer": 2203,
+                "attacker": 2204,
+            }
+            primary = (self.vm_config.ssh_host or self.vm_config.host, self.vm_config.port)
+            endpoints = [primary]
+            if self.vm_config.host.startswith("192.168.56.") and self.vm_role in docker_ports:
+                docker_endpoint = (docker_host, docker_ports[self.vm_role])
+                if docker_endpoint not in endpoints:
+                    endpoints.append(docker_endpoint)
+
+            errors = []
+            for endpoint_host, endpoint_port in endpoints:
+                self._emit("connection", "ssh session", status="connecting",
+                           output=f"Connecting to {endpoint_host}:{endpoint_port}")
+                connect_kwargs = {
+                    "host": endpoint_host,
+                    "port": endpoint_port,
+                    "username": self.vm_config.username,
+                    "known_hosts": None,
+                    "connect_timeout": 4,
+                }
+                if self.vm_config.password:
+                    connect_kwargs["password"] = self.vm_config.password
+                if self.vm_config.key_path:
+                    connect_kwargs["client_keys"] = [self.vm_config.key_path]
+                try:
+                    self.conn = await asyncssh.connect(**connect_kwargs)
+                    self._emit("connection", "ssh session", status="connected",
+                               output=f"Connected to {endpoint_host}:{endpoint_port}")
+                    return self
+                except Exception as exc:
+                    errors.append(f"{endpoint_host}:{endpoint_port}: {exc}")
+
+            detail = "; ".join(errors)
+            self._emit("complete", "ssh session", status="error", exit_code=1,
+                       output=f"SSH connection failed: {detail}")
+            raise RuntimeError(f"SSH connection to {self.vm_config.host} failed: {detail}")
+        except Exception as exc:
+            if isinstance(exc, RuntimeError):
+                raise
+            self._emit("complete", "ssh session", status="error", exit_code=1,
+                       output=f"SSH connection failed: {exc}")
+            raise RuntimeError(f"SSH connection to {self.vm_config.host} failed: {exc}") from exc
+
+    async def __aexit__(self, exc_type, exc, tb):
+        if self.conn:
+            self.conn.close()
+            await self.conn.wait_closed()
+        return False
+
+    async def run_command(self, command: str, timeout: int = 20) -> Tuple[int, str, str]:
+        self._emit("command", command, status="running")
+        if self.vm_config.is_simulated:
+            await asyncio.sleep(0.05)
+            lines = _simulated_output(command, self.vm_role)
+            for line in lines:
+                self._emit("output", command, output=line, status="running")
+            output = "\n".join(lines)
+            self._emit("complete", command, status="success", exit_code=0, output=output)
+            return 0, output, ""
+
+        try:
+            result = await asyncio.wait_for(self.conn.run(command), timeout=timeout)
+            stdout = result.stdout or ""
+            stderr = result.stderr or ""
+            for line in stdout.splitlines():
+                self._emit("output", command, output=line, status="running")
+            for line in stderr.splitlines():
+                self._emit("output", command, output=f"[stderr] {line}", status="running")
+            status = "success" if result.exit_status == 0 else "error"
+            self._emit("complete", command, status=status, exit_code=result.exit_status,
+                       output=stderr or stdout)
+            return result.exit_status, stdout, stderr
+        except Exception as exc:
+            self._emit("complete", command, status="error", exit_code=1, output=str(exc))
+            return 1, "", str(exc)
+
+    async def write_file(self, remote_path: str, content: str) -> bool:
+        command = f"write_file → {remote_path}"
+        self._emit("command", command, status="running",
+                   output=f"Preparing {len(content)} bytes for {remote_path}")
+        if self.vm_config.is_simulated:
+            self._emit("output", command, output=f"[SIMULATED] Writing config to {remote_path}...",
+                       status="running")
+            self._emit("complete", command, status="success",
+                       output=f"Config written to {remote_path}")
+            return True
+
+        encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
+        command_line = f"echo '{encoded}' | base64 -d | sudo tee {remote_path} > /dev/null"
+        code, _, stderr = await self.run_command(command_line)
+        if code == 0:
+            self._emit("complete", command, status="success",
+                       output=f"Config written to {remote_path}")
+            return True
+        self._emit("complete", command, status="error",
+                   output=f"Failed to write {remote_path}: {stderr}")
+        return False
+
+
 class SSHController:
     """
     Manages asynchronous SSH communication, configuration push, and execution
@@ -22,6 +153,11 @@ class SSHController:
     lines, and command completion.  Callers that do not supply `on_event`
     continue to receive the plain (exit_code, stdout, stderr) tuple unchanged.
     """
+
+    @staticmethod
+    def session(vm_config: VMHostConfig, on_event: EventCallback = None, vm_role: str = "system") -> SSHSession:
+        """Open one reusable SSH session for multiple node operations."""
+        return SSHSession(vm_config, on_event=on_event, vm_role=vm_role)
 
     @staticmethod
     async def run_command(

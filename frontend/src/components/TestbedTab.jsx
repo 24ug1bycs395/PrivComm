@@ -756,7 +756,10 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
     hash_algorithm: "SHA-256",
     dh_group: "19 (ECP-256)",
     pfs: true,
+    esp_enabled: true,
+    ipsec_mode: "tunnel",
     auth_method: "PSK",
+    payload_type: "HTTP_GET",
     traffic_profile: "HTTP_GET",
     packet_count: 25,
     traffic_duration_sec: 5,
@@ -776,6 +779,7 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
   const [isRunning, setIsRunning] = useState(false);
   const [jobHistory, setJobHistory] = useState([]);
   const lastEventIdRef = useRef(0);
+  const demoTimersRef = useRef([]);
   const [pollError, setPollError] = useState(false);
 
   // Terminal lines state
@@ -787,12 +791,16 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
   // The observer capture is active only once traffic injection begins. Before
   // that point the live dashboard must not be reachable from this tab.
   const liveDashboardReady = Boolean(
-    activeJob?.id && currentStage === "TRAFFIC" && activeJob.state !== "FAILED"
+    activeJob?.id && ["TRAFFIC", "PCAP", "AI"].includes(currentStage) && activeJob.state !== "FAILED"
   );
 
   useEffect(() => {
     onLiveAvailabilityChange?.(liveDashboardReady);
   }, [liveDashboardReady, onLiveAvailabilityChange]);
+
+  useEffect(() => () => {
+    demoTimersRef.current.forEach(clearTimeout);
+  }, []);
 
   // Packet animation
   const [packetPos, setPacketPos] = useState(5);
@@ -846,7 +854,7 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
 
   // Poll job status
   useEffect(() => {
-    if (!activeJob || ["COMPLETED", "FAILED"].includes(activeJob.state)) return;
+    if (!activeJob || activeJob.id?.startsWith("demo-") || ["COMPLETED", "FAILED"].includes(activeJob.state)) return;
     const iv = setInterval(async () => {
       try {
         const res = await fetch(`/api/testbed/jobs/${activeJob.id}?since_id=${lastEventIdRef.current}`);
@@ -878,6 +886,7 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
             if (ev.vm === "initiator") addLines("initiator", [text]);
             else if (ev.vm === "responder") addLines("responder", [text]);
             else if (ev.vm === "observer") addLines("observer", [text]);
+            else if (ev.type === "error") addLines("initiator", [`[ERROR] ${text}`]);
           });
         }
         setActiveJob((prev) => ({ ...prev, ...data, terminal_events: undefined }));
@@ -922,6 +931,54 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
     } catch { }
   };
 
+  // Browser-only fallback used by the Vercel demo. It reproduces the visible
+  // testbed timeline without requiring VMs, SSH, strongSwan, or FastAPI.
+  const runDemoSimulation = () => {
+    demoTimersRef.current.forEach(clearTimeout);
+    demoTimersRef.current = [];
+
+    const jobId = `demo-${Date.now()}`;
+    const scenario = customMode
+      ? customConfig.name
+      : scenarios.find((item) => item.id === selectedScenarioId)?.name || "IKEv2 AES-256-GCM Demo Tunnel";
+    const stages = STAGES.map((stage) => ({ stage, delay: 850 }));
+
+    setActiveJob({
+      id: jobId,
+      scenario_name: scenario,
+      state: "RUNNING",
+      progress_pct: 5,
+      demo: true,
+    });
+
+    stages.forEach(({ stage, delay }, index) => {
+      const timer = setTimeout(() => {
+        setCurrentStage(stage);
+        setActiveJob((previous) => previous ? {
+          ...previous,
+          state: stage === "AI" ? "COMPLETED" : "RUNNING",
+          progress_pct: Math.round(((index + 1) / stages.length) * 100),
+        } : previous);
+
+        ["initiator", "responder", "observer"].forEach((role) => {
+          addLines(role, STAGE_LINES[stage]?.[role] || []);
+        });
+
+        if (stage === "AI") {
+          setIsRunning(false);
+          setJobHistory((previous) => [{
+            id: jobId,
+            filename: "demo_testbed_capture.pcap",
+            scenario_name: scenario,
+            state: "COMPLETED",
+            created_at: new Date().toISOString(),
+          }, ...previous]);
+        }
+      }, index * delay);
+      demoTimersRef.current.push(timer);
+    });
+  };
+
   const handleLaunch = async () => {
     setSenderLines([]);
     setReceiverLines([]);
@@ -959,17 +1016,16 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        alert("Error: " + (err.detail || "Unknown error"));
-        setIsRunning(false);
-        return;
+        throw new Error(`Backend unavailable (HTTP ${res.status})`);
       }
 
       const data = await res.json();
       setActiveJob({ id: data.job_id, scenario_name: data.scenario_name, state: "QUEUED", progress_pct: 5 });
     } catch (e) {
-      alert("Network error: " + e.message);
-      setIsRunning(false);
+      // Vercel hosts the frontend-only demo, so transparently use the local
+      // browser simulation when the FastAPI testbed is not deployed.
+      setPollError(false);
+      runDemoSimulation();
     }
   };
 
@@ -1209,7 +1265,9 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
                     { label: "IKE Version", key: "ike_version", opts: ["IKEv2", "IKEv1", "IKEv1_Aggressive"] },
                     { label: "Cipher", key: "encryption", opts: ["AES-256-GCM", "AES-128-GCM", "AES-256-CBC", "3DES-CBC"] },
                     { label: "Integrity Hash", key: "hash_algorithm", opts: ["SHA-256", "SHA-384", "SHA-512", "MD5", "SHA-1"] },
-                    { label: "DH Group", key: "dh_group", opts: ["19 (ECP-256)", "20 (ECP-384)", "14 (MODP-2048)", "2 (MODP-1024)"] }
+                    { label: "DH Group", key: "dh_group", opts: ["19 (ECP-256)", "20 (ECP-384)", "14 (MODP-2048)", "2 (MODP-1024)"] },
+                    { label: "IPsec Mode", key: "ipsec_mode", opts: ["tunnel", "transport"] },
+                    { label: "Payload Type", key: "payload_type", opts: ["HTTP_GET", "VIDEO_STREAM", "VOIP_RTP", "DNS_BURST", "IPERF_BURST", "EMAIL_SMTP", "ICMP_ECHO", "P2P_SIM"] }
                   ].map((f) => (
                     <div key={f.key} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                       <span style={{ fontSize: "0.68rem", color: "var(--text-tertiary)" }}>{f.label}:</span>
@@ -1219,13 +1277,30 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
                         onChange={(e) => setCustomConfig((prev) => ({
                           ...prev,
                           [f.key]: e.target.value,
-                          ...(f.key === "hash_algorithm" ? { integrity: e.target.value } : {})
+                          ...(f.key === "hash_algorithm" ? { integrity: e.target.value } : {}),
+                          ...(f.key === "payload_type" ? { traffic_profile: e.target.value } : {})
                         }))}
                       >
                         {f.opts.map((o) => <option key={o}>{o}</option>)}
                       </select>
                     </div>
                   ))}
+                  <label style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.68rem", color: "var(--text-tertiary)" }}>
+                    <input
+                      type="checkbox"
+                      checked={customConfig.esp_enabled}
+                      onChange={(e) => setCustomConfig((prev) => ({ ...prev, esp_enabled: e.target.checked }))}
+                    />
+                    ESP
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.68rem", color: "var(--text-tertiary)" }}>
+                    <input
+                      type="checkbox"
+                      checked={customConfig.pfs}
+                      onChange={(e) => setCustomConfig((prev) => ({ ...prev, pfs: e.target.checked }))}
+                    />
+                    PFS
+                  </label>
                 </div>
               )}
             </div>
@@ -1250,7 +1325,7 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
               onClick={() => activeJob?.id && onNavigateToLive?.(activeJob.id)}
               title={liveDashboardReady
                 ? "Open observer packet telemetry"
-                : "Available after the tunnel is established and observer capture is active"}
+                : "Available when the observer begins receiving packets"}
               style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "9px 16px", fontWeight: 700, fontSize: "0.82rem" }}
             >
               <Radio size={15} /> Live packet dashboard
@@ -1312,7 +1387,10 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
           )}
           {activeJob?.state === "FAILED" && (
             <div style={{ background: "rgba(248,81,73,0.08)", border: "1px solid var(--accent-red)", borderRadius: "8px", padding: "14px 18px", fontFamily: "JetBrains Mono, monospace", fontSize: "0.74rem", color: "var(--accent-red)" }}>
-              Testbed execution failed. Check backend logs for details.
+              <div style={{ fontWeight: 700, marginBottom: "6px" }}>Testbed execution failed</div>
+              <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                {activeJob.error_message || activeJob.logs?.[activeJob.logs.length - 1] || "No failure details were recorded."}
+              </div>
             </div>
           )}
 

@@ -38,4 +38,7 @@ RUN mkdir -p /var/run/sshd \
 
 EXPOSE 22 500/udp 4500/udp
 
-CMD ["/usr/sbin/sshd", "-D"]
+COPY testbed-entrypoint.sh /usr/local/bin/testbed-entrypoint.sh
+RUN chmod +x /usr/local/bin/testbed-entrypoint.sh
+
+CMD ["/usr/local/bin/testbed-entrypoint.sh"]

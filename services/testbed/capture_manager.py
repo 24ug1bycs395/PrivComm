@@ -1,6 +1,5 @@
 import os
 import shutil
-import asyncio
 import logging
 from pathlib import Path
 from typing import Optional
@@ -68,6 +67,11 @@ class CaptureManager:
             f"-w {remote_pcap} > /dev/null 2>&1 & echo $!"
         )
         code, stdout, stderr = await SSHController.run_command(observer_vm, capture_cmd)
+        if code != 0:
+            raise RuntimeError(
+                f"Unable to start packet capture on {observer_vm.host}: "
+                f"{stderr.strip() or 'tcpdump command failed'}"
+            )
         logger.info(f"[CaptureManager] Started remote capture on {observer_vm.host}:{interface} -> {remote_pcap}")
         return remote_pcap
 
@@ -83,9 +87,10 @@ class CaptureManager:
         If running in simulated/offline mode, produces an appropriate scenario PCAP from samples.
         """
         # Stop tcpdump on observer
-        stop_cmd = "sudo pkill -f tcpdump || true"
+        # SIGINT lets tcpdump finish its pcap footer before the SFTP download.
+        # The bracket expression prevents pkill from matching its own command.
+        stop_cmd = "sudo pkill -INT -f '[t]cpdump' || true; sync"
         await SSHController.run_command(observer_vm, stop_cmd)
-        await asyncio.sleep(0.5)
 
         os.makedirs(os.path.dirname(local_pcap_path), exist_ok=True)
 

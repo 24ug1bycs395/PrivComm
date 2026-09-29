@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Radio,
   Play,
@@ -92,6 +92,29 @@ const PRESET_SCENARIOS = [
   }
 ];
 
+// These mappings are used only by the browser fallback simulator.
+const DEMO_PROFILE_CLASS = {
+  HTTP_GET: 'web',
+  DNS_BURST: 'dns',
+  VOIP_RTP: 'voip',
+  VIDEO_STREAM: 'video',
+  IPERF_BURST: 'p2p',
+  P2P_SIM: 'p2p',
+  EMAIL_SMTP: 'web',
+  ICMP_ECHO: 'web'
+};
+
+const DEMO_PROFILE_LABEL = {
+  HTTP_GET: 'Web Browsing',
+  DNS_BURST: 'DNS Query',
+  VOIP_RTP: 'VoIP RTP Audio',
+  VIDEO_STREAM: 'Video Streaming',
+  IPERF_BURST: 'File Transfer / TCP',
+  P2P_SIM: 'Peer-to-Peer',
+  EMAIL_SMTP: 'Email Traffic',
+  ICMP_ECHO: 'ICMP'
+};
+
 export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNavigateToAnalyzer }) {
   const [scenarios, setScenarios] = useState(PRESET_SCENARIOS);
   const [selectedScenarioId, setSelectedScenarioId] = useState('ikev2-aes-gcm-compliant');
@@ -105,6 +128,8 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
 
   const activePollIntervalRef = useRef(null);
   const lastEventIdRef = useRef(0);
+  const livePacketStartedAtRef = useRef(null);
+  const lastLivePacketIdRef = useRef(null);
   const [testbedEvents, setTestbedEvents] = useState([]);
   const [testbedJob, setTestbedJob] = useState(null);
   const [testbedPollError, setTestbedPollError] = useState('');
@@ -114,6 +139,20 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
       setTestbedEvents([]);
       setTestbedJob(null);
       setTestbedPollError('');
+      livePacketStartedAtRef.current = null;
+      lastLivePacketIdRef.current = null;
+      return undefined;
+    }
+
+    // A Testbed demo job is generated entirely in the browser. Do not poll a
+    // nonexistent FastAPI job; let the dashboard use its local packet stream.
+    if (liveJobId.startsWith('demo-')) {
+      setTestbedJob({ id: liveJobId, state: 'COMPLETED', demo: true });
+      setTestbedPollError('');
+      setOrchestrationMode('FALLBACK_SIM');
+      setEstablishingStep(5);
+      setTunnelState('ESTABLISHED');
+      setIsAutoStreaming(true);
       return undefined;
     }
 
@@ -145,22 +184,83 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
     };
   }, [liveJobId]);
 
-  const packetEvents = testbedEvents.filter((event) => event.type === 'packet_batch');
-  const observerPacketEvents = packetEvents.filter((event) => event.vm === 'observer');
+  const packetEvents = useMemo(() => testbedEvents.filter((event) => (
+    event.type === 'packet' || event.type === 'packet_batch'
+  )), [testbedEvents]);
+  const observerPacketEvents = useMemo(
+    () => packetEvents.filter((event) => event.vm === 'observer'),
+    [packetEvents]
+  );
 
   // A dashboard opened from Testbed is observer-backed. Keep its headline
   // counters tied to the latest observer event instead of the local demo
   // packet generator used by the standalone dashboard.
   useEffect(() => {
-    if (!liveJobId || observerPacketEvents.length === 0) return;
+    const activeJobId = liveJobId || backendJobId;
+    if (!activeJobId || observerPacketEvents.length === 0) return;
     const latest = observerPacketEvents[observerPacketEvents.length - 1];
-    if (Number.isFinite(Number(latest.packet_count))) {
-      setPacketCount(Number(latest.packet_count));
+    if (!livePacketStartedAtRef.current) livePacketStartedAtRef.current = Date.now();
+
+    const observedCount = Number(latest.packet_index ?? latest.packet_count ?? observerPacketEvents.length);
+    const observedBytes = observerPacketEvents.reduce(
+      (total, event) => total + (Number(event.bytes) || 0), 0
+    );
+    const elapsedSeconds = Math.max((Date.now() - livePacketStartedAtRef.current) / 1000, 0.1);
+    const packetsPerSecond = observedCount / elapsedSeconds;
+    const megabitsPerSecond = (observedBytes * 8) / elapsedSeconds / 1000000;
+
+    setPacketCount(observedCount);
+    setBytesTransferred(observedBytes);
+    setCurrentPps(Math.round(packetsPerSecond));
+    setCurrentThroughput(Number(megabitsPerSecond.toFixed(2)));
+    setThroughputHistory((previous) => [
+      ...previous.slice(1),
+      Number(megabitsPerSecond.toFixed(2))
+    ]);
+
+    const profile = String(latest.profile || '').toUpperCase();
+    const derivedClassCounts = { video: 0, web: 0, voip: 0, dns: 0, p2p: 0 };
+    observerPacketEvents.forEach((event) => {
+      const eventCategory = String(event.traffic_category || event.category || '').toLowerCase();
+      if (Object.prototype.hasOwnProperty.call(derivedClassCounts, eventCategory)) {
+        derivedClassCounts[eventCategory] += 1;
+      }
+    });
+    setClassCounts(derivedClassCounts);
+
+    const packetId = `${latest.id}-${latest.packet_index || latest.packet_count}`;
+    if (packetId !== lastLivePacketIdRef.current) {
+      lastLivePacketIdRef.current = packetId;
+      const packetNumber = latest.packet_index || observedCount;
+      const label = latest.traffic_type || latest.classification || latest.predicted_class || latest.profile || 'Unclassified';
+      const size = Number(latest.bytes) || 0;
+      const packet = {
+        packetNumber,
+        timestamp: latest.timestamp || new Date().toLocaleTimeString(),
+        protocol: `${latest.protocol || 'ESP'} (Observed)`,
+        spi: latest.spi || 'Observed',
+        sequence: `#${String(packetNumber).padStart(6, '0')}`,
+        sizeBytes: size,
+        predictedClass: label,
+        confidence: 'Observed',
+        hexDump: 'Live encrypted packet metadata received from observer',
+        iv: '—',
+        icvTag: '—'
+      };
+      setLatestPacket(packet);
+      setDynamicFlows((previous) => [{
+        id: packetId,
+        timestamp: packet.timestamp,
+        source: latest.source || 'initiator',
+        destination: latest.destination || 'responder',
+        protocol: latest.protocol || 'ESP',
+        size: `${size} B`,
+        spi: packet.spi,
+        predictedTraffic: label,
+        confidence: 'Observed'
+      }, ...previous].slice(0, 10));
     }
-    if (Number.isFinite(Number(latest.bytes))) {
-      setBytesTransferred(Number(latest.bytes));
-    }
-  }, [liveJobId, observerPacketEvents]);
+  }, [liveJobId, backendJobId, observerPacketEvents]);
 
   // Cleanup polling interval on unmount
   useEffect(() => {
@@ -219,6 +319,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
     packetCount: 0,
     bytesTransferred: 0,
     tunnelState: 'IDLE',
+    orchestrationMode: 'PHYSICAL_VM',
     activeTrafficProfile: 'MIXED',
     selectedScenario: selectedScenario
   });
@@ -228,15 +329,16 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
       packetCount,
       bytesTransferred,
       tunnelState,
+      orchestrationMode,
       activeTrafficProfile,
       selectedScenario
     };
-  }, [packetCount, bytesTransferred, tunnelState, activeTrafficProfile, selectedScenario]);
+  }, [packetCount, bytesTransferred, tunnelState, orchestrationMode, activeTrafficProfile, selectedScenario]);
 
   // Dispatch a single packet
   const sendSinglePacket = (profileOverride = null) => {
-    const { tunnelState: tState, activeTrafficProfile: currentProfile, packetCount: pCount, bytesTransferred: bTransferred, selectedScenario: sScenario } = stateRef.current;
-    if (tState !== 'ESTABLISHED') return;
+    const { tunnelState: tState, orchestrationMode: mode, activeTrafficProfile: currentProfile, packetCount: pCount, bytesTransferred: bTransferred, selectedScenario: sScenario } = stateRef.current;
+    if (tState !== 'ESTABLISHED' || mode !== 'FALLBACK_SIM') return;
 
     let profile = profileOverride || currentProfile;
 
@@ -253,8 +355,8 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
     const now = new Date().toLocaleTimeString();
 
     let size = 1420;
-    let category = 'video';
-    let predictedLabel = 'Video Streaming';
+    let category = DEMO_PROFILE_CLASS[profile] || 'video';
+    let predictedLabel = DEMO_PROFILE_LABEL[profile] || 'Video Streaming';
     let confidence = 92.4;
     let hexPrefix = '45 00 05 dc a1 22 40 00 40 32 b4 c2 0a 00 01 0a';
 
@@ -348,7 +450,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
   // Auto-streaming continuous interval
   useEffect(() => {
     let intervalId = null;
-    if (!liveJobId && isAutoStreaming && tunnelState === 'ESTABLISHED') {
+    if (orchestrationMode === 'FALLBACK_SIM' && isAutoStreaming && tunnelState === 'ESTABLISHED') {
       intervalId = setInterval(() => {
         sendSinglePacket();
       }, streamSpeedMs);
@@ -356,7 +458,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [isAutoStreaming, tunnelState, streamSpeedMs]);
+  }, [isAutoStreaming, tunnelState, streamSpeedMs, orchestrationMode]);
 
   // Fallback simulator if physical VM network/SSH encounters delays or offline state
   const triggerFallback = (fromStep = 1, reason = '') => {
@@ -472,6 +574,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
           const events = pollData.terminal_events || [];
           if (events.length > 0) {
             lastEventIdRef.current = events[events.length - 1].id;
+            setTestbedEvents(previous => [...previous, ...events].slice(-200));
             events.forEach(evt => {
               if (evt.output) {
                 setLiveTimeline(prev => [
@@ -506,9 +609,9 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
             }
             setEstablishingStep(5);
             setTunnelState('ESTABLISHED');
-            // Physical testbed sessions are driven by observer telemetry. The
-            // local packet generator is reserved for the standalone demo.
-            setIsAutoStreaming(!liveJobId);
+            // Physical testbed sessions are driven only by observer telemetry.
+            // Synthetic packets are reserved for FALLBACK_SIM mode.
+            setIsAutoStreaming(false);
             setLiveTimeline(prev => [
               { time: new Date().toLocaleTimeString(), text: '✅ Physical strongSwan IPsec tunnel established! Automated real-time packet stream engaged.', type: 'secure' },
               ...prev
@@ -622,7 +725,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginTop: '14px' }}>
             <div><strong>{testbedEvents.length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>VM events received</small></div>
-            <div><strong>{packetEvents.length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Packet telemetry batches</small></div>
+            <div><strong>{packetEvents.length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Packets observed live</small></div>
             <div><strong>{testbedEvents.filter((event) => event.vm === 'initiator').length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Initiator events</small></div>
             <div><strong>{testbedEvents.filter((event) => event.vm === 'observer').length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Observer events</small></div>
           </div>
@@ -632,8 +735,10 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
               <div key={`${event.id}-${event.timestamp}`} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
                 <span style={{ color: 'var(--accent-cyan)' }}>[{event.timestamp}]</span>{' '}
                 <strong>{(event.vm || 'system').toUpperCase()}</strong>{' '}
-                {event.type === 'packet_batch'
-                  ? `${event.packet_count} ${event.protocol || 'IPsec'} packets · ${event.bytes ?? 0} bytes · ${event.source || 'source'} → ${event.destination || 'destination'}`
+                {(event.type === 'packet' || event.type === 'packet_batch')
+                  ? event.type === 'packet'
+                    ? `Packet ${event.packet_index}/${event.total_packets} received · ${event.protocol || 'IPsec'} · ${event.source || 'source'} → ${event.destination || 'destination'}`
+                    : `${event.packet_count} ${event.protocol || 'IPsec'} packets · ${event.bytes ?? 0} bytes · ${event.source || 'source'} → ${event.destination || 'destination'}`
                   : event.output || event.phase || event.type}
               </div>
             ))}
@@ -751,7 +856,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
             </button>
           )}
 
-          {tunnelState === 'ESTABLISHED' && !liveJobId && (
+          {tunnelState === 'ESTABLISHED' && !liveJobId && orchestrationMode === 'FALLBACK_SIM' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               {/* Play/Pause Auto Stream */}
               <button
@@ -871,7 +976,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
       </div>
 
       {/* Traffic Profile Selector Strip */}
-      {tunnelState === 'ESTABLISHED' && !liveJobId && (
+      {tunnelState === 'ESTABLISHED' && !liveJobId && orchestrationMode === 'FALLBACK_SIM' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', letterSpacing: '0.06em' }}>
             PROFILE MIX:
