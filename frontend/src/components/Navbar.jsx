@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Layers, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Shield } from 'lucide-react';
+import { Activity, Layers, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Shield, Radio } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 
 const tabs = [
@@ -9,7 +9,6 @@ const tabs = [
   { id: 'testbed',      label: 'Testbed',          icon: Server },
   { id: 'vault',        label: 'Vault',            icon: Database },
   { id: 'overview',     label: 'Architecture',     icon: Layers },
-  { id: 'threat-matrix',label: 'Threats',          icon: Shield },
   { id: 'compliance',   label: 'Compliance',       icon: FileCheck },
 ];
 
@@ -29,7 +28,31 @@ export default function Navbar({ activeTab, setActiveTab }) {
     <>
       <header className={`site-header${scrolled ? ' scrolled' : ''}`} role="banner">
         <div className="header-inner">
-
+          {/* Brand in makingsoftware.com technical style */}
+          <div
+            onClick={() => setActiveTab('overview')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '9px',
+              cursor: 'pointer',
+              textDecoration: 'none',
+              userSelect: 'none',
+              flexShrink: 0
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+              <span style={{
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+                fontSize: '0.92rem',
+                letterSpacing: '-0.01em',
+                color: 'var(--text-primary)'
+              }}>
+                PRIVCOMM
+              </span>
+            </div>
+          </div>
 
           {/* Desktop Nav */}
           <nav className="nav-tabs" aria-label="Main Navigation">
@@ -54,12 +77,6 @@ export default function Navbar({ activeTab, setActiveTab }) {
 
           {/* Right controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-
-            {/* Live badge */}
-            <div className="header-status-badge" aria-label="System Status: Operational">
-              <span className="live-dot" aria-hidden="true" />
-              <span>LIVE</span>
-            </div>
 
             {/* Theme toggle */}
             <button

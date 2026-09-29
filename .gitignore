@@ -59,7 +59,6 @@ pyrightconfig.json
 *.pcapng
 *.cap
 *.dmp
-!ikev2_s2s_ipsec_vpn_aes_gcm.pcapng
 !samples/ikev2_s2s_ipsec_vpn_aes_gcm.pcapng
 
 # Upload staging directories & generated results
@@ -120,3 +119,8 @@ temp/
 # random_forest_model.joblib is 329MB and exceeds GitHub's 100MB limit.
 # XGBoost and other smaller models are fine to commit normally.
 models/random_forest_model.joblib
+
+# ─── Demonstration Scripts & Local Test Verification ────────────────────────
+docs/DEMONSTRATION_VIDEO.md
+docs/DEMO_VIDEO_FULL_SCRIPT.md
+tests/verify_all_requirements.py

@@ -31,10 +31,13 @@ import {
   ShieldCheck,
   ShieldAlert
 } from 'lucide-react';
+import { ThreatMatrixDetails } from './ThreatMatrixTab';
 import AnomalyDetectionPanel from './AnomalyDetectionPanel';
+import { askCyberSentinel } from '../services/pollinationsAi';
 
 export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestbed, onNavigateToAnalyzer, onNavigateToOverview }) {
   const [analysis, setAnalysis] = useState(null);
+  const [isThreatMatrixOpen, setIsThreatMatrixOpen] = useState(false);
   const [historyList, setHistoryList] = useState([]);
   const [selectedFilename, setSelectedFilename] = useState('ikev2_s2s_ipsec_vpn_aes_gcm.pcapng');
   const [telemetryLogs, setTelemetryLogs] = useState([
@@ -62,6 +65,17 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
       chatBottomRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chatMessages, chatLoading]);
+
+  useEffect(() => {
+    if (!isThreatMatrixOpen) return undefined;
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') setIsThreatMatrixOpen(false);
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isThreatMatrixOpen]);
 
   // Load history on mount
   useEffect(() => {
@@ -130,7 +144,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
     }
   };
 
-  // Chat API call
+  // Chat API call powered by Pollinations AI
   const handleSendChatMessage = async (overrideText = null) => {
     const textToSend = (overrideText !== null ? overrideText : chatInput).trim();
     if (!textToSend) return;
@@ -143,21 +157,12 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
     setChatLoading(true);
 
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: textToSend })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const reply = data.reply || 'Analysis complete.';
-        setChatMessages(prev => [...prev, { sender: 'ai', text: reply }]);
-      } else {
-        setChatMessages(prev => [...prev, { sender: 'ai', text: ' Unable to fetch AI response from server backend.' }]);
-      }
+      // Call Pollinations AI service with active analysis context
+      const reply = await askCyberSentinel(textToSend, analysis);
+      setChatMessages(prev => [...prev, { sender: 'ai', text: reply }]);
     } catch (err) {
-      setChatMessages(prev => [...prev, { sender: 'ai', text: ' Network error: Could not reach Privcomm AI service.' }]);
+      console.warn('AI Chat Error:', err);
+      setChatMessages(prev => [...prev, { sender: 'ai', text: '⚠️ Unable to process query. Please check your network connection.' }]);
     } finally {
       setChatLoading(false);
     }
@@ -383,9 +388,6 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         gap: '12px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: '0.05em' }}>
-            CYBER SENTINEL
-          </span>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
             / Live Telemetry & Analytics Dashboard
           </span>
@@ -393,14 +395,15 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <a
-            href={`/reports/download-html?filename=${encodeURIComponent(curr.filename)}`}
+            href={`/reports/download-pdf?filename=${encodeURIComponent(curr.filename)}`}
             target="_blank"
             rel="noreferrer"
             className="btn-ghost"
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '6px 14px', textDecoration: 'none' }}
+            title="Download Executive PDF Report"
           >
             <FileText size={15} color="var(--accent-cyan)" />
-            <span>Open Executive Report Page</span>
+            <span>Executive PDF Report</span>
           </a>
           {onNavigateToTestbed && (
             <button
@@ -583,6 +586,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
             <div className="matrix-cell matrix-low">Low</div>
             <div className="matrix-cell matrix-med">Medium</div>
           </div>
+
         </div>
 
         {/* AI Encrypted Traffic Probability Breakdown */}
@@ -1094,17 +1098,80 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
                     }}
                   >
                     <div style={{
-                      padding: '8px 12px',
+                      padding: '10px 14px',
                       borderRadius: '10px',
-                      fontSize: '0.78rem',
-                      lineHeight: '1.5',
+                      fontSize: '0.8rem',
+                      lineHeight: '1.55',
                       background: isUser ? 'var(--accent-blue)' : 'var(--bg-secondary)',
                       color: isUser ? '#fff' : 'var(--text-primary)',
-                      border: isUser ? 'none' : '1px solid var(--border-subtle)'
+                      border: isUser ? 'none' : '1px solid var(--border-subtle)',
+                      boxShadow: isUser ? '0 2px 8px rgba(37,99,235,0.25)' : '0 2px 8px rgba(0,0,0,0.2)'
                     }}>
-                      {msg.text.split('\n').map((line, lIdx) => (
-                        <p key={lIdx} style={{ margin: '0 0 4px 0' }}>{line}</p>
-                      ))}
+                      {(() => {
+                        if (isUser) {
+                          return <p style={{ margin: 0 }}>{msg.text}</p>;
+                        }
+                        const lines = msg.text.split('\n');
+                        return lines.map((line, lIdx) => {
+                          const trimmed = line.trim();
+                          if (!trimmed) {
+                            return <div key={lIdx} style={{ height: '6px' }} />;
+                          }
+                          const isBullet = trimmed.startsWith('* ') || trimmed.startsWith('- ') || trimmed.startsWith('• ');
+                          const content = isBullet ? trimmed.replace(/^[\*\-•]\s+/, '') : trimmed;
+
+                          const parts = [];
+                          const regex = /(\*\*.*?\*\*|`.*?`)/g;
+                          let lastIndex = 0;
+                          let match;
+
+                          while ((match = regex.exec(content)) !== null) {
+                            if (match.index > lastIndex) {
+                              parts.push(content.substring(lastIndex, match.index));
+                            }
+                            const token = match[0];
+                            if (token.startsWith('**') && token.endsWith('**')) {
+                              parts.push(
+                                <strong key={`${lIdx}-${match.index}`} style={{ color: '#38bdf8', fontWeight: 600 }}>
+                                  {token.slice(2, -2)}
+                                </strong>
+                              );
+                            } else if (token.startsWith('`') && token.endsWith('`')) {
+                              parts.push(
+                                <code key={`${lIdx}-${match.index}`} style={{
+                                  background: 'rgba(56, 189, 248, 0.12)',
+                                  color: '#38bdf8',
+                                  padding: '1px 5px',
+                                  borderRadius: '4px',
+                                  fontSize: '0.74rem',
+                                  fontFamily: 'monospace'
+                                }}>
+                                  {token.slice(1, -1)}
+                                </code>
+                              );
+                            }
+                            lastIndex = regex.lastIndex;
+                          }
+                          if (lastIndex < content.length) {
+                            parts.push(content.substring(lastIndex));
+                          }
+
+                          if (isBullet) {
+                            return (
+                              <div key={lIdx} style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', margin: '4px 0' }}>
+                                <span style={{ color: '#38bdf8', lineHeight: '1.5' }}>•</span>
+                                <div style={{ flex: 1, lineHeight: '1.5' }}>{parts}</div>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <p key={lIdx} style={{ margin: '0 0 6px 0', lineHeight: '1.55' }}>
+                              {parts}
+                            </p>
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
                 );
@@ -1186,6 +1253,41 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
           </div>
         )}
       </div>
+
+      {isThreatMatrixOpen && (
+        <div
+          className="threat-matrix-dialog-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setIsThreatMatrixOpen(false);
+          }}
+        >
+          <section
+            className="threat-matrix-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="threat-matrix-dialog-title"
+          >
+            <div className="threat-matrix-dialog-header">
+              <div>
+                <div className="section-kicker">SEC.03 — THREAT MODEL</div>
+                <h2 id="threat-matrix-dialog-title">Threat Matrix Details</h2>
+              </div>
+              <button
+                type="button"
+                className="threat-matrix-dialog-close"
+                onClick={() => setIsThreatMatrixOpen(false)}
+                aria-label="Close threat matrix details"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="threat-matrix-dialog-body">
+              <ThreatMatrixDetails />
+            </div>
+          </section>
+        </div>
+      )}
 
     </div>
   );

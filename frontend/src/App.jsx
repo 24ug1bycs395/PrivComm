@@ -6,14 +6,23 @@ import AnalyzerWorkspace from './components/AnalyzerWorkspace';
 import TestbedTab from './components/TestbedTab';
 import HistoryVaultTab from './components/HistoryVaultTab';
 import Overview from './components/Overview';
-import ThreatMatrixTab from './components/ThreatMatrixTab';
 import ComplianceTab from './components/ComplianceTab';
 import { ThemeProvider } from './ThemeContext';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTabRaw] = useState('overview');
   const [inspectedAnalysis, setInspectedAnalysis] = useState(null);
   const [liveJobId, setLiveJobId] = useState(null);
+  const [liveDashboardEnabled, setLiveDashboardEnabled] = useState(false);
+  const [showLiveBlockedDialog, setShowLiveBlockedDialog] = useState(false);
+
+  const setActiveTab = (tab) => {
+    if (tab === 'live' && !liveDashboardEnabled) {
+      setShowLiveBlockedDialog(true);
+      return;
+    }
+    setActiveTabRaw(tab);
+  };
 
   const handleNavigateToAnalysis = (analysisData) => {
     setInspectedAnalysis(analysisData);
@@ -29,7 +38,11 @@ export default function App() {
         <div className="ambient-glow-orb orb-bottom" aria-hidden="true" />
 
         {/* Sticky Glass Navbar */}
-        <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Navbar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          liveDashboardEnabled={liveDashboardEnabled}
+        />
 
         {/* Main Tab Content */}
         <main className="main-content">
@@ -56,6 +69,7 @@ export default function App() {
                 setLiveJobId(jobId);
                 setActiveTab('live');
               }}
+              onLiveAvailabilityChange={setLiveDashboardEnabled}
             />
           )}
           {activeTab === 'vault' && <HistoryVaultTab onSelectAnalysis={handleNavigateToAnalysis} />}
@@ -65,7 +79,6 @@ export default function App() {
               onViewTelemetry={() => setActiveTab('dashboard')}
             />
           )}
-          {activeTab === 'threat-matrix' && <ThreatMatrixTab />}
           {activeTab === 'compliance' && <ComplianceTab />}
         </main>
 
@@ -82,6 +95,103 @@ export default function App() {
             </div>
           </div>
         </footer>
+        {/* Live-blocked dialog */}
+        {showLiveBlockedDialog && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="live-blocked-title"
+            onClick={() => setShowLiveBlockedDialog(false)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9999,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)',
+              animation: 'fade-in 0.18s ease',
+            }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-default)',
+                borderRadius: '14px',
+                padding: '32px 36px',
+                maxWidth: '380px',
+                width: '90%',
+                boxShadow: '0 24px 64px rgba(0,0,0,0.45)',
+                textAlign: 'center',
+                animation: 'slide-in-up 0.22s var(--ease-spring)',
+              }}
+            >
+              {/* Icon */}
+              <div style={{
+                width: 52, height: 52, borderRadius: '50%',
+                background: 'rgba(234,179,8,0.12)',
+                border: '1px solid rgba(234,179,8,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 18px',
+                fontSize: '1.6rem',
+              }}>
+                {'!'}
+              </div>
+              <div id="live-blocked-title" style={{
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+                fontSize: '1rem',
+                color: 'var(--text-primary)',
+                marginBottom: '10px',
+                letterSpacing: '0.02em',
+              }}>
+                No Active Session
+              </div>
+              <p style={{
+                fontSize: '0.84rem',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.6,
+                marginBottom: '24px',
+              }}>
+                Run the testbed first to start a live IPsec session before opening the Live Dashboard.
+              </p>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                <button
+                  id="live-blocked-go-testbed"
+                  onClick={() => { setShowLiveBlockedDialog(false); setActiveTabRaw('testbed'); }}
+                  style={{
+                    padding: '9px 20px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: 'var(--accent-blue)',
+                    color: '#fff',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 600,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    letterSpacing: '0.03em',
+                  }}
+                >
+                  Go to Testbed
+                </button>
+                <button
+                  id="live-blocked-dismiss"
+                  onClick={() => setShowLiveBlockedDialog(false)}
+                  style={{
+                    padding: '9px 20px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-default)',
+                    background: 'transparent',
+                    color: 'var(--text-secondary)',
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 500,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ThemeProvider>
   );

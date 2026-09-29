@@ -24,7 +24,7 @@ export default function ComplianceTab() {
   ];
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', animation: 'fade-in 0.35s ease' }}>
+    <div className="record-page" style={{ maxWidth: '1000px', margin: '0 auto', animation: 'fade-in 0.35s ease' }}>
       <div style={{ marginBottom: '32px' }}>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: '8px',

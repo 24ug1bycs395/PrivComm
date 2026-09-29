@@ -85,11 +85,17 @@ class ProtocolIdentificationEngine:
         recommendations = generate_recommendations(findings)
         risk_res = calculate_security_risk(findings)
 
-        # 4. Generate Executive HTML Report
+        # 4. Generate Executive HTML & PDF Reports
         base_filename = os.path.splitext(os.path.basename(pcap_path))[0]
         html_output = os.path.join("results", f"{base_filename}_executive_report.html")
+        pdf_output = os.path.join("results", f"{base_filename}_executive_report.pdf")
         report_data = build_unified_analysis_report(ingest_res, traffic_res, findings, recommendations, risk_res)
         generate_html_report(report_data, html_output)
+        try:
+            from reports.pdf_report_generator import generate_pdf_report
+            generate_pdf_report(report_data, pdf_output)
+        except Exception as e:
+            logger.warning(f"Could not generate PDF report: {e}")
 
         from db.storage import StorageService
         report_url = StorageService.upload_report_html(f"{base_filename}_executive_report.html", html_output)

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Activity, AlertTriangle, CheckCircle, CircleStop, Play, RefreshCw, ShieldAlert, Terminal } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle, CircleStop, Cpu, Play, RefreshCw, ShieldAlert, Terminal } from 'lucide-react';
 
 const FALLBACK_OPTIONS = [
   { id: 'mitm', name: 'Man-in-the-middle', description: 'Models an untrusted relay between the VPN gateways.', signal: 'Peer path and identity mismatch' },
@@ -21,6 +21,7 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
   const [message, setMessage] = useState('');
 
   const activeSession = useMemo(() => sessions.find((session) => session.status === 'running'), [sessions]);
+
   const refresh = useCallback(async () => {
     try {
       const response = await fetch('/api/testbed/attack-simulations');
@@ -40,7 +41,7 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
 
   useEffect(() => {
     refresh();
-    const interval = setInterval(refresh, 5000);
+    const interval = setInterval(refresh, 4000);
     return () => clearInterval(interval);
   }, [refresh]);
 
@@ -51,11 +52,21 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
       const response = await fetch('/api/testbed/attack-simulations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ attack_type: selectedType, target, topology }),
+        body: JSON.stringify({
+          attack_type: selectedType,
+          target,
+          topology,
+          fallback: !isTestbedConnected,
+        }),
       });
       if (!response.ok) {
         const detail = await response.json().catch(() => null);
-        throw new Error(detail?.detail || `Unable to start simulation (HTTP ${response.status})`);
+        const errDetail = detail?.detail;
+        const errorMsg =
+          (typeof errDetail === 'object' ? errDetail?.message : errDetail) ||
+          detail?.message ||
+          `Unable to start simulation (HTTP ${response.status})`;
+        throw new Error(errorMsg);
       }
       await refresh();
     } catch (error) {
@@ -68,7 +79,15 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
   const stopSimulation = async (sessionId) => {
     try {
       const response = await fetch(`/api/testbed/attack-simulations/${sessionId}/stop`, { method: 'POST' });
-      if (!response.ok) throw new Error('Unable to stop simulation');
+      if (!response.ok) {
+        const detail = await response.json().catch(() => null);
+        const errDetail = detail?.detail;
+        const errorMsg =
+          (typeof errDetail === 'object' ? errDetail?.message : errDetail) ||
+          detail?.message ||
+          'Unable to stop simulation';
+        throw new Error(errorMsg);
+      }
       await refresh();
     } catch (error) {
       setMessage(error.message);
@@ -76,16 +95,26 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
   };
 
   return (
-    <section className={`glass-card attack-simulator ${!isTestbedConnected ? 'is-locked' : ''}`} aria-label="Attack simulator">
+    <section className="glass-card attack-simulator" aria-label="Attack simulator">
       <div className="attack-simulator-header">
         <div>
           <div className="attack-eyebrow"><ShieldAlert size={15} /> CONTROLLED SECURITY EXERCISE</div>
           <h2>Attack Simulator</h2>
-          <p>{isTestbedConnected ? 'Run telemetry-only scenarios from a separate, isolated Attack VM.' : 'Connect all testbed nodes before starting an attack simulation.'}</p>
+          <p>
+            {isTestbedConnected
+              ? 'Executing live control-plane scenarios across strongSwan Vagrant VMs.'
+              : 'Simulating controlled telemetry scenarios against reference baseline capture data (Fallback Mode).'}
+          </p>
         </div>
-        <div className={`attack-vm-status ${attackVm.status === 'running' ? 'is-running' : ''}`}>
-          <Activity size={16} />
-          <span><strong>Attack VM</strong><small>{attackVm.address} · {attackVm.status}</small></span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div className={`attack-mode-badge ${isTestbedConnected ? 'is-live' : 'is-fallback'}`} title={isTestbedConnected ? "Vagrant testbed VMs online" : "Testbed VMs offline; running simulated fallback"}>
+            <span className="dot" />
+            <span>{isTestbedConnected ? 'Live Testbed (Vagrant)' : 'Simulated Fallback Mode'}</span>
+          </div>
+          <div className={`attack-vm-status ${attackVm.status === 'running' ? 'is-running' : ''}`}>
+            <Activity size={16} />
+            <span><strong>Attack VM</strong><small>{attackVm.address} · {attackVm.status}</small></span>
+          </div>
         </div>
       </div>
 
@@ -96,7 +125,7 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
             key={option.id}
             className={`attack-option ${selectedType === option.id ? 'selected' : ''}`}
             onClick={() => setSelectedType(option.id)}
-            disabled={!isTestbedConnected || Boolean(activeSession)}
+            disabled={Boolean(activeSession)}
           >
             <span>{option.name}</span>
             <small>{option.description}</small>
@@ -108,7 +137,7 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
       <div className="attack-controls">
         <label>
           Target path
-          <select value={target} onChange={(event) => setTarget(event.target.value)} disabled={!isTestbedConnected || Boolean(activeSession)}>
+          <select value={target} onChange={(event) => setTarget(event.target.value)} disabled={Boolean(activeSession)}>
             <option>gateway-1 ↔ gateway-2</option>
             <option>client-1 ↔ gateway-1</option>
           </select>
@@ -118,8 +147,8 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
             <CircleStop size={16} /> Stop simulation
           </button>
         ) : (
-          <button type="button" className="attack-start-button" onClick={startSimulation} disabled={!isTestbedConnected || running || loading}>
-            <Play size={15} /> {running ? 'Starting...' : 'Start simulation'}
+          <button type="button" className="attack-start-button" onClick={startSimulation} disabled={running || loading}>
+            <Play size={15} /> {running ? 'Starting...' : isTestbedConnected ? 'Start simulation' : 'Start simulation (Fallback)'}
           </button>
         )}
         <button type="button" className="attack-refresh-button" onClick={refresh} title="Refresh simulation state" aria-label="Refresh simulation state">
@@ -128,8 +157,12 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
       </div>
 
       {!isTestbedConnected && (
-        <div className="attack-locked-state">
-          <AlertTriangle size={15} /> Attack simulations unlock after all three testbed nodes report online.
+        <div className="attack-fallback-notice">
+          <Cpu size={15} color="#38bdf8" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <span>
+            <strong>Simulated Telemetry Fallback is Active:</strong> You can launch and test all attack scenarios immediately on synthetic telemetry data without requiring strongSwan VirtualBox VMs.
+            To switch to full multi-VM hardware testing, run <code>vagrant up</code> in your terminal.
+          </span>
         </div>
       )}
 
@@ -137,7 +170,13 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
 
       {activeSession && (
         <div className="attack-active-state">
-          <div className="attack-active-title"><Terminal size={15} /> {TYPE_LABELS[activeSession.attack_type] || activeSession.attack_type} is running</div>
+          <div className="attack-active-title">
+            <Terminal size={15} />
+            {TYPE_LABELS[activeSession.attack_type] || activeSession.attack_type} is running
+            <span className={`session-mode-tag ${activeSession.mode || 'live'}`}>
+              {activeSession.mode === 'simulated_fallback' ? 'FALLBACK' : 'LIVE'}
+            </span>
+          </div>
           <span>{activeSession.target} · Detection: {activeSession.detection}</span>
         </div>
       )}
@@ -150,6 +189,9 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
               <div className="attack-session-main">
                 {session.status === 'running' ? <Activity size={14} /> : <CheckCircle size={14} />}
                 <strong>{TYPE_LABELS[session.attack_type] || session.attack_type}</strong>
+                <span className={`session-mode-tag ${session.mode || 'live'}`}>
+                  {session.mode === 'simulated_fallback' ? 'FALLBACK' : 'LIVE'}
+                </span>
                 <span>{session.status}</span>
               </div>
               <ul>{session.evidence?.map((item) => <li key={item}>{item}</li>)}</ul>

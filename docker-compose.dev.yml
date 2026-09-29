@@ -1,0 +1,23 @@
+services:
+  ipsec-analyzer:
+    extends:
+      file: docker-compose.yml
+      service: ipsec-analyzer
+
+  frontend-dev:
+    image: node:20-alpine
+    container_name: ipsec_analyzer_frontend_dev
+    working_dir: /app
+    environment:
+      VITE_BACKEND_URL: http://ipsec-analyzer:8000
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    command: sh -c "if [ ! -x node_modules/.bin/vite ]; then npm ci || npm install; fi && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - ipsec-analyzer
+
+volumes:
+  frontend_node_modules:

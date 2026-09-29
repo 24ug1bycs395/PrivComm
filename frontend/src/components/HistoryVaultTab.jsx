@@ -122,14 +122,14 @@ export default function HistoryVaultTab({ onSelectAnalysis }) {
                       <td style={{ padding: '12px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'inline-flex', gap: '8px' }}>
                           <a
-                            href={`/reports/download-html?filename=${filename}`}
+                            href={`/reports/download-pdf?filename=${filename}`}
                             target="_blank"
                             rel="noreferrer"
                             className="btn btn-secondary btn-sm"
                             style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                            title="Open Executive HTML Report"
+                            title="Open Executive PDF Report"
                           >
-                            <FileText size={13} /> HTML
+                            <FileText size={13} /> PDF
                           </a>
                           <button
                             type="button"

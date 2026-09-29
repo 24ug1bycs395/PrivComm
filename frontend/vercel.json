@@ -1,0 +1,28 @@
+{
+  "rewrites": [
+    {
+      "source": "/analyze/:path*",
+      "destination": "https://BACKEND_URL_PLACEHOLDER/analyze/:path*"
+    },
+    {
+      "source": "/reports/:path*",
+      "destination": "https://BACKEND_URL_PLACEHOLDER/reports/:path*"
+    },
+    {
+      "source": "/anomaly/:path*",
+      "destination": "https://BACKEND_URL_PLACEHOLDER/anomaly/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://BACKEND_URL_PLACEHOLDER/api/:path*"
+    },
+    {
+      "source": "/testbed/:path*",
+      "destination": "https://BACKEND_URL_PLACEHOLDER/testbed/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

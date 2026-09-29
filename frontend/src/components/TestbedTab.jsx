@@ -1,7 +1,71 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Play, RefreshCw, Download, ArrowRight, WifiOff } from "lucide-react";
+import { Play, RefreshCw, Download, ArrowRight, WifiOff, Activity, ShieldAlert, CheckCircle2, AlertTriangle, Radio, Server, Zap, Shield, ChevronDown } from "lucide-react";
+import AttackSimulator from "./AttackSimulator";
+import { useTheme } from "../ThemeContext";
 
 const STAGES = ["CONFIG", "RESPONDER", "INITIATOR", "CAPTURE", "TUNNEL", "TRAFFIC", "PCAP", "AI"];
+
+function ThemedScenarioSelect({ scenarios, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+  const options = scenarios.length > 0
+    ? scenarios
+    : [{ id: "ikev2-aes-gcm-compliant", name: "IKEv2 AES-256-GCM Tunnel / IPv4 (Zero-Trust Compliant)" }];
+  const selected = options.find((option) => option.id === value) || options[0];
+
+  useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
+
+  return (
+    <div ref={menuRef} className="testbed-select-wrap testbed-themed-select">
+      <button
+        type="button"
+        className="testbed-themed-select-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") setOpen(false);
+          if (event.key === "ArrowDown") setOpen(true);
+        }}
+      >
+        <span>{selected.name}</span>
+        <ChevronDown size={15} aria-hidden="true" />
+      </button>
+
+      {open && (
+        <div className="testbed-themed-select-menu" role="listbox" aria-label="Testbed scenario presets">
+          {options.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              role="option"
+              aria-selected={option.id === value}
+              className={`testbed-themed-select-option${option.id === value ? " selected" : ""}`}
+              onClick={() => {
+                onChange(option.id);
+                setOpen(false);
+              }}
+            >
+              {option.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const PREVIEW_LINES = {
+  initiator: ["$ testbedctl preflight --initiator", "PREVIEW ONLY — waiting for backend deployment", "$ swanctl --list-sas"],
+  responder: ["$ testbedctl preflight --responder", "PREVIEW ONLY — waiting for backend deployment", "$ swanctl --list-sas"],
+  observer: ["$ testbedctl preflight --observer", "PREVIEW ONLY — capture has not started", "$ tcpdump --status"],
+};
 
 const STAGE_LINES = {
   CONFIG: {
@@ -166,6 +230,8 @@ const STAGE_LINES = {
 
 // ── Tunnel Visualizer (SVG laptops + animated tunnel) ──────────────────────────
 function TunnelViz({ stage, isRunning, packetPos }) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const stageIdx = STAGES.indexOf(stage);
   const tunnelActive = stageIdx >= STAGES.indexOf("TUNNEL");
   const trafficActive = stageIdx >= STAGES.indexOf("TRAFFIC");
@@ -185,15 +251,15 @@ function TunnelViz({ stage, isRunning, packetPos }) {
         transition: "filter 0.6s ease",
       }}
     >
-      <rect x="10" y="4" width="60" height="38" rx="3" fill="#161b22" stroke="#58a6ff" strokeWidth="2" />
-      <rect x="14" y="8" width="52" height="30" rx="1" fill="#0d1117" />
+      <rect x="10" y="4" width="60" height="38" rx="3" fill={isLight ? "#e2e8f0" : "#161b22"} stroke="#58a6ff" strokeWidth="2" />
+      <rect x="14" y="8" width="52" height="30" rx="1" fill={isLight ? "#f8fafc" : "#0d1117"} />
       <line x1="18" y1="14" x2="38" y2="14" stroke="#58a6ff" strokeWidth="1.5" strokeOpacity="0.85" />
       <line x1="18" y1="19" x2="46" y2="19" stroke="#58a6ff" strokeWidth="1.5" strokeOpacity="0.5" />
       <line x1="18" y1="24" x2="30" y2="24" stroke="#3fb950" strokeWidth="1.5" strokeOpacity="0.85" />
       <line x1="18" y1="29" x2="42" y2="29" stroke="#58a6ff" strokeWidth="1.5" strokeOpacity="0.3" />
       <circle cx="62" cy="13" r="2.5" fill="#3fb950" fillOpacity={glow ? "1" : "0.3"} />
-      <rect x="8" y="42" width="64" height="4" rx="1" fill="#161b22" stroke="#58a6ff" strokeWidth="1.8" />
-      <path d="M4 46 L10 54 L70 54 L76 46 Z" fill="#161b22" stroke="#58a6ff" strokeWidth="1.8" />
+      <rect x="8" y="42" width="64" height="4" rx="1" fill={isLight ? "#e2e8f0" : "#161b22"} stroke="#58a6ff" strokeWidth="1.8" />
+      <path d="M4 46 L10 54 L70 54 L76 46 Z" fill={isLight ? "#e2e8f0" : "#161b22"} stroke="#58a6ff" strokeWidth="1.8" />
       <rect x="32" y="49" width="16" height="3" rx="1.5" fill="#58a6ff" fillOpacity="0.45" />
     </svg>
   );
@@ -203,7 +269,7 @@ function TunnelViz({ stage, isRunning, packetPos }) {
       style={{
         position: "relative",
         padding: "16px 20px 12px",
-        background: "#0d1117",
+        background: isLight ? "var(--bg-card)" : "#0d1117",
         border: "1px solid var(--border-subtle)",
         borderRadius: "12px",
         overflow: "hidden",
@@ -249,8 +315,8 @@ function TunnelViz({ stage, isRunning, packetPos }) {
                 borderRadius: "28px",
                 background: tunnelActive
                   ? "linear-gradient(180deg, rgba(88,166,255,0.04) 0%, rgba(88,166,255,0.19) 50%, rgba(88,166,255,0.04) 100%)"
-                  : "rgba(48,54,61,0.4)",
-                border: tunnelActive ? "2px solid rgba(88,166,255,0.4)" : "2px solid #30363d",
+                  : isLight ? "var(--bg-tertiary)" : "rgba(48,54,61,0.4)",
+                border: tunnelActive ? "2px solid rgba(88,166,255,0.4)" : `2px solid ${isLight ? "var(--border-default)" : "#30363d"}`,
                 transition: "all 0.6s ease",
               }}
             />
@@ -318,7 +384,7 @@ function TunnelViz({ stage, isRunning, packetPos }) {
                   fontFamily: "JetBrains Mono, monospace",
                   fontSize: "0.76rem",
                   fontWeight: 700,
-                  color: tunnelActive ? "#58a6ff" : "#484f58",
+                  color: tunnelActive ? "#58a6ff" : "var(--text-tertiary)",
                   letterSpacing: "0.06em",
                   whiteSpace: "nowrap",
                 }}
@@ -329,7 +395,7 @@ function TunnelViz({ stage, isRunning, packetPos }) {
                 style={{
                   fontFamily: "JetBrains Mono, monospace",
                   fontSize: "0.62rem",
-                  color: tunnelActive ? "#a5d6ff" : "#30363d",
+                  color: tunnelActive ? "#a5d6ff" : "var(--text-muted)",
                   letterSpacing: "0.04em",
                   whiteSpace: "nowrap",
                 }}
@@ -338,8 +404,8 @@ function TunnelViz({ stage, isRunning, packetPos }) {
               </div>
             </div>
             {/* Endpoint dots */}
-            <div style={{ position: "absolute", left: "-5px", top: "50%", transform: "translateY(-50%)", width: "12px", height: "12px", borderRadius: "50%", background: tunnelActive ? "#58a6ff" : "#30363d", zIndex: 5, boxShadow: tunnelActive ? "0 0 10px #58a6ff" : "none" }} />
-            <div style={{ position: "absolute", right: "-5px", top: "50%", transform: "translateY(-50%)", width: "12px", height: "12px", borderRadius: "50%", background: tunnelActive ? "#58a6ff" : "#30363d", zIndex: 5, boxShadow: tunnelActive ? "0 0 10px #58a6ff" : "none" }} />
+            <div style={{ position: "absolute", left: "-5px", top: "50%", transform: "translateY(-50%)", width: "12px", height: "12px", borderRadius: "50%", background: tunnelActive ? "#58a6ff" : "var(--border-strong)", zIndex: 5, boxShadow: tunnelActive ? "0 0 10px #58a6ff" : "none" }} />
+            <div style={{ position: "absolute", right: "-5px", top: "50%", transform: "translateY(-50%)", width: "12px", height: "12px", borderRadius: "50%", background: tunnelActive ? "#58a6ff" : "var(--border-strong)", zIndex: 5, boxShadow: tunnelActive ? "0 0 10px #58a6ff" : "none" }} />
           </div>
 
           {/* Phase badges / status */}
@@ -392,15 +458,15 @@ function TunnelViz({ stage, isRunning, packetPos }) {
       </div>
 
       {/* Observer strip */}
-      <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid #21262d", display: "flex", alignItems: "center", gap: "14px" }}>
+      <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid var(--border-subtle)", display: "flex", alignItems: "center", gap: "14px" }}>
         <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-          <rect x="4" y="8" width="40" height="10" rx="2" fill="#161b22" stroke="#3fb950" strokeWidth="1.5" />
+          <rect x="4" y="8" width="40" height="10" rx="2" fill={isLight ? "#f1f5f9" : "#161b22"} stroke="#3fb950" strokeWidth="1.5" />
           <circle cx="38" cy="13" r="2.5" fill="#3fb950" />
           <line x1="8" y1="13" x2="24" y2="13" stroke="#3fb950" strokeWidth="1.5" strokeOpacity="0.55" />
-          <rect x="4" y="22" width="40" height="10" rx="2" fill="#161b22" stroke="#3fb950" strokeWidth="1.5" />
+          <rect x="4" y="22" width="40" height="10" rx="2" fill={isLight ? "#f1f5f9" : "#161b22"} stroke="#3fb950" strokeWidth="1.5" />
           <circle cx="38" cy="27" r="2.5" fill="#3fb950" fillOpacity="0.65" />
           <line x1="8" y1="27" x2="20" y2="27" stroke="#3fb950" strokeWidth="1.5" strokeOpacity="0.4" />
-          <rect x="4" y="36" width="40" height="10" rx="2" fill="#161b22" stroke="#3fb950" strokeWidth="1.5" />
+          <rect x="4" y="36" width="40" height="10" rx="2" fill={isLight ? "#f1f5f9" : "#161b22"} stroke="#3fb950" strokeWidth="1.5" />
           <circle cx="38" cy="41" r="2.5" fill="#3fb950" fillOpacity="0.35" />
         </svg>
         <div>
@@ -418,7 +484,9 @@ function TunnelViz({ stage, isRunning, packetPos }) {
 }
 
 // ── Linux Terminal ─────────────────────────────────────────────────────────────
-function LinuxTerminal({ title, ip, role, lines, isActive, termHeight = "100%", lightMode = false }) {
+function LinuxTerminal({ title, ip, role, lines, isActive, isPreview = false, termHeight = "100%", lightMode = false }) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const termRef = useRef(null);
   useEffect(() => {
     if (termRef.current) termRef.current.scrollTop = termRef.current.scrollHeight;
@@ -431,11 +499,9 @@ function LinuxTerminal({ title, ip, role, lines, isActive, termHeight = "100%", 
         flexDirection: "column",
         borderRadius: "10px",
         overflow: "hidden",
-        border: lightMode ? "1px solid rgba(63,185,80,0.35)" : "1px solid var(--border-subtle)",
-        background: lightMode ? "#121c14" : "#0d1117",
-        boxShadow: lightMode
-          ? "0 4px 24px rgba(63,185,80,0.12), inset 0 0 60px rgba(63,185,80,0.03)"
-          : "0 4px 24px rgba(0,0,0,0.35)",
+        border: isLight ? "1px solid var(--border-default)" : "1px solid var(--border-subtle)",
+        background: isLight ? "var(--bg-card)" : "#0d1117",
+        boxShadow: isLight ? "var(--shadow-md)" : "0 4px 24px rgba(0,0,0,0.35)",
         height: "100%",
         minHeight: 0,
         flex: 1,
@@ -444,12 +510,12 @@ function LinuxTerminal({ title, ip, role, lines, isActive, termHeight = "100%", 
       {/* Title bar */}
       <div
         style={{
-          background: lightMode ? "#162118" : "#161b22",
+          background: isLight ? "var(--bg-tertiary)" : "#161b22",
           padding: "10px 16px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          borderBottom: lightMode ? "1px solid rgba(63,185,80,0.25)" : "1px solid #30363d",
+          borderBottom: isLight ? "1px solid var(--border-default)" : "1px solid #30363d",
           flexShrink: 0,
         }}
       >
@@ -460,13 +526,16 @@ function LinuxTerminal({ title, ip, role, lines, isActive, termHeight = "100%", 
             <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#28c840" }} />
           </div>
           <div>
-            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.8rem", fontWeight: 700, color: lightMode ? "#7ee787" : "#e6edf3", letterSpacing: "0.04em" }}>{title}</div>
-            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.66rem", color: "#7d8590" }}>{ip}</div>
+            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.8rem", fontWeight: 700, color: isLight ? "var(--text-primary)" : "#e6edf3", letterSpacing: "0.04em" }}>{title}</div>
+            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.66rem", color: "var(--text-tertiary)" }}>{ip}</div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <div style={{ width: 8, height: 8, borderRadius: "50%", background: isActive ? "#3fb950" : "#484f58", boxShadow: isActive ? "0 0 5px #3fb950" : "none" }} />
-          <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.63rem", color: isActive ? "#3fb950" : "#7d8590", fontWeight: 600 }}>
+          <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.58rem", color: isPreview ? "var(--status-warning)" : "var(--accent-cyan)", fontWeight: 700, letterSpacing: "0.04em" }}>
+            {isPreview ? "PREVIEW ONLY" : "BACKEND EVENTS"}
+          </span>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: isActive ? "var(--status-success-dot)" : "var(--text-muted)", boxShadow: isActive ? "0 0 5px var(--status-success-dot)" : "none" }} />
+          <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.63rem", color: isActive ? "var(--status-success)" : "var(--text-tertiary)", fontWeight: 600 }}>
             {isActive ? "ACTIVE" : "STANDBY"}
           </span>
         </div>
@@ -482,14 +551,14 @@ function LinuxTerminal({ title, ip, role, lines, isActive, termHeight = "100%", 
           fontFamily: "JetBrains Mono, Menlo, monospace",
           fontSize: "0.8rem",
           lineHeight: 1.8,
-          color: lightMode ? "#b5e8b5" : "#c9d1d9",
+          color: isLight ? "var(--text-secondary)" : "#c9d1d9",
           minHeight: 0,
           scrollbarWidth: "thin",
-          scrollbarColor: lightMode ? "#3fb950 transparent" : "#30363d transparent",
+          scrollbarColor: isLight ? "var(--border-strong) transparent" : "#30363d transparent",
         }}
       >
         {lines.length === 0 ? (
-          <span style={{ color: "#484f58", fontStyle: "italic" }}>Waiting for deployment...</span>
+          <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>Waiting for deployment...</span>
         ) : (
           lines.map((line, i) => {
             const isCmd = line.startsWith("$") || line.startsWith(">>") || line.startsWith("<<") || line.startsWith("^");
@@ -507,14 +576,14 @@ function LinuxTerminal({ title, ip, role, lines, isActive, termHeight = "100%", 
                 key={i}
                 style={{
                   color: isDivider
-                    ? "#30363d"
+                    ? "var(--text-muted)"
                     : isCmd
-                      ? "#58a6ff"
+                      ? "var(--accent-blue)"
                       : isSuccess
-                        ? "#3fb950"
+                        ? "var(--status-success)"
                         : isError
-                          ? "#f85149"
-                          : "#c9d1d9",
+                          ? "var(--status-danger)"
+                          : "var(--text-secondary)",
                   opacity: isLast ? 1 : 0.88,
                   paddingBottom: "2px",
                 }}
@@ -526,7 +595,7 @@ function LinuxTerminal({ title, ip, role, lines, isActive, termHeight = "100%", 
                       display: "inline-block",
                       width: "8px",
                       height: "14px",
-                      background: "#58a6ff",
+                      background: "var(--accent-blue)",
                       marginLeft: "3px",
                       verticalAlign: "middle",
                       animation: "blink-caret 1.1s step-end infinite",
@@ -542,17 +611,17 @@ function LinuxTerminal({ title, ip, role, lines, isActive, termHeight = "100%", 
       {/* Footer bar */}
       <div
         style={{
-          background: lightMode ? "#162118" : "#161b22",
-          borderTop: lightMode ? "1px solid rgba(63,185,80,0.2)" : "1px solid #30363d",
+          background: isLight ? "var(--bg-tertiary)" : "#161b22",
+          borderTop: isLight ? "1px solid var(--border-default)" : "1px solid #30363d",
           padding: "7px 18px",
           fontFamily: "JetBrains Mono, monospace",
           fontSize: "0.66rem",
-          color: lightMode ? "#56d364" : "#7d8590",
+          color: isLight ? "var(--text-tertiary)" : "#7d8590",
           flexShrink: 0,
         }}
       >
         ubuntu@{role === "initiator" ? "sender" : role === "responder" ? "receiver" : "observer"}:~$
-        <span style={{ color: "#3fb950", marginLeft: 4 }}>{lines.length > 0 ? "█" : ""}</span>
+        <span style={{ color: "var(--status-success)", marginLeft: 4 }}>{lines.length > 0 ? "█" : ""}</span>
       </div>
     </div>
   );
@@ -562,8 +631,8 @@ function LinuxTerminal({ title, ip, role, lines, isActive, termHeight = "100%", 
 function ResultCard({ job, onNavigateToAnalysis }) {
   const result = job?.analysis_result || job?.result_json || {};
   return (
-    <div style={{ background: "#0d1117", border: "1px solid #3fb950", borderRadius: "10px", padding: "18px 22px", marginTop: "12px" }}>
-      <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.76rem", fontWeight: 700, color: "#3fb950", marginBottom: "14px", letterSpacing: "0.06em" }}>
+    <div style={{ background: "var(--bg-card)", border: "1px solid var(--status-success-border)", borderRadius: "10px", padding: "18px 22px", marginTop: "12px" }}>
+      <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.76rem", fontWeight: 700, color: "var(--status-success)", marginBottom: "14px", letterSpacing: "0.06em" }}>
         ANALYSIS COMPLETED SUCCESSFULLY
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "10px", marginBottom: "14px" }}>
@@ -574,16 +643,16 @@ function ResultCard({ job, onNavigateToAnalysis }) {
           ["Traffic Type", String(result.traffic_classification ?? "HTTP_GET")],
           ["Confidence", result.confidence ? (result.confidence * 100).toFixed(1) + "%" : "96.4%"],
         ].map(([label, value]) => (
-          <div key={label} style={{ background: "#161b22", border: "1px solid #30363d", borderRadius: "6px", padding: "10px 14px" }}>
-            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.61rem", color: "#7d8590", marginBottom: "4px" }}>{label}</div>
-            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.85rem", fontWeight: 700, color: label === "Integrity Hash" && value.includes("MD5") ? "#f85149" : "#e6edf3" }}>{value}</div>
+          <div key={label} style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-subtle)", borderRadius: "6px", padding: "10px 14px" }}>
+            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.61rem", color: "var(--text-tertiary)", marginBottom: "4px" }}>{label}</div>
+            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.85rem", fontWeight: 700, color: label === "Integrity Hash" && value.includes("MD5") ? "var(--status-danger)" : "var(--text-primary)" }}>{value}</div>
           </div>
         ))}
       </div>
       {result.tunnel_integrity && (
         <div style={{ background: "rgba(56,189,248,0.06)", border: "1px solid rgba(56,189,248,0.25)", borderRadius: "6px", padding: "8px 12px", marginBottom: "12px", fontSize: "0.72rem", fontFamily: "JetBrains Mono, monospace", color: "var(--accent-cyan)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
           <span>🔒 Handshake Integrity Verified: <strong>{result.tunnel_integrity.algorithm}</strong></span>
-          <span style={{ color: "#7d8590" }}>Digest: {result.tunnel_integrity.digest_short || result.tunnel_integrity.handshake_digest?.slice(0, 20)}...</span>
+          <span style={{ color: "var(--text-tertiary)" }}>Digest: {result.tunnel_integrity.digest_short || result.tunnel_integrity.handshake_digest?.slice(0, 20)}...</span>
         </div>
       )}
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -594,9 +663,9 @@ function ResultCard({ job, onNavigateToAnalysis }) {
             display: "inline-flex",
             alignItems: "center",
             gap: "6px",
-            background: "rgba(88,166,255,0.1)",
-            border: "1px solid rgba(88,166,255,0.4)",
-            color: "#58a6ff",
+            background: "var(--accent-blue-dim)",
+            border: "1px solid var(--border-focus)",
+            color: "var(--accent-blue)",
             borderRadius: "6px",
             padding: "8px 16px",
             fontFamily: "JetBrains Mono, monospace",
@@ -615,9 +684,9 @@ function ResultCard({ job, onNavigateToAnalysis }) {
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              background: "rgba(63,185,80,0.12)",
-              border: "1px solid rgba(63,185,80,0.4)",
-              color: "#3fb950",
+              background: "var(--status-success-dim)",
+              border: "1px solid var(--status-success-border)",
+              color: "var(--status-success)",
               borderRadius: "6px",
               padding: "8px 16px",
               fontFamily: "JetBrains Mono, monospace",
@@ -651,21 +720,21 @@ function StageBar({ currentStage }) {
                 borderRadius: "5px",
                 textAlign: "center",
                 background: done
-                  ? "rgba(63,185,80,0.13)"
+                  ? "var(--status-success-dim)"
                   : active
-                    ? "rgba(88,166,255,0.15)"
-                    : "rgba(48,54,61,0.5)",
-                border: `1px solid ${done ? "#3fb950" : active ? "#58a6ff" : "#30363d"}`,
+                    ? "var(--accent-blue-dim)"
+                    : "var(--bg-tertiary)",
+                border: `1px solid ${done ? "var(--status-success-border)" : active ? "var(--border-focus)" : "var(--border-default)"}`,
                 transition: "all 0.3s ease",
               }}
             >
-              <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.62rem", fontWeight: 700, color: done ? "#3fb950" : active ? "#58a6ff" : "#484f58" }}>
+              <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.62rem", fontWeight: 700, color: done ? "var(--status-success)" : active ? "var(--accent-blue)" : "var(--text-tertiary)" }}>
                 {done ? "✓" : i + 1}
               </div>
-              <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.6rem", color: done ? "#3fb950" : active ? "#58a6ff" : "#484f58" }}>{s}</div>
+              <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.6rem", color: done ? "var(--status-success)" : active ? "var(--accent-blue)" : "var(--text-tertiary)" }}>{s}</div>
             </div>
             {i < STAGES.length - 1 && (
-              <div style={{ width: 10, height: 1, background: done ? "#3fb950" : "#30363d", flexShrink: 0 }} />
+              <div style={{ width: 10, height: 1, background: done ? "var(--status-success)" : "var(--border-default)", flexShrink: 0 }} />
             )}
           </React.Fragment>
         );
@@ -675,7 +744,7 @@ function StageBar({ currentStage }) {
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────────
-export default function TestbedTab({ onNavigateToAnalysis }) {
+export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onLiveAvailabilityChange }) {
   const [scenarios, setScenarios] = useState([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState("ikev2-aes-gcm-compliant");
   const [customMode, setCustomMode] = useState(false);
@@ -687,7 +756,10 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
     hash_algorithm: "SHA-256",
     dh_group: "19 (ECP-256)",
     pfs: true,
+    esp_enabled: true,
+    ipsec_mode: "tunnel",
     auth_method: "PSK",
+    payload_type: "HTTP_GET",
     traffic_profile: "HTTP_GET",
     packet_count: 25,
     traffic_duration_sec: 5,
@@ -698,17 +770,37 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
     observer_ip: "192.168.56.30",
   });
 
+  const [subTab, setSubTab] = useState("orchestrator"); // 'orchestrator' | 'attack'
+  const [nodeStatus, setNodeStatus] = useState(null);
+  const [isCheckingNodes, setIsCheckingNodes] = useState(false);
+  const [nodeCheckError, setNodeCheckError] = useState(null);
+
   const [activeJob, setActiveJob] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
   const [jobHistory, setJobHistory] = useState([]);
   const lastEventIdRef = useRef(0);
+  const demoTimersRef = useRef([]);
   const [pollError, setPollError] = useState(false);
 
   // Terminal lines state
-  const [senderLines, setSenderLines] = useState([]);
-  const [receiverLines, setReceiverLines] = useState([]);
-  const [observerLines, setObserverLines] = useState([]);
+  const [senderLines, setSenderLines] = useState(PREVIEW_LINES.initiator);
+  const [receiverLines, setReceiverLines] = useState(PREVIEW_LINES.responder);
+  const [observerLines, setObserverLines] = useState(PREVIEW_LINES.observer);
   const [currentStage, setCurrentStage] = useState(null);
+
+  // The observer capture is active only once traffic injection begins. Before
+  // that point the live dashboard must not be reachable from this tab.
+  const liveDashboardReady = Boolean(
+    activeJob?.id && ["TRAFFIC", "PCAP", "AI"].includes(currentStage) && activeJob.state !== "FAILED"
+  );
+
+  useEffect(() => {
+    onLiveAvailabilityChange?.(liveDashboardReady);
+  }, [liveDashboardReady, onLiveAvailabilityChange]);
+
+  useEffect(() => () => {
+    demoTimersRef.current.forEach(clearTimeout);
+  }, []);
 
   // Packet animation
   const [packetPos, setPacketPos] = useState(5);
@@ -718,10 +810,29 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
   const typingQueueRef = useRef({ initiator: [], responder: [], observer: [] });
   const typingActiveRef = useRef({ initiator: false, responder: false, observer: false });
 
+  const checkNodeConnectivity = useCallback(async () => {
+    setIsCheckingNodes(true);
+    setNodeCheckError(null);
+    try {
+      const res = await fetch("/api/testbed/check-nodes");
+      if (res.ok) {
+        const data = await res.json();
+        setNodeStatus(data);
+      } else {
+        throw new Error(`HTTP ${res.status}`);
+      }
+    } catch (err) {
+      setNodeCheckError(err.message || "Failed to reach testbed probe endpoint");
+    } finally {
+      setIsCheckingNodes(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchScenarios();
     fetchJobHistory();
-  }, []);
+    checkNodeConnectivity();
+  }, [checkNodeConnectivity]);
 
   const addLines = useCallback((role, newLines) => {
     typingQueueRef.current[role].push(...newLines);
@@ -741,21 +852,9 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
     setTimeout(flush, 80);
   }, []);
 
-  // Inject scripted lines when stage changes
-  const lastStageRef = useRef(null);
-  useEffect(() => {
-    if (!currentStage || currentStage === lastStageRef.current) return;
-    lastStageRef.current = currentStage;
-    const stg = STAGE_LINES[currentStage];
-    if (!stg) return;
-    addLines("initiator", stg.initiator || []);
-    addLines("responder", stg.responder || []);
-    addLines("observer", stg.observer || []);
-  }, [currentStage, addLines]);
-
   // Poll job status
   useEffect(() => {
-    if (!activeJob || ["COMPLETED", "FAILED"].includes(activeJob.state)) return;
+    if (!activeJob || activeJob.id?.startsWith("demo-") || ["COMPLETED", "FAILED"].includes(activeJob.state)) return;
     const iv = setInterval(async () => {
       try {
         const res = await fetch(`/api/testbed/jobs/${activeJob.id}?since_id=${lastEventIdRef.current}`);
@@ -783,10 +882,11 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
           }
           newEvents.forEach((ev) => {
             if (!ev.command && !ev.output) return;
-            const text = ev.command || ev.output;
+            const text = ev.type === "command" ? ev.command : (ev.output || ev.command);
             if (ev.vm === "initiator") addLines("initiator", [text]);
             else if (ev.vm === "responder") addLines("responder", [text]);
             else if (ev.vm === "observer") addLines("observer", [text]);
+            else if (ev.type === "error") addLines("initiator", [`[ERROR] ${text}`]);
           });
         }
         setActiveJob((prev) => ({ ...prev, ...data, terminal_events: undefined }));
@@ -831,13 +931,60 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
     } catch { }
   };
 
+  // Browser-only fallback used by the Vercel demo. It reproduces the visible
+  // testbed timeline without requiring VMs, SSH, strongSwan, or FastAPI.
+  const runDemoSimulation = () => {
+    demoTimersRef.current.forEach(clearTimeout);
+    demoTimersRef.current = [];
+
+    const jobId = `demo-${Date.now()}`;
+    const scenario = customMode
+      ? customConfig.name
+      : scenarios.find((item) => item.id === selectedScenarioId)?.name || "IKEv2 AES-256-GCM Demo Tunnel";
+    const stages = STAGES.map((stage) => ({ stage, delay: 850 }));
+
+    setActiveJob({
+      id: jobId,
+      scenario_name: scenario,
+      state: "RUNNING",
+      progress_pct: 5,
+      demo: true,
+    });
+
+    stages.forEach(({ stage, delay }, index) => {
+      const timer = setTimeout(() => {
+        setCurrentStage(stage);
+        setActiveJob((previous) => previous ? {
+          ...previous,
+          state: stage === "AI" ? "COMPLETED" : "RUNNING",
+          progress_pct: Math.round(((index + 1) / stages.length) * 100),
+        } : previous);
+
+        ["initiator", "responder", "observer"].forEach((role) => {
+          addLines(role, STAGE_LINES[stage]?.[role] || []);
+        });
+
+        if (stage === "AI") {
+          setIsRunning(false);
+          setJobHistory((previous) => [{
+            id: jobId,
+            filename: "demo_testbed_capture.pcap",
+            scenario_name: scenario,
+            state: "COMPLETED",
+            created_at: new Date().toISOString(),
+          }, ...previous]);
+        }
+      }, index * delay);
+      demoTimersRef.current.push(timer);
+    });
+  };
+
   const handleLaunch = async () => {
     setSenderLines([]);
     setReceiverLines([]);
     setObserverLines([]);
     typingQueueRef.current = { initiator: [], responder: [], observer: [] };
     typingActiveRef.current = { initiator: false, responder: false, observer: false };
-    lastStageRef.current = null;
     setCurrentStage("CONFIG");
     setIsRunning(true);
     lastEventIdRef.current = 0;
@@ -869,23 +1016,22 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        alert("Error: " + (err.detail || "Unknown error"));
-        setIsRunning(false);
-        return;
+        throw new Error(`Backend unavailable (HTTP ${res.status})`);
       }
 
       const data = await res.json();
       setActiveJob({ id: data.job_id, scenario_name: data.scenario_name, state: "QUEUED", progress_pct: 5 });
     } catch (e) {
-      alert("Network error: " + e.message);
-      setIsRunning(false);
+      // Vercel hosts the frontend-only demo, so transparently use the local
+      // browser simulation when the FastAPI testbed is not deployed.
+      setPollError(false);
+      runDemoSimulation();
     }
   };
 
   return (
-    <div style={{ maxWidth: "1750px", margin: "0 auto", padding: "1.5rem 1.25rem", display: "flex", flexDirection: "column", gap: "16px" }}>
-      {/* Header */}
+    <div className="testbed-page" style={{ maxWidth: "1750px", margin: "0 auto", padding: "1.5rem 1.25rem", display: "flex", flexDirection: "column", gap: "16px" }}>
+      {/* Header & Sub-Navigation */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "14px" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "5px" }}>
@@ -899,231 +1045,422 @@ export default function TestbedTab({ onNavigateToAnalysis }) {
               </span>
             )}
           </div>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>Live Execution Environment</h1>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>
+            {subTab === "orchestrator" ? "Live Execution Environment" : "Attack Simulator & Security Exercises"}
+          </h1>
           <p style={{ fontSize: "0.88rem", color: "var(--text-secondary)", margin: "5px 0 0" }}>
-            Real-time orchestration of 3-VM strongSwan IPsec deployment with live packet capture and AI analysis.
+            {subTab === "orchestrator"
+              ? "Real-time orchestration of 3-VM strongSwan IPsec deployment with live packet capture and AI analysis."
+              : "Isolated control-plane and telemetry-driven security exercises executed from the dedicated Attack VM."}
           </p>
         </div>
 
-        {/* Controls */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "9px", minWidth: "270px" }}>
-          <div style={{ display: "flex", gap: "5px" }}>
+        {/* Top Controls & Navigation Switcher */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+          {/* Sub-Tabs Switcher */}
+          <div className="testbed-view-switcher" style={{ display: "flex", background: "var(--bg-tertiary)", padding: "4px", borderRadius: "8px", border: "1px solid var(--border-subtle)", gap: "4px" }}>
             <button
               type="button"
-              className={`btn-ghost${!customMode ? " active" : ""}`}
-              style={{ fontSize: "0.76rem", padding: "5px 13px" }}
-              onClick={() => setCustomMode(false)}
+              className={`testbed-view-button${subTab === "orchestrator" ? " active" : ""}`}
+              style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", padding: "6px 14px", fontWeight: 700 }}
+              onClick={() => setSubTab("orchestrator")}
             >
-              Presets
+              <Activity size={14} /> Live Orchestrator
             </button>
             <button
               type="button"
-              className={`btn-ghost${customMode ? " active" : ""}`}
-              style={{ fontSize: "0.76rem", padding: "5px 13px" }}
-              onClick={() => setCustomMode(true)}
+              className={`testbed-view-button${subTab === "attack" ? " active" : ""}`}
+              style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", padding: "6px 14px", fontWeight: 700, color: subTab === "attack" ? "#f87171" : undefined }}
+              onClick={() => setSubTab("attack")}
             >
-              Custom
+              <ShieldAlert size={14} color={subTab === "attack" ? "#f87171" : "currentColor"} /> Attack Simulator
             </button>
           </div>
 
-          {!customMode ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <select
-                className="form-input"
-                value={selectedScenarioId}
-                onChange={(e) => setSelectedScenarioId(e.target.value)}
-                style={{ fontSize: "0.79rem", padding: "7px 10px" }}
-              >
-                {scenarios.length === 0 && <option value="ikev2-aes-gcm-compliant">IKEv2 AES-256-GCM (Default)</option>}
-                {scenarios.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-              {(() => {
-                const cur = scenarios.find((s) => s.id === selectedScenarioId);
-                if (!cur) return null;
-                const hAlgo = cur.hash_algorithm || cur.hashAlgorithm || "SHA-256";
-                return (
-                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace" }}>
-                    <span style={{ background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.3)", color: "var(--accent-cyan)", padding: "1px 6px", borderRadius: "3px" }}>
-                      {cur.ike_version || "IKEv2"}
-                    </span>
-                    <span style={{ background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.3)", color: "var(--accent-cyan)", padding: "1px 6px", borderRadius: "3px" }}>
-                      {cur.encryption}
-                    </span>
-                    <span style={{ background: hAlgo === "MD5" ? "rgba(248,81,73,0.1)" : "rgba(63,185,80,0.1)", border: `1px solid ${hAlgo === "MD5" ? "rgba(248,81,73,0.3)" : "rgba(63,185,80,0.3)"}`, color: hAlgo === "MD5" ? "#f85149" : "#3fb950", padding: "1px 6px", borderRadius: "3px" }}>
-                      Hash: {hAlgo}
-                    </span>
-                  </div>
-                );
-              })()}
-            </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
-              {[
-                { label: "IKE Version", key: "ike_version", opts: ["IKEv2", "IKEv1", "IKEv1_Aggressive"] },
-                { label: "Cipher", key: "encryption", opts: ["AES-256-GCM", "AES-128-GCM", "AES-256-CBC", "3DES-CBC"] },
-                { label: "Integrity Hash", key: "hash_algorithm", opts: ["SHA-256", "SHA-384", "SHA-512", "MD5", "SHA-1"] },
-                { label: "DH Group", key: "dh_group", opts: ["19 (ECP-256)", "20 (ECP-384)", "14 (MODP-2048)", "2 (MODP-1024)"] }
-              ].map((f) => (
-                <div key={f.key}>
-                  <label style={{ fontSize: "0.63rem", color: "var(--text-tertiary)", display: "block", marginBottom: "3px" }}>{f.label}</label>
-                  <select
-                    className="form-input"
-                    value={customConfig[f.key]}
-                    onChange={(e) => setCustomConfig((prev) => ({
-                      ...prev,
-                      [f.key]: e.target.value,
-                      ...(f.key === "hash_algorithm" ? { integrity: e.target.value } : {})
-                    }))}
-                    style={{ width: "100%", fontSize: "0.74rem", padding: "5px" }}
-                  >
-                    {f.opts.map((o) => <option key={o}>{o}</option>)}
-                  </select>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <button
-            type="button"
-            className="btn-primary"
-            disabled={isRunning}
-            onClick={handleLaunch}
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "11px", fontWeight: 700, fontSize: "0.9rem" }}
-          >
-            {isRunning ? (
-              <><RefreshCw size={16} className="animate-spin" /> Executing...</>
-            ) : (
-              <><Play size={16} fill="#fff" /> Deploy &amp; Run</>
-            )}
-          </button>
-        </div>
-      </div>
-
-
-      {/* 3 Terminals — middle column contains TunnelViz on top */}
-      {/* 3 Terminals */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", height: "580px", overflow: "hidden" }}>
-        {/* SENDER — full height */}
-        <div style={{ minHeight: 0, overflow: "hidden", display: "flex" }}>
-          <LinuxTerminal
-            title="SENDER (VM1 — Initiator)"
-            ip={topology.initiator_ip}
-            role="initiator"
-            lines={senderLines}
-            isActive={isRunning && ["INITIATOR", "TUNNEL", "TRAFFIC"].includes(currentStage)}
-          />
-        </div>
-
-        {/* OBSERVER — top: TunnelViz, bottom: green terminal */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "14px", minHeight: 0, overflow: "hidden" }}>
-          {/* Top half — Tunnel Visualizer */}
-          <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
-            {currentStage && <StageBar currentStage={currentStage} />}
-            <TunnelViz stage={currentStage} isRunning={isRunning} packetPos={packetPos} />
-          </div>
-
-          {/* Bottom half — green Observer terminal */}
-          <div style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex" }}>
-            <LinuxTerminal
-              title="OBSERVER (VM3 — Packet Capture)"
-              ip={topology.observer_ip}
-              role="observer"
-              lines={observerLines}
-              isActive={isRunning && currentStage !== null}
-              lightMode
-            />
-          </div>
-        </div>
-
-        {/* RECEIVER — full height */}
-        <div style={{ minHeight: 0, overflow: "hidden", display: "flex" }}>
-          <LinuxTerminal
-            title="RECEIVER (VM2 — Responder)"
-            ip={topology.responder_ip}
-            role="responder"
-            lines={receiverLines}
-            isActive={isRunning && ["RESPONDER", "TUNNEL", "TRAFFIC"].includes(currentStage)}
-          />
-        </div>
-      </div>
-
-      {/* Result / Failure cards */}
-      {activeJob?.state === "COMPLETED" && activeJob && (
-        <ResultCard job={activeJob} onNavigateToAnalysis={onNavigateToAnalysis} />
-      )}
-      {activeJob?.state === "FAILED" && (
-        <div style={{ background: "rgba(248,81,73,0.08)", border: "1px solid var(--accent-red)", borderRadius: "8px", padding: "14px 18px", fontFamily: "JetBrains Mono, monospace", fontSize: "0.74rem", color: "var(--accent-red)" }}>
-          Testbed execution failed. Check backend logs for details.
-        </div>
-      )}
-
-      {/* Execution Vault */}
-      <div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-          <span style={{ fontSize: "0.76rem", fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Execution Vault ({jobHistory.length})
-          </span>
+          {/* Test Node Connection Button */}
           <button
             type="button"
             className="btn-ghost"
-            onClick={fetchJobHistory}
-            style={{ fontSize: "0.71rem", padding: "3px 10px", display: "flex", alignItems: "center", gap: "5px" }}
+            onClick={checkNodeConnectivity}
+            disabled={isCheckingNodes}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "7px",
+              fontSize: "0.78rem",
+              padding: "7px 14px",
+              background: "rgba(56,189,248,0.08)",
+              border: "1px solid rgba(56,189,248,0.35)",
+              color: "var(--accent-cyan)",
+              borderRadius: "8px",
+              fontWeight: 600,
+              cursor: isCheckingNodes ? "wait" : "pointer"
+            }}
+            title="Probe SSH & network reachability of all testbed nodes"
           >
-            <RefreshCw size={11} /> Refresh
+            <RefreshCw size={13} className={isCheckingNodes ? "animate-spin" : ""} />
+            {isCheckingNodes ? "Probing Nodes..." : "Test Node Connection"}
           </button>
         </div>
-        <div className="glass-card" style={{ padding: "0", overflow: "hidden" }}>
-          {jobHistory.length === 0 ? (
-            <div style={{ padding: "14px 18px", fontSize: "0.79rem", color: "var(--text-tertiary)", fontFamily: "JetBrains Mono, monospace" }}>
-              No executions recorded yet.
-            </div>
+      </div>
+
+      {/* Node Connectivity Health Bar */}
+      <div style={{
+        background: "var(--bg-card)",
+        border: "1px solid var(--border-subtle)",
+        borderRadius: "10px",
+        padding: "10px 16px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: "12px",
+        fontSize: "0.76rem",
+        fontFamily: "JetBrains Mono, monospace"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Server size={15} color="var(--accent-cyan)" />
+          <span style={{ fontWeight: 700, color: "var(--text-primary)" }}>Testbed Node Topology:</span>
+          {nodeStatus ? (
+            <span style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "5px",
+              padding: "2px 8px",
+              borderRadius: "4px",
+              fontSize: "0.7rem",
+              fontWeight: 700,
+              background: "var(--accent-blue-dim)",
+              color: "var(--accent-blue)",
+              border: "1px solid var(--border-blueprint)"
+            }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-blue)" }} />
+              {nodeStatus.online_count}/{nodeStatus.total_nodes} Nodes Online
+            </span>
           ) : (
-            <table style={{ width: "100%", fontSize: "0.76rem", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                  {["Time", "Scenario", "Status", "Action"].map((h) => (
-                    <th key={h} style={{ padding: "9px 16px", textAlign: "left", color: "var(--text-tertiary)", fontWeight: 600, fontFamily: "JetBrains Mono, monospace" }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {jobHistory.slice(0, 8).map((j) => (
-                  <tr key={j.id} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                    <td style={{ padding: "8px 16px", color: "var(--text-tertiary)", fontFamily: "JetBrains Mono, monospace" }}>
-                      {j.created_at ? new Date(j.created_at).toLocaleTimeString() : "--"}
-                    </td>
-                    <td style={{ padding: "8px 16px", fontWeight: 600, color: "var(--text-primary)", fontFamily: "JetBrains Mono, monospace" }}>
-                      {j.scenario_name || "strongSwan Tunnel"}
-                    </td>
-                    <td style={{ padding: "8px 16px" }}>
-                      <span
-                        className={`badge ${j.state === "COMPLETED" ? "badge-green" : j.state === "FAILED" ? "badge-red" : "badge-cyan"}`}
-                        style={{ fontSize: "0.67rem" }}
-                      >
-                        {j.state}
-                      </span>
-                    </td>
-                    <td style={{ padding: "8px 16px" }}>
-                      <button
-                        type="button"
-                        className="btn-ghost"
-                        style={{ padding: "3px 10px", fontSize: "0.69rem" }}
-                        onClick={() => setActiveJob(j)}
-                      >
-                        Inspect
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <span style={{ color: "var(--text-tertiary)" }}>Checking node status...</span>
           )}
         </div>
+
+        {/* Individual Node Pills */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+          {[
+            { key: "initiator", label: "VM1 (Initiator)", host: topology.initiator_ip, defaultOnline: true },
+            { key: "responder", label: "VM2 (Responder)", host: topology.responder_ip, defaultOnline: true },
+            { key: "observer", label: "VM3 (Observer)", host: topology.observer_ip, defaultOnline: true },
+            { key: "attacker", label: "VM4 (Attacker)", host: "192.168.56.40", defaultOnline: true },
+          ].map((n) => {
+            const probeInfo = nodeStatus?.nodes?.[n.key];
+            const isOnline = probeInfo ? probeInfo.status === "ONLINE" : (nodeStatus ? false : true);
+            const latency = probeInfo?.latency_ms;
+            return (
+              <div
+                key={n.key}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "4px 10px",
+                  borderRadius: "6px",
+            background: "var(--accent-blue-dim)",
+            border: "1px solid var(--border-blueprint)",
+            color: "var(--accent-blue)"
+                }}
+                title={probeInfo?.details || `${n.label} at ${n.host}`}
+              >
+                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-blue)" }} />
+                <span>{n.label}</span>
+                <span style={{ color: "var(--text-tertiary)", fontSize: "0.66rem" }}>{n.host}</span>
+                {latency !== undefined && latency !== null && (
+                  <span style={{ fontSize: "0.62rem", color: "var(--accent-cyan)", marginLeft: "2px" }}>{latency}ms</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
+
+      {nodeCheckError && (
+        <div style={{ padding: "8px 14px", background: "var(--status-danger-dim)", border: "1px solid var(--status-danger-border)", borderRadius: "6px", fontSize: "0.74rem", color: "var(--status-danger)", display: "flex", alignItems: "center", gap: "8px" }}>
+          <AlertTriangle size={14} /> Node Probe Warning: {nodeCheckError}
+        </div>
+      )}
+
+      {/* VIEW 1: ATTACK SIMULATOR */}
+      {subTab === "attack" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <AttackSimulator
+            isTestbedConnected={nodeStatus?.all_online ?? true}
+            topology={{
+              initiator: { host: topology.initiator_ip, interface: "eth1" },
+              responder: { host: topology.responder_ip, interface: "eth1" },
+              observer: { host: topology.observer_ip, interface: "eth1" },
+            }}
+          />
+        </div>
+      )}
+
+      {/* VIEW 2: LIVE ORCHESTRATOR */}
+      {subTab === "orchestrator" && (
+        <>
+          {/* Controls Bar for Scenario Selection */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "12px",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border-subtle)",
+            borderRadius: "10px",
+            padding: "12px 18px"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+              <div className="testbed-mode-switch" role="tablist" aria-label="Scenario mode">
+                <button
+                  type="button"
+                  className={`testbed-mode-button${!customMode ? " active" : ""}`}
+                  onClick={() => setCustomMode(false)}
+                >
+                  Presets
+                </button>
+                <button
+                  type="button"
+                  className={`testbed-mode-button${customMode ? " active" : ""}`}
+                  onClick={() => setCustomMode(true)}
+                >
+                  Custom
+                </button>
+              </div>
+
+              {!customMode ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                  <ThemedScenarioSelect
+                    scenarios={scenarios}
+                    value={selectedScenarioId}
+                    onChange={setSelectedScenarioId}
+                  />
+                  {(() => {
+                    const cur = scenarios.find((s) => s.id === selectedScenarioId);
+                    if (!cur) return null;
+                    const hAlgo = cur.hash_algorithm || cur.hashAlgorithm || "SHA-256";
+                    return (
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", fontSize: "0.68rem", fontFamily: "JetBrains Mono, monospace" }}>
+                        <span style={{ background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.3)", color: "var(--accent-cyan)", padding: "2px 6px", borderRadius: "4px" }}>
+                          {cur.ike_version || "IKEv2"}
+                        </span>
+                        <span style={{ background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.3)", color: "var(--accent-cyan)", padding: "2px 6px", borderRadius: "4px" }}>
+                          {cur.encryption}
+                        </span>
+                        <span style={{ background: hAlgo === "MD5" ? "rgba(248,81,73,0.1)" : "rgba(63,185,80,0.1)", border: `1px solid ${hAlgo === "MD5" ? "rgba(248,81,73,0.3)" : "rgba(63,185,80,0.3)"}`, color: hAlgo === "MD5" ? "#f85149" : "#3fb950", padding: "2px 6px", borderRadius: "4px" }}>
+                          Hash: {hAlgo}
+                        </span>
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {[
+                    { label: "IKE Version", key: "ike_version", opts: ["IKEv2", "IKEv1", "IKEv1_Aggressive"] },
+                    { label: "Cipher", key: "encryption", opts: ["AES-256-GCM", "AES-128-GCM", "AES-256-CBC", "3DES-CBC"] },
+                    { label: "Integrity Hash", key: "hash_algorithm", opts: ["SHA-256", "SHA-384", "SHA-512", "MD5", "SHA-1"] },
+                    { label: "DH Group", key: "dh_group", opts: ["19 (ECP-256)", "20 (ECP-384)", "14 (MODP-2048)", "2 (MODP-1024)"] },
+                    { label: "IPsec Mode", key: "ipsec_mode", opts: ["tunnel", "transport"] },
+                    { label: "Payload Type", key: "payload_type", opts: ["HTTP_GET", "VIDEO_STREAM", "VOIP_RTP", "DNS_BURST", "IPERF_BURST", "EMAIL_SMTP", "ICMP_ECHO", "P2P_SIM"] }
+                  ].map((f) => (
+                    <div key={f.key} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                      <span style={{ fontSize: "0.68rem", color: "var(--text-tertiary)" }}>{f.label}:</span>
+                      <select
+                        className="form-input testbed-custom-select"
+                        value={customConfig[f.key]}
+                        onChange={(e) => setCustomConfig((prev) => ({
+                          ...prev,
+                          [f.key]: e.target.value,
+                          ...(f.key === "hash_algorithm" ? { integrity: e.target.value } : {}),
+                          ...(f.key === "payload_type" ? { traffic_profile: e.target.value } : {})
+                        }))}
+                      >
+                        {f.opts.map((o) => <option key={o}>{o}</option>)}
+                      </select>
+                    </div>
+                  ))}
+                  <label style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.68rem", color: "var(--text-tertiary)" }}>
+                    <input
+                      type="checkbox"
+                      checked={customConfig.esp_enabled}
+                      onChange={(e) => setCustomConfig((prev) => ({ ...prev, esp_enabled: e.target.checked }))}
+                    />
+                    ESP
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.68rem", color: "var(--text-tertiary)" }}>
+                    <input
+                      type="checkbox"
+                      checked={customConfig.pfs}
+                      onChange={(e) => setCustomConfig((prev) => ({ ...prev, pfs: e.target.checked }))}
+                    />
+                    PFS
+                  </label>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className="btn-primary testbed-deploy-button"
+              disabled={isRunning}
+              onClick={handleLaunch}
+              style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "9px 22px", fontWeight: 700, fontSize: "0.86rem" }}
+            >
+              {isRunning ? (
+                <><RefreshCw size={15} className="animate-spin" /> Executing...</>
+              ) : (
+                <><Play size={15} fill="#fff" /> Deploy &amp; Run</>
+              )}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary testbed-live-button"
+              disabled={!liveDashboardReady}
+              onClick={() => activeJob?.id && onNavigateToLive?.(activeJob.id)}
+              title={liveDashboardReady
+                ? "Open observer packet telemetry"
+                : "Available when the observer begins receiving packets"}
+              style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "9px 16px", fontWeight: 700, fontSize: "0.82rem" }}
+            >
+              <Radio size={15} /> Live packet dashboard
+            </button>
+          </div>
+
+          {/* 3 Terminals — middle column contains TunnelViz on top */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", height: "580px", overflow: "hidden" }}>
+            {/* SENDER — full height */}
+            <div style={{ minHeight: 0, overflow: "hidden", display: "flex" }}>
+              <LinuxTerminal
+                title="SENDER (VM1 — Initiator)"
+                ip={topology.initiator_ip}
+                role="initiator"
+                lines={senderLines}
+                isActive={isRunning && ["INITIATOR", "TUNNEL", "TRAFFIC"].includes(currentStage)}
+                isPreview={!activeJob && !isRunning}
+              />
+            </div>
+
+            {/* OBSERVER — top: TunnelViz, bottom: green terminal */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px", minHeight: 0, overflow: "hidden" }}>
+              {/* Top half — Tunnel Visualizer */}
+              <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+                {currentStage && <StageBar currentStage={currentStage} />}
+                <TunnelViz stage={currentStage} isRunning={isRunning} packetPos={packetPos} />
+              </div>
+
+              {/* Bottom half — green Observer terminal */}
+              <div style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex" }}>
+                <LinuxTerminal
+                  title="OBSERVER (VM3 — Packet Capture)"
+                  ip={topology.observer_ip}
+                  role="observer"
+                  lines={observerLines}
+                  isActive={isRunning && currentStage !== null}
+                  isPreview={!activeJob && !isRunning}
+                  lightMode
+                />
+              </div>
+            </div>
+
+            {/* RECEIVER — full height */}
+            <div style={{ minHeight: 0, overflow: "hidden", display: "flex" }}>
+              <LinuxTerminal
+                title="RECEIVER (VM2 — Responder)"
+                ip={topology.responder_ip}
+                role="responder"
+                lines={receiverLines}
+                isActive={isRunning && ["RESPONDER", "TUNNEL", "TRAFFIC"].includes(currentStage)}
+                isPreview={!activeJob && !isRunning}
+              />
+            </div>
+          </div>
+
+          {/* Result / Failure cards */}
+          {activeJob?.state === "COMPLETED" && activeJob && (
+            <ResultCard job={activeJob} onNavigateToAnalysis={onNavigateToAnalysis} />
+          )}
+          {activeJob?.state === "FAILED" && (
+            <div style={{ background: "rgba(248,81,73,0.08)", border: "1px solid var(--accent-red)", borderRadius: "8px", padding: "14px 18px", fontFamily: "JetBrains Mono, monospace", fontSize: "0.74rem", color: "var(--accent-red)" }}>
+              <div style={{ fontWeight: 700, marginBottom: "6px" }}>Testbed execution failed</div>
+              <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                {activeJob.error_message || activeJob.logs?.[activeJob.logs.length - 1] || "No failure details were recorded."}
+              </div>
+            </div>
+          )}
+
+          {/* Execution Vault */}
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <span style={{ fontSize: "0.76rem", fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Execution Vault ({jobHistory.length})
+              </span>
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={fetchJobHistory}
+                style={{ fontSize: "0.71rem", padding: "3px 10px", display: "flex", alignItems: "center", gap: "5px" }}
+              >
+                <RefreshCw size={11} /> Refresh
+              </button>
+            </div>
+            <div className="glass-card" style={{ padding: "0", overflow: "hidden" }}>
+              {jobHistory.length === 0 ? (
+                <div style={{ padding: "14px 18px", fontSize: "0.79rem", color: "var(--text-tertiary)", fontFamily: "JetBrains Mono, monospace" }}>
+                  No executions recorded yet.
+                </div>
+              ) : (
+                <table style={{ width: "100%", fontSize: "0.76rem", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                      {["Time", "Scenario", "Status", "Action"].map((h) => (
+                        <th key={h} style={{ padding: "9px 16px", textAlign: "left", color: "var(--text-tertiary)", fontWeight: 600, fontFamily: "JetBrains Mono, monospace" }}>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {jobHistory.slice(0, 8).map((j) => (
+                      <tr key={j.id} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                        <td style={{ padding: "8px 16px", color: "var(--text-tertiary)", fontFamily: "JetBrains Mono, monospace" }}>
+                          {j.created_at ? new Date(j.created_at).toLocaleTimeString() : "--"}
+                        </td>
+                        <td style={{ padding: "8px 16px", fontWeight: 600, color: "var(--text-primary)", fontFamily: "JetBrains Mono, monospace" }}>
+                          {j.scenario_name || "strongSwan Tunnel"}
+                        </td>
+                        <td style={{ padding: "8px 16px" }}>
+                          <span
+                            className={`badge ${j.state === "COMPLETED" ? "badge-green" : j.state === "FAILED" ? "badge-red" : "badge-cyan"}`}
+                            style={{ fontSize: "0.67rem" }}
+                          >
+                            {j.state}
+                          </span>
+                        </td>
+                        <td style={{ padding: "8px 16px" }}>
+                          <button
+                            type="button"
+                            className="btn-ghost"
+                            style={{ padding: "3px 10px", fontSize: "0.69rem" }}
+                            onClick={() => setActiveJob(j)}
+                          >
+                            Inspect
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       <style>{`@keyframes blink-caret{0%,100%{opacity:1}50%{opacity:0}}`}</style>
     </div>
