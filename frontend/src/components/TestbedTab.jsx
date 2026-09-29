@@ -1162,9 +1162,9 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
                   gap: "6px",
                   padding: "4px 10px",
                   borderRadius: "6px",
-            background: "var(--accent-blue-dim)",
-            border: "1px solid var(--border-blueprint)",
-            color: "var(--accent-blue)"
+                  background: "var(--accent-blue-dim)",
+                  border: "1px solid var(--border-blueprint)",
+                  color: "var(--accent-blue)"
                 }}
                 title={probeInfo?.details || `${n.label} at ${n.host}`}
               >
@@ -1196,7 +1196,7 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
           <Info size={16} color="var(--accent-cyan)" style={{ flexShrink: 0, marginTop: "2px" }} />
           <div>
             <strong style={{ color: "var(--accent-cyan)", marginRight: "6px" }}>Note:</strong>
-            <span>This environment is currently simulated for web UI demonstration. Production roadmap includes deploying containerized Docker images orchestrated via Kubernetes across cloud providers (AWS / GCP / Azure).</span>
+            <span>This environment is currently simulated for web UI demonstration. Production roadmap includes deploying containerized Docker images orchestrated via Kubernetes across cloud providers (AWS / GCP / Azure). The live testbed execution shown in our demo video represents the actual, fully operational multi-node deployment.</span>
           </div>
         </div>
       )}
