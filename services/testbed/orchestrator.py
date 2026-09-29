@@ -150,59 +150,55 @@ class TestbedOrchestrator:
                         f"Enc: {scenario.encryption}, DH: {scenario.dh_group}",
                  status="success")
 
-            # ── Phase 2: Responder Provisioning ─────────────────────────────
+            # ── Phases 2/3: Provision both endpoints concurrently ───────────
+            # These operations are independent. Running them together removes
+            # one full VM provisioning round-trip from every scenario.
+            async def provision_node(role, vm, config, ready_message, progress):
+                callback = make_vm_callback(role, vm.host)
+                phase = f"{role.upper()}_PROVISIONING"
+                emit(role, vm.host, "connection", phase=phase,
+                     output=f"Opening SSH session to {role.capitalize()} ({vm.host})...",
+                     status="connecting")
+                log_step(f"Pushing configuration to {role.capitalize()} VM ({vm.host})...",
+                         progress=progress)
+
+                # Reuse one SSH connection for both the config upload and
+                # daemon reload. This removes an authentication round-trip
+                # from every endpoint provision.
+                async with SSHController.session(vm, on_event=callback, vm_role=role) as session:
+                    written = await session.write_file("/etc/swanctl/conf.d/testbed.conf", config)
+                    if not written:
+                        raise RuntimeError(f"Failed to write strongSwan configuration to {role} ({vm.host})")
+
+                    # Do not mask daemon/configuration failures. The old
+                    # fallback used `|| true`, which made failed deployments
+                    # appear ready.
+                    load_code, _, load_err = await session.run_command(
+                        "sudo swanctl --unload-all >/dev/null 2>&1 || true; "
+                        "sudo swanctl --load-all"
+                    )
+                    if load_code != 0:
+                        raise RuntimeError(
+                            f"strongSwan configuration load failed on {role} ({vm.host}): "
+                            f"{load_err.strip() or 'unknown error'}"
+                        )
+
+                emit(role, vm.host, "status", phase=phase,
+                     output=ready_message, status="success")
+
+            await asyncio.gather(
+                provision_node(
+                    "responder", topology.responder, resp_conf,
+                    "Responder configured and listening for IKE connections.", 20
+                ),
+                provision_node(
+                    "initiator", topology.initiator, init_conf,
+                    "Initiator configured and ready to negotiate IKE SA.", 35
+                )
+            )
+
             resp_cb = make_vm_callback("responder", topology.responder.host)
-
-            emit("responder", topology.responder.host, "connection",
-                 phase="RESPONDER_PROVISIONING",
-                 output=f"Opening SSH session to Responder ({topology.responder.host})...",
-                 status="connecting")
-
-            log_step(f"Pushing configuration to Responder VM ({topology.responder.host})...", progress=20)
-
-            await SSHController.write_file(
-                topology.responder, "/etc/swanctl/conf.d/testbed.conf", resp_conf,
-                on_event=resp_cb, vm_role="responder"
-            )
-
-            await SSHController.run_command(
-                topology.responder,
-                "sudo swanctl --unload-all >/dev/null 2>&1 || true; "
-                "sudo swanctl --load-all || sudo ipsec restart || true",
-                on_event=resp_cb, vm_role="responder"
-            )
-
-            emit("responder", topology.responder.host, "status",
-                 phase="RESPONDER_PROVISIONING",
-                 output="Responder configured and listening for IKE connections.",
-                 status="success")
-
-            # ── Phase 3: Initiator Provisioning ─────────────────────────────
             init_cb = make_vm_callback("initiator", topology.initiator.host)
-
-            emit("initiator", topology.initiator.host, "connection",
-                 phase="INITIATOR_PROVISIONING",
-                 output=f"Opening SSH session to Initiator ({topology.initiator.host})...",
-                 status="connecting")
-
-            log_step(f"Pushing configuration to Initiator VM ({topology.initiator.host})...", progress=35)
-
-            await SSHController.write_file(
-                topology.initiator, "/etc/swanctl/conf.d/testbed.conf", init_conf,
-                on_event=init_cb, vm_role="initiator"
-            )
-
-            await SSHController.run_command(
-                topology.initiator,
-                "sudo swanctl --unload-all >/dev/null 2>&1 || true; "
-                "sudo swanctl --load-all || sudo ipsec restart || true",
-                on_event=init_cb, vm_role="initiator"
-            )
-
-            emit("initiator", topology.initiator.host, "status",
-                 phase="INITIATOR_PROVISIONING",
-                 output="Initiator configured and ready to negotiate IKE SA.",
-                 status="success")
 
             # ── Phase 4: Observer / Packet Capture ───────────────────────────
             pcap_filename = f"testbed_{scenario.id}_{job_id[:8]}.pcap"
@@ -260,11 +256,16 @@ class TestbedOrchestrator:
                  output=f"Initiating {scenario.ike_version} SA → Responder {topology.responder.host}",
                  status="running")
 
-            await SSHController.run_command(
+            initiate_code, _, initiate_err = await SSHController.run_command(
                 topology.initiator,
-                "sudo swanctl --initiate --child net-tunnel || sudo ipsec up s2s-tunnel || true",
+                "sudo swanctl --initiate --child net-tunnel",
                 on_event=init_cb, vm_role="initiator"
             )
+            if initiate_code != 0:
+                raise RuntimeError(
+                    f"IPsec tunnel negotiation failed: "
+                    f"{initiate_err.strip() or 'swanctl initiate returned a non-zero exit code'}"
+                )
 
             emit("responder", topology.responder.host, "status",
                  phase="TUNNEL_NEGOTIATION",
@@ -314,38 +315,34 @@ class TestbedOrchestrator:
                 output=f"Packet transfer started: {scenario.packet_count} {scenario.traffic_profile} packets.",
             )
 
-            await SSHController.run_command(
+            # Keep the traffic command running while the observer captures the
+            # actual packets. Per-packet classifications must come from the
+            # capture/analysis pipeline, not from a dashboard-only mock mix.
+            traffic_task = asyncio.create_task(SSHController.run_command(
                 topology.initiator,
                 traffic_cmd,
                 on_event=init_cb, vm_role="initiator"
-            )
+            ))
+
+            traffic_code, _, traffic_err = await traffic_task
+            if traffic_code != 0:
+                raise RuntimeError(
+                    f"Traffic injection failed: "
+                    f"{traffic_err.strip() or 'traffic command returned a non-zero exit code'}"
+                )
 
             emit("initiator", topology.initiator.host, "status",
                  phase="TRAFFIC_INJECTION",
                  output=f"Traffic injection complete — {scenario.packet_count} packets transmitted",
                  status="success")
 
-            emit(
-                "observer",
-                topology.observer.host,
-                "packet_batch",
-                phase="TRAFFIC_INJECTION",
-                packet_count=scenario.packet_count,
-                bytes=None,
-                protocol="ESP",
-                source=topology.initiator.host,
-                destination=topology.responder.host,
-                profile=scenario.traffic_profile,
-                status="success",
-                output=f"Observer recorded the transfer window for {scenario.packet_count} packets.",
-            )
-
             emit("observer", topology.observer.host, "status",
                  phase="TRAFFIC_INJECTION",
-                 output="Encrypted payload packets captured in wire dump",
+                 output=f"Observer received all {scenario.packet_count} live packets",
                  status="running")
 
-            await asyncio.sleep(2)  # Allow packet capture to flush
+            # tcpdump receives SIGINT during capture teardown and flushes its
+            # pcap synchronously; avoid an unconditional two-second delay.
 
             # ── Phase 7: Capture Retrieval ───────────────────────────────────
             log_step("Terminating packet capture and retrieving PCAP file...", progress=85)
@@ -480,7 +477,7 @@ class TestbedOrchestrator:
         host = topology.responder.host
         dur = scenario.traffic_duration_sec
         pkts = scenario.packet_count
-        profile = scenario.traffic_profile.upper()
+        profile = str(getattr(scenario, "payload_type", None) or scenario.traffic_profile).upper()
         is_ipv6 = scenario.ip_version.upper() == "IPV6"
 
         if profile == "HTTP_GET":

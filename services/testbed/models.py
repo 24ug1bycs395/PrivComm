@@ -47,6 +47,7 @@ class ScenarioDefinition(BaseModel):
     hash_algorithm: str = "SHA-256"  # "SHA-256", "SHA-384", "SHA-512", "MD5", "SHA-1" (used for handshake integrity verification & IKE/ESP PRF)
     dh_group: str = "19 (ECP-256)"  # "19 (ECP-256)", "14 (MODP-2048)", "2 (MODP-1024)"
     pfs: bool = True
+    esp_enabled: bool = True
     auth_method: str = "PSK"  # "PSK", "RSA-Cert", "EAP-MSCHAPv2"
     pre_shared_key: str = "CyberSentinelSecureKey2026!"
     # Tunnel or Transport mode — both fully supported in config generation
@@ -57,6 +58,7 @@ class ScenarioDefinition(BaseModel):
     # Supported: ICMP_ECHO, HTTP_GET, IPERF_BURST, VOIP_RTP,
     #            VIDEO_STREAM, EMAIL_SMTP, DNS_BURST, P2P_SIM
     traffic_profile: str = "ICMP_ECHO"
+    payload_type: Optional[str] = None
     traffic_duration_sec: int = 5
     packet_count: int = 20
     is_weak_compliance: bool = False

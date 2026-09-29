@@ -76,17 +76,20 @@ All 23 flow metrics extracted from packet captures are retained as numerical pre
 - **Objective**: `multi:softprob`
 - **Evaluation Metric**: `mlogloss`
 - **Hyperparameters**:
-  - `n_estimators`: 300
-  - `max_depth`: 6
-  - `learning_rate`: 0.1
+  - `n_estimators`: 400
+  - `max_depth`: 8
+  - `learning_rate`: 0.08
   - `subsample`: 0.8
   - `colsample_bytree`: 0.8
-  - `early_stopping_rounds`: 15
+  - `early_stopping_rounds`: 20
   - `tree_method`: `hist`
 
 ---
 
 ## 7. How to Run the Pipeline
+
+### Interactive Demo Notebook
+Open `notebooks/XGBoost_Preprocessing_Training_Demo.ipynb` in Jupyter or VS Code and run the cells from top to bottom. It walks through the dataset, preprocessing, training, and held-out test evaluation. It expects `consolidated_traffic_data.csv` in the repository root and saves demo outputs separately under `traffic-classifier/demo_artifacts/`.
 
 ### Step 1: Install Dependencies
 ```bash
