@@ -31,6 +31,58 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
     }
   }, [externalAnalysis]);
 
+  const handleDownloadPDF = async (e) => {
+    e.preventDefault();
+    const fallbackPath = '/reports/ikev2_s2s_ipsec_vpn_aes_gcm_executive_report.pdf';
+    try {
+      const res = await fetch(`/reports/download-pdf?filename=${encodeURIComponent(activeFilename)}`);
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && (contentType.includes('pdf') || contentType.includes('octet-stream'))) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${(activeFilename || 'ipsec_report').replace(/\.[^/.]+$/, '')}_executive_report.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        return;
+      }
+    } catch (err) {
+      console.warn('PDF endpoint unavailable, downloading static report fallback:', err);
+    }
+    const a = document.createElement('a');
+    a.href = fallbackPath;
+    a.download = `${(activeFilename || 'ipsec_report').replace(/\.[^/.]+$/, '')}_executive_report.pdf`;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  const handleDownloadJSON = async (e) => {
+    e.preventDefault();
+    if (analysisResult) {
+      const blob = new Blob([JSON.stringify(analysisResult, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(activeFilename || 'analysis').replace(/\.[^/.]+$/, '')}_technical_report.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = '/reports/ikev2_s2s_ipsec_vpn_aes_gcm.json';
+    a.download = `${(activeFilename || 'analysis').replace(/\.[^/.]+$/, '')}_technical_report.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
   // Trigger analysis for sample scenarios
   const handleLoadSample = async (scenarioType) => {
     setLoading(true);
@@ -696,24 +748,26 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <a
-                href={`/reports/download-pdf?filename=${encodeURIComponent(activeFilename)}`}
-                target="_blank"
-                rel="noreferrer"
+              <button
+                type="button"
+                onClick={handleDownloadPDF}
                 className="btn btn-primary"
+                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                title="Download Executive PDF Report"
               >
                 <Download size={16} />
                 <span>Executive PDF Report</span>
-              </a>
-              <a
-                href={`/reports/download-json?filename=${encodeURIComponent(activeFilename)}`}
-                target="_blank"
-                rel="noreferrer"
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadJSON}
                 className="btn btn-secondary"
+                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                title="Download Technical JSON"
               >
                 <FileText size={16} />
                 <span>Technical JSON</span>
-              </a>
+              </button>
             </div>
           </div>
         </div>
