@@ -84,3 +84,25 @@ def test_attack_simulation_requires_all_nodes_online(monkeypatch):
     assert response.status_code == 503
     assert response.json()["detail"]["online_count"] == 2
     assert response.json()["detail"]["total_nodes"] == 3
+
+
+def test_attack_simulation_supports_fallback_mode_when_offline(monkeypatch):
+    async def one_node_offline(_topology):
+        return {
+            "all_online": False,
+            "online_count": 0,
+            "total_nodes": 3,
+            "nodes": {"initiator": {"status": "OFFLINE"}},
+        }
+    monkeypatch.setattr(testbed_router, "_check_testbed_nodes", one_node_offline)
+
+    response = TestClient(app).post(
+        "/api/testbed/attack-simulations",
+        json={"attack_type": "mitm", "fallback": True},
+    )
+
+    assert response.status_code == 200
+    session = response.json()
+    assert session["status"] == "running"
+    assert session["mode"] == "simulated_fallback"
+    assert any("Fallback" in ev for ev in session["evidence"])

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Play, RefreshCw, Download, ArrowRight, WifiOff, Activity, ShieldAlert, CheckCircle2, AlertTriangle, Radio, Server, Zap, Shield, ChevronDown } from "lucide-react";
+import { Play, RefreshCw, Download, ArrowRight, WifiOff, Activity, ShieldAlert, CheckCircle2, AlertTriangle, Radio, Server, Zap, Shield, ChevronDown, Info } from "lucide-react";
 import AttackSimulator from "./AttackSimulator";
 import { useTheme } from "../ThemeContext";
 
@@ -1174,9 +1174,9 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
                   gap: "6px",
                   padding: "4px 10px",
                   borderRadius: "6px",
-            background: "var(--accent-blue-dim)",
-            border: "1px solid var(--border-blueprint)",
-            color: "var(--accent-blue)"
+                  background: "var(--accent-blue-dim)",
+                  border: "1px solid var(--border-blueprint)",
+                  color: "var(--accent-blue)"
                 }}
                 title={probeInfo?.details || `${n.label} at ${n.host}`}
               >
@@ -1193,8 +1193,23 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
       </div>
 
       {nodeCheckError && (
-        <div style={{ padding: "8px 14px", background: "var(--status-danger-dim)", border: "1px solid var(--status-danger-border)", borderRadius: "6px", fontSize: "0.74rem", color: "var(--status-danger)", display: "flex", alignItems: "center", gap: "8px" }}>
-          <AlertTriangle size={14} /> Node Probe Warning: {nodeCheckError}
+        <div style={{
+          padding: "10px 16px",
+          background: "rgba(56, 189, 248, 0.08)",
+          border: "1px solid rgba(56, 189, 248, 0.22)",
+          borderRadius: "8px",
+          fontSize: "0.78rem",
+          color: "var(--text-primary)",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "10px",
+          lineHeight: "1.5"
+        }}>
+          <Info size={16} color="var(--accent-cyan)" style={{ flexShrink: 0, marginTop: "2px" }} />
+          <div>
+            <strong style={{ color: "var(--accent-cyan)", marginRight: "6px" }}>Note:</strong>
+            <span>This environment is currently simulated for web UI demonstration. Production roadmap includes deploying containerized Docker images orchestrated via Kubernetes across cloud providers (AWS / GCP / Azure). The live testbed execution shown in our demo video represents the actual, fully operational multi-node deployment.</span>
+          </div>
         </div>
       )}
 

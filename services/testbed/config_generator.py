@@ -20,7 +20,11 @@ class StrongSwanConfigGenerator:
         Extracts and normalizes the hash/integrity algorithm for strongSwan proposals.
         Returns a tuple of (ike_prf, esp_integrity), e.g. ('prfsha256', 'sha256').
         """
-        hash_val = scenario.integrity if (scenario.integrity and "AEAD" not in scenario.integrity) else getattr(scenario, "hash_algorithm", "SHA-256")
+        hash_val = getattr(scenario, "hash_algorithm", None)
+        if not hash_val or (hash_val == "SHA-256" and scenario.integrity and "AEAD" not in scenario.integrity and scenario.integrity != "SHA384"):
+            hash_val = scenario.integrity
+        if not hash_val:
+            hash_val = scenario.integrity or "SHA-256"
         h = str(hash_val).lower().replace("-", "").replace(" ", "")
         if "384" in h:
             return "prfsha384", "sha384"

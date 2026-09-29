@@ -24,8 +24,10 @@ class AttackType(str, Enum):
 
 class AttackSimulationRequest(BaseModel):
     attack_type: AttackType
-    target: str = Field(default="gateway-1 ↔ gateway-2", max_length=80)
+    target: str = Field(default="gateway-1 <-> gateway-2", max_length=80)
     topology: Optional[TestbedTopology] = None
+    fallback: bool = Field(default=False, description="Enable simulated fallback mode if physical testbed VMs are offline")
+    mode: Optional[str] = Field(default=None, description="Execution mode: 'live' or 'simulated'")
 
 
 class AttackSimulation(BaseModel):
@@ -37,6 +39,7 @@ class AttackSimulation(BaseModel):
     stopped_at: Optional[str] = None
     detection: str
     evidence: List[str]
+    mode: str = Field(default="live", description="Execution mode: 'live' or 'simulated_fallback'")
 
 
 ATTACK_OPTIONS = [
@@ -115,8 +118,15 @@ def list_attack_status() -> dict:
     }
 
 
-def start_attack(request: AttackSimulationRequest) -> AttackSimulation:
+def start_attack(request: AttackSimulationRequest, is_fallback: bool = False) -> AttackSimulation:
     option = next(item for item in ATTACK_OPTIONS if item["id"] == request.attack_type)
+    evidence = list(_EVIDENCE[request.attack_type])
+    if is_fallback:
+        evidence.insert(0, "Simulated Fallback Mode: Telemetry modeled against reference baseline capture")
+        evidence.append("Simulation executed in fallback mode without requiring live Vagrant/strongSwan VMs")
+    else:
+        evidence.insert(0, "Live Testbed Mode: Executed across strongSwan testbed nodes (192.168.56.10, 20, 30)")
+
     session = AttackSimulation(
         id=f"sim-{uuid4().hex[:8]}",
         attack_type=request.attack_type,
@@ -124,7 +134,8 @@ def start_attack(request: AttackSimulationRequest) -> AttackSimulation:
         status="running",
         started_at=_now(),
         detection=option["signal"],
-        evidence=_EVIDENCE[request.attack_type],
+        evidence=evidence,
+        mode="simulated_fallback" if is_fallback else "live",
     )
     with _lock:
         if any(existing.status == "running" for existing in _sessions.values()):
