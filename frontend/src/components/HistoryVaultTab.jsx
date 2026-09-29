@@ -29,6 +29,37 @@ export default function HistoryVaultTab({ onSelectAnalysis }) {
     }
   };
 
+  const handleDownloadPDF = async (e, filename) => {
+    e.preventDefault();
+    const fname = filename || 'ikev2_s2s_ipsec_vpn_aes_gcm.pcapng';
+    const fallbackPath = '/reports/ikev2_s2s_ipsec_vpn_aes_gcm_executive_report.pdf';
+    try {
+      const res = await fetch(`/reports/download-pdf?filename=${encodeURIComponent(fname)}`);
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && (contentType.includes('pdf') || contentType.includes('octet-stream'))) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${fname.replace(/\.[^/.]+$/, '')}_executive_report.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        return;
+      }
+    } catch (err) {
+      console.warn('PDF endpoint unavailable, downloading static fallback:', err);
+    }
+    const a = document.createElement('a');
+    a.href = fallbackPath;
+    a.download = `${fname.replace(/\.[^/.]+$/, '')}_executive_report.pdf`;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
   return (
     <div className="tab-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '1.5rem 1rem', animation: 'fade-in 0.35s ease' }}>
       <div className="section-header-badge" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
@@ -121,16 +152,15 @@ export default function HistoryVaultTab({ onSelectAnalysis }) {
                       </td>
                       <td style={{ padding: '12px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'inline-flex', gap: '8px' }}>
-                          <a
-                            href={`/reports/download-pdf?filename=${filename}`}
-                            target="_blank"
-                            rel="noreferrer"
+                          <button
+                            type="button"
+                            onClick={(e) => handleDownloadPDF(e, filename)}
                             className="btn btn-secondary btn-sm"
-                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
                             title="Open Executive PDF Report"
                           >
                             <FileText size={13} /> PDF
-                          </a>
+                          </button>
                           <button
                             type="button"
                             className="btn btn-primary btn-sm"

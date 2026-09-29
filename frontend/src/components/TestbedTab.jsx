@@ -658,6 +658,17 @@ function ResultCard({ job, onNavigateToAnalysis }) {
       <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
         <a
           href={`/api/testbed/jobs/${job.id}/pcap`}
+          onClick={(e) => {
+            if (job.id?.startsWith('demo-') || !navigator.onLine) {
+              e.preventDefault();
+              const a = document.createElement('a');
+              a.href = '/samples/capture.pcap';
+              a.download = `${(job.scenario || 'testbed')}_capture.pcap`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            }
+          }}
           download
           style={{
             display: "inline-flex",
@@ -672,6 +683,7 @@ function ResultCard({ job, onNavigateToAnalysis }) {
             fontSize: "0.74rem",
             fontWeight: 600,
             textDecoration: "none",
+            cursor: "pointer",
           }}
         >
           <Download size={13} /> Download capture.pcap

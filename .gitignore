@@ -103,10 +103,12 @@ yarn-error.log*
 .pnp.js
 
 # ─── Reports & Generated Outputs ─────────────────────────────────────────────
-reports/
+/reports/
 exports/
 *.pdf
 *.json.bak
+!frontend/public/reports/**
+!frontend/public/samples/**
 
 # ─── Temporary Files ─────────────────────────────────────────────────────────
 tmp/
