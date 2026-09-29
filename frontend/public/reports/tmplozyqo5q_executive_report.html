@@ -654,21 +654,21 @@
             <div class="header-meta">
                 <div class="meta-item">
                     <span>Audit Target:</span>
-                    <strong>ikev2_s2s_ipsec_vpn_aes_gcm.pcapng</strong>
+                    <strong>tmplozyqo5q.pcap</strong>
                 </div>
                 <div class="meta-item">
                     <span>Total Packets:</span>
-                    <strong>12</strong>
+                    <strong>2</strong>
                 </div>
                 
                 <div class="meta-item">
                     <span>Gateway Pair:</span>
-                    <strong>10.0.0.1 &rarr; 10.0.0.2</strong>
+                    <strong>192.168.1.10 &rarr; 10.0.0.1</strong>
                 </div>
                 
                 <div class="meta-item">
                     <span>Generated:</span>
-                    <strong>29 Sep 2026, 23:32 UTC</strong>
+                    <strong>29 Sep 2026, 23:31 UTC</strong>
                 </div>
             </div>
         </header>
@@ -682,22 +682,22 @@
             </div>
             <div class="metric-card">
                 <div class="metric-label">AI Traffic Classification</div>
-                <div class="metric-value" style="font-size: 1.15rem;">P2P</div>
+                <div class="metric-value" style="font-size: 1.15rem;">VPN-BROWSING</div>
                 <div class="metric-sub">XGBoost ML inference</div>
             </div>
             <div class="metric-card">
                 <div class="metric-label">Inference Confidence</div>
                 <div class="metric-value">
                 
-                    41.3%
+                    33.3%
                 
                 </div>
                 <div class="metric-sub">Softmax probability</div>
             </div>
             <div class="metric-card">
                 <div class="metric-label">Observed Cipher Suite</div>
-                <div class="metric-value" style="font-size: 1.05rem;">AES-256-GCM</div>
-                <div class="metric-sub">AEAD</div>
+                <div class="metric-value" style="font-size: 1.05rem;">unknown</div>
+                <div class="metric-sub">unknown</div>
             </div>
         </div>
 
@@ -741,7 +741,7 @@
                 <tbody>
                     <tr>
                         <td><strong>IPsec Protocol / IKE Version</strong></td>
-                        <td><code>IKEv2</code> (IKE_AUTH)</td>
+                        <td><code>unknown</code> (unknown)</td>
                         <td>IKEv2 (RFC 7296)</td>
                     </tr>
                     <tr>
@@ -751,17 +751,17 @@
                     </tr>
                     <tr>
                         <td><strong>Encryption Cipher &amp; Key Size</strong></td>
-                        <td><code>AES-256-GCM</code> (256-bit)</td>
+                        <td><code>unknown</code> (256-bit)</td>
                         <td>AES-256-GCM / AES-256-CBC</td>
                     </tr>
                     <tr>
                         <td><strong>Integrity &amp; PRF Algorithm</strong></td>
-                        <td><code>AEAD</code> &bull; PRF: <code>HMAC-SHA2-384</code></td>
+                        <td><code>unknown</code> &bull; PRF: <code>unknown</code></td>
                         <td>AEAD / HMAC-SHA2-256+</td>
                     </tr>
                     <tr>
                         <td><strong>Diffie-Hellman Key Exchange</strong></td>
-                        <td><code>Group 19</code> (NIST P-256 Curve)</td>
+                        <td><code>Group unknown</code> (NIST P-256 Curve)</td>
                         <td>Group 14, 19, 20, 21, 28 (&ge; 2048-bit)</td>
                     </tr>
                     <tr>
@@ -781,17 +781,17 @@
                     </tr>
                     <tr>
                         <td><strong>Network Layer &amp; Metadata Exposure</strong></td>
-                        <td><code>IPv4</code> &bull; <code>10.0.0.1 &rarr; 10.0.0.2</code></td>
+                        <td><code>IPv4</code> &bull; <code>192.168.1.10 &rarr; 10.0.0.1</code></td>
                         <td>IPv4/IPv6 Protected (NAT-T UDP 4500)</td>
                     </tr>
                     <tr>
                         <td><strong>Security Association SPIs</strong></td>
-                        <td><code>Init: 62f94c9887715a34</code> &bull; <code>Resp: f05534eef373dc1b</code></td>
+                        <td><code>Init: 0000000000000000</code> &bull; <code>Resp: 0000000000000000</code></td>
                         <td>Valid 64-bit Non-Zero SPI Pair</td>
                     </tr>
                     <tr>
                         <td><strong>Inferred Encrypted Traffic Class</strong></td>
-                        <td><code>P2P</code> (41.3% AI Confidence)</td>
+                        <td><code>VPN-BROWSING</code> (33.3% AI Confidence)</td>
                         <td>XGBoost Multi-Class Payload Inference</td>
                     </tr>
                 </tbody>
@@ -802,36 +802,36 @@
         <div class="section-title">Plain-English Component Rationale</div>
         
             
-            <div class="finding-card SECURE">
+            <div class="finding-card INFO">
                 <div class="finding-header">
-                    <span class="finding-title"> Modern IKEv2 Protocol Engine (RFC 7296) &mdash; <code>IKEv2 (RFC 7296)</code></span>
-                    <span class="badge badge-secure">SECURE</span>
+                    <span class="finding-title"> Tunnel Negotiation Protocol (UNKNOWN) &mdash; <code>IKE / IPsec</code></span>
+                    <span class="badge badge-secure">INFO</span>
                 </div>
                 <div class="finding-body">
-                    <p><strong>Plain-English Summary:</strong> Manages your VPN connection lifecycle with high speed, instant auto-reconnect, and seamless network mobility across Wi-Fi and 5G.</p>
-                    <p style="margin-top: 6px;">IKEv2 acts as the intelligent digital negotiator for your VPN. Imagine traveling on a train where your laptop switches between station Wi-Fi and 5G cellular—older VPNs would freeze or crash, forcing you to log in again. IKEv2 natively uses MOBIKE (RFC 4555) technology to instantly shift your encrypted session between network connections without dropping active video calls or web apps. Additionally, it uses a streamlined 4-message exchange (IKE_SA_INIT & IKE_AUTH) with built-in cookie challenges to protect your server against hacker overload (DoS SYN-flood) attacks.</p>
+                    <p><strong>Plain-English Summary:</strong> Manages initial identity verification and security negotiations between your device and the VPN server.</p>
+                    <p style="margin-top: 6px;">Sets up the initial secure channel between your computer and the remote organizational gateway before sensitive data starts flowing.</p>
                 </div>
             </div>
             
-            <div class="finding-card SECURE">
+            <div class="finding-card INFO">
                 <div class="finding-header">
-                    <span class="finding-title"> Authenticated AES-256-GCM Cipher (Galois/Counter Mode) &mdash; <code>AES-256-GCM (AEAD Cipher)</code></span>
-                    <span class="badge badge-secure">SECURE</span>
+                    <span class="finding-title"> Data Encryption Cipher (UNKNOWN) &mdash; <code>Standard Cipher</code></span>
+                    <span class="badge badge-secure">INFO</span>
                 </div>
                 <div class="finding-body">
-                    <p><strong>Plain-English Summary:</strong> Bank-grade 256-bit encryption that scrambles data while simultaneously attaching a 128-bit tamper-proof digital seal.</p>
-                    <p style="margin-top: 6px;">Think of AES-256-GCM as placing your secret documents into an unbreakable steel vault while applying a tamper-evident holographic seal to the outside. Unlike older ciphers (like CBC) that only scramble data and require a separate process to check for tampering, GCM performs both encryption and tamper verification in a single hardware-accelerated step (RFC 4106 AEAD). If a hacker on public Wi-Fi tries to alter or inject even 1 bit of your transmitted data, the receiving server detects the broken seal and discards the packet instantly before decryption, completely stopping padding oracle attacks.</p>
+                    <p><strong>Plain-English Summary:</strong> Cryptographic algorithm responsible for obscuring readable data across public networks.</p>
+                    <p style="margin-top: 6px;">Converts plain text into unreadable ciphertext using UNKNOWN to ensure privacy.</p>
                 </div>
             </div>
             
-            <div class="finding-card SECURE">
+            <div class="finding-card INFO">
                 <div class="finding-header">
-                    <span class="finding-title"> Elliptic Curve Diffie-Hellman Group 19 (NIST P-256 / FIPS 186-4) &mdash; <code>DH Group 19 (NIST ECP-256)</code></span>
-                    <span class="badge badge-secure">SECURE</span>
+                    <span class="finding-title"> Cryptographic Key Agreement (DH Group Standard) &mdash; <code>Standard Group</code></span>
+                    <span class="badge badge-secure">INFO</span>
                 </div>
                 <div class="finding-body">
-                    <p><strong>Plain-English Summary:</strong> Allows two remote servers across the open internet to safely agree on identical secret encryption keys without ever sending the key over the wire.</p>
-                    <p style="margin-top: 6px;">Imagine two people in a room full of eavesdroppers who want to agree on a secret color. They can publicly mix base colors in a specific mathematical way so that both end up with the exact same secret color mixture, but anyone watching from the outside can never work out what the secret final color is. Diffie-Hellman Group 19 uses advanced Elliptic Curve mathematics (NIST P-256 / FIPS 186-4). It provides 128 bits of high-strength symmetric security using lightweight 256-bit key math—delivering over 10x faster connection speeds and drastically lower CPU battery consumption compared to legacy 2048-bit prime number calculations.</p>
+                    <p><strong>Plain-English Summary:</strong> Mathematical method allowing VPN endpoints to securely agree on session keys.</p>
+                    <p style="margin-top: 6px;">Protects key distribution so adversaries watching network traffic cannot deduce session encryption keys for DH Group unknown.</p>
                 </div>
             </div>
             
@@ -848,23 +848,23 @@
             
             <div class="finding-card SECURE">
                 <div class="finding-header">
-                    <span class="finding-title"> AI Behavioral Pattern Recognition (P2P Application) &mdash; <code>P2P (41.3% confidence)</code></span>
+                    <span class="finding-title"> AI Behavioral Pattern Recognition (VPN-BROWSING Application) &mdash; <code>VPN-BROWSING (33.3% confidence)</code></span>
                     <span class="badge badge-secure">SECURE</span>
                 </div>
                 <div class="finding-body">
-                    <p><strong>Plain-English Summary:</strong> Machine Learning identified the exact application activity ('P2P') inside the VPN tunnel using behavioral traffic patterns without breaking encryption.</p>
-                    <p style="margin-top: 6px;">Even though your VPN tunnel scrambles 100% of your data packets into unreadable noise, different applications leave distinct physical signatures in how they communicate. Our trained XGBoost Machine Learning model analyzed 28 non-encrypted flow characteristics—such as packet size variations, transmission timing intervals, and bandwidth burst ratios. Like a detective identifying a person by the cadence of their footsteps without seeing their face, the AI correctly identified your tunnel activity as 'P2P' with 41.3% statistical confidence, zero decryption required.</p>
+                    <p><strong>Plain-English Summary:</strong> Machine Learning identified the exact application activity ('VPN-BROWSING') inside the VPN tunnel using behavioral traffic patterns without breaking encryption.</p>
+                    <p style="margin-top: 6px;">Even though your VPN tunnel scrambles 100% of your data packets into unreadable noise, different applications leave distinct physical signatures in how they communicate. Our trained XGBoost Machine Learning model analyzed 28 non-encrypted flow characteristics—such as packet size variations, transmission timing intervals, and bandwidth burst ratios. Like a detective identifying a person by the cadence of their footsteps without seeing their face, the AI correctly identified your tunnel activity as 'VPN-BROWSING' with 33.3% statistical confidence, zero decryption required.</p>
                 </div>
             </div>
             
             <div class="finding-card SECURE">
                 <div class="finding-header">
-                    <span class="finding-title"> Observable Network Metadata Analysis (10.0.0.1 -> 10.0.0.2) &mdash; <code>LOW Risk (Score 15/100)</code></span>
+                    <span class="finding-title"> Observable Network Metadata Analysis (192.168.1.10 -> 10.0.0.1) &mdash; <code>LOW Risk (Score 15/100)</code></span>
                     <span class="badge badge-secure">SECURE</span>
                 </div>
                 <div class="finding-body">
                     <p><strong>Plain-English Summary:</strong> Assessed outer IP header visibility, unencrypted IKE identity payloads, SPI correlation risk, and Transport mode exposure (Rating: LOW).</p>
-                    <p style="margin-top: 6px;">Even when payload content is encrypted, eavesdroppers can perform side-channel traffic analysis using unencrypted metadata. Our metadata analyzer inspected outer endpoint IP pairs (10.0.0.1 -> 10.0.0.2), verified whether identity payloads ($ID_i$/$ID_r$) were transmitted in cleartext, and evaluated cleartext ESP Security Parameter Index (SPI) linkability risks. Current exposure score is 15/100.</p>
+                    <p style="margin-top: 6px;">Even when payload content is encrypted, eavesdroppers can perform side-channel traffic analysis using unencrypted metadata. Our metadata analyzer inspected outer endpoint IP pairs (192.168.1.10 -> 10.0.0.1), verified whether identity payloads ($ID_i$/$ID_r$) were transmitted in cleartext, and evaluated cleartext ESP Security Parameter Index (SPI) linkability risks. Current exposure score is 15/100.</p>
                 </div>
             </div>
             
@@ -880,7 +880,7 @@
                     <span class="badge badge-low">LOW</span>
                 </div>
                 <div class="finding-body">
-                    <p><strong>Observed:</strong> <code>Observable ESP SPI(s): 0x5fbd60dc, 0xa70bbb39</code> &nbsp;|&nbsp; <strong>Expected Baseline:</strong> <code>Dynamic SA Rekeying & SPI Rotation</code></p>
+                    <p><strong>Observed:</strong> <code>Observable ESP SPI(s): 0x00001234</code> &nbsp;|&nbsp; <strong>Expected Baseline:</strong> <code>Dynamic SA Rekeying & SPI Rotation</code></p>
                 </div>
                 <div class="finding-remediation">
                     <strong>Recommended Remediation:</strong> Ensure frequent Security Association rekeying to prevent passive netflow session correlation.
@@ -913,7 +913,7 @@
 
         <footer class="report-footer">
             <div>PRIVCOMM &mdash; IPsec Intelligence &amp; Traffic Assessment Platform</div>
-            <div>Generated on 29 Sep 2026, 23:32 UTC &bull; Confidential</div>
+            <div>Generated on 29 Sep 2026, 23:31 UTC &bull; Confidential</div>
         </footer>
     </div>
 </body>

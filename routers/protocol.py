@@ -223,24 +223,54 @@ async def get_analysis_history():
 @router.get("/reports/download-pdf")
 async def download_pdf_report(filename: str = Query(..., description="PCAP filename")):
     """GET /reports/download-pdf: Generates and downloads Executive White-Mode PDF Security Report."""
+    import shutil
     from reports.pdf_report_generator import generate_pdf_report
-    base_name = os.path.splitext(filename)[0]
-    pdf_path = os.path.join("results", f"{base_name}_executive_report.pdf")
-    json_path = os.path.join("results", f"{base_name}.json")
-    if not os.path.exists(json_path):
-        json_path = os.path.join("results", "result.json")
 
-    if os.path.exists(json_path):
+    # Clean base name
+    clean_name = filename.replace("_executive_report.pdf", "").replace(".pdf", "")
+    base_name = os.path.splitext(clean_name)[0]
+    if not base_name or base_name == "undefined":
+        base_name = "ikev2_s2s_ipsec_vpn_aes_gcm"
+
+    pdf_path = os.path.join("results", f"{base_name}_executive_report.pdf")
+    frontend_pdf = os.path.join("frontend", "public", "reports", f"{base_name}_executive_report.pdf")
+
+    # Potential JSON sources
+    candidate_json_paths = [
+        os.path.join("results", f"{base_name}.json"),
+        os.path.join("frontend", "public", "reports", f"{base_name}.json"),
+        os.path.join("results", "result.json"),
+        os.path.join("results", "report.json"),
+        os.path.join("frontend", "public", "reports", "ikev2_s2s_ipsec_vpn_aes_gcm.json"),
+    ]
+
+    report_data = None
+    for cand in candidate_json_paths:
+        if os.path.exists(cand):
+            try:
+                with open(cand, "r", encoding="utf-8") as f:
+                    report_data = json.load(f)
+                break
+            except Exception as e:
+                logger.warning(f"Could not load JSON from {cand}: {e}")
+
+    if report_data:
         try:
-            with open(json_path, "r", encoding="utf-8") as f:
-                report_data = json.load(f)
             generate_pdf_report(report_data, pdf_path)
+            try:
+                os.makedirs(os.path.dirname(frontend_pdf), exist_ok=True)
+                shutil.copyfile(pdf_path, frontend_pdf)
+            except Exception:
+                pass
             return FileResponse(pdf_path, media_type="application/pdf", filename=f"{base_name}_executive_report.pdf")
         except Exception as e:
             logger.error(f"Failed to generate PDF from JSON: {e}")
 
     if os.path.exists(pdf_path):
         return FileResponse(pdf_path, media_type="application/pdf", filename=f"{base_name}_executive_report.pdf")
+
+    if os.path.exists(frontend_pdf):
+        return FileResponse(frontend_pdf, media_type="application/pdf", filename=f"{base_name}_executive_report.pdf")
 
     sample_path = os.path.join("samples", "ikev2_s2s_ipsec_vpn_aes_gcm.pcapng")
     if os.path.exists(sample_path):

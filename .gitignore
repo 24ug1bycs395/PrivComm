@@ -103,7 +103,8 @@ yarn-error.log*
 .pnp.js
 
 # ─── Reports & Generated Outputs ─────────────────────────────────────────────
-/reports/
+# Note: Keep Python reporting package tracked, ignore generated report outputs
+!reports/*.py
 exports/
 *.pdf
 *.json.bak
