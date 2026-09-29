@@ -1,0 +1,54 @@
+{
+  "precision": 0.9523809523809523,
+  "recall": 1.0,
+  "f1": 0.975609756097561,
+  "false_positive_rate": 0.2,
+  "confusion_matrix_labels_0_normal_1_anomalous": [
+    [
+      8,
+      2
+    ],
+    [
+      0,
+      40
+    ]
+  ],
+  "anomaly_score_distribution": {
+    "min": 0.0,
+    "median": 1.0,
+    "p95": 1.0,
+    "max": 1.0
+  },
+  "per_scenario": {
+    "burst_pattern": {
+      "samples": 10,
+      "anomaly_rate_detected": 1.0,
+      "mean_anomaly_score": 1.0,
+      "recall": 1.0
+    },
+    "flow_spike": {
+      "samples": 10,
+      "anomaly_rate_detected": 1.0,
+      "mean_anomaly_score": 1.0,
+      "recall": 1.0
+    },
+    "normal": {
+      "samples": 10,
+      "anomaly_rate_detected": 0.2,
+      "mean_anomaly_score": 0.19323272515731757,
+      "recall": null
+    },
+    "session_anomaly": {
+      "samples": 10,
+      "anomaly_rate_detected": 1.0,
+      "mean_anomaly_score": 1.0,
+      "recall": 1.0
+    },
+    "traffic_spike": {
+      "samples": 10,
+      "anomaly_rate_detected": 1.0,
+      "mean_anomaly_score": 1.0,
+      "recall": 1.0
+    }
+  }
+}

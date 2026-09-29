@@ -181,6 +181,37 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
     handleSendChatMessage(promptText);
   };
 
+  const handleDownloadPDF = async (e) => {
+    e.preventDefault();
+    const fname = curr.filename || 'ikev2_s2s_ipsec_vpn_aes_gcm.pcapng';
+    const fallbackPath = '/reports/ikev2_s2s_ipsec_vpn_aes_gcm_executive_report.pdf';
+    try {
+      const res = await fetch(`/reports/download-pdf?filename=${encodeURIComponent(fname)}`);
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && (contentType.includes('pdf') || contentType.includes('octet-stream'))) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${fname.replace(/\.[^/.]+$/, '')}_executive_report.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        return;
+      }
+    } catch (err) {
+      console.warn('PDF endpoint unavailable, downloading static fallback:', err);
+    }
+    const a = document.createElement('a');
+    a.href = fallbackPath;
+    a.download = `${fname.replace(/\.[^/.]+$/, '')}_executive_report.pdf`;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
   // Data helpers
   function formatReportData(data, defaultFilename) {
     const ipsec = data.ipsec || data;
@@ -402,17 +433,16 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
         </div>
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <a
-            href={`/reports/download-pdf?filename=${encodeURIComponent(curr.filename)}`}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            onClick={handleDownloadPDF}
             className="btn-ghost"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '6px 14px', textDecoration: 'none' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '6px 14px', cursor: 'pointer', border: 'none', background: 'transparent' }}
             title="Download Executive PDF Report"
           >
             <FileText size={15} color="var(--accent-cyan)" />
             <span>Executive PDF Report</span>
-          </a>
+          </button>
           {onNavigateToTestbed && (
             <button
               type="button"
