@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { ThreatMatrixDetails } from './ThreatMatrixTab';
 import AnomalyDetectionPanel from './AnomalyDetectionPanel';
+import { askCyberSentinel } from '../services/pollinationsAi';
 
 export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestbed, onNavigateToAnalyzer, onNavigateToOverview }) {
   const [analysis, setAnalysis] = useState(null);
@@ -143,7 +144,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
     }
   };
 
-  // Chat API call
+  // Chat API call powered by Pollinations AI
   const handleSendChatMessage = async (overrideText = null) => {
     const textToSend = (overrideText !== null ? overrideText : chatInput).trim();
     if (!textToSend) return;
@@ -156,21 +157,12 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
     setChatLoading(true);
 
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: textToSend })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const reply = data.reply || 'Analysis complete.';
-        setChatMessages(prev => [...prev, { sender: 'ai', text: reply }]);
-      } else {
-        setChatMessages(prev => [...prev, { sender: 'ai', text: ' Unable to fetch AI response from server backend.' }]);
-      }
+      // Call Pollinations AI service with active analysis context
+      const reply = await askCyberSentinel(textToSend, analysis);
+      setChatMessages(prev => [...prev, { sender: 'ai', text: reply }]);
     } catch (err) {
-      setChatMessages(prev => [...prev, { sender: 'ai', text: ' Network error: Could not reach Privcomm AI service.' }]);
+      console.warn('AI Chat Error:', err);
+      setChatMessages(prev => [...prev, { sender: 'ai', text: '⚠️ Unable to process query. Please check your network connection.' }]);
     } finally {
       setChatLoading(false);
     }

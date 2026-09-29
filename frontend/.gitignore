@@ -37,3 +37,4 @@ models/*.joblib
 models/random_forest_model.joblib
 models/*.joblib
 !models/label_encoder.joblib
+.vercel
