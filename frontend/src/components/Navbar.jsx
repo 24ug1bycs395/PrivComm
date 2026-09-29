@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Layers, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Shield, Radio } from 'lucide-react';
+import { Activity, Layers, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Shield, Radio, BookOpen } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 
 const tabs = [
@@ -10,6 +10,7 @@ const tabs = [
   { id: 'vault',        label: 'Vault',            icon: Database },
   { id: 'overview',     label: 'Architecture',     icon: Layers },
   { id: 'compliance',   label: 'Compliance',       icon: FileCheck },
+  { id: 'docs',         label: 'Docs',             icon: BookOpen },
 ];
 
 export default function Navbar({ activeTab, setActiveTab }) {
