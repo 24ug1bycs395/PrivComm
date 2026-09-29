@@ -20,7 +20,7 @@ class StrongSwanConfigGenerator:
         Extracts and normalizes the hash/integrity algorithm for strongSwan proposals.
         Returns a tuple of (ike_prf, esp_integrity), e.g. ('prfsha256', 'sha256').
         """
-        hash_val = getattr(scenario, "hash_algorithm", None) or scenario.integrity or "SHA-256"
+        hash_val = scenario.integrity if (scenario.integrity and "AEAD" not in scenario.integrity) else getattr(scenario, "hash_algorithm", "SHA-256")
         h = str(hash_val).lower().replace("-", "").replace(" ", "")
         if "384" in h:
             return "prfsha384", "sha384"
@@ -109,8 +109,13 @@ class StrongSwanConfigGenerator:
         remote_addr = f"[{remote_ip}]" if is_ipv6 else remote_ip
 
         rekey_time = "60s" if "rekey" in scenario.id else "1h"
-        start_action = "start" if is_initiator else "none"
         mode = scenario.ipsec_mode.lower()  # "tunnel" or "transport"
+        esp_enabled = getattr(scenario, "esp_enabled", True)
+        # A disabled ESP child is represented as a pass policy. This keeps the
+        # selected setting explicit in the generated strongSwan configuration;
+        # no encrypted CHILD_SA is negotiated for that mode.
+        child_mode = mode if esp_enabled else "pass"
+        start_action = "start" if is_initiator and esp_enabled else "none"
 
         # Traffic selectors differ by mode. The Docker testbed does not create
         # separate 10.0.x.x interfaces, so tunnel mode uses the actual node
@@ -127,11 +132,14 @@ class StrongSwanConfigGenerator:
 
         pfs_comment = "# PFS enabled: DH group included in ESP proposal" if scenario.pfs \
             else "# PFS disabled: no DH group in ESP proposal — keys derived from IKE SA"
+        esp_comment = "# ESP enabled" if esp_enabled else "# ESP disabled: pass policy (no encrypted CHILD_SA)"
+        esp_line = f"                esp_proposals = {esp_prop}" if esp_enabled else "                # esp_proposals omitted because ESP is disabled"
 
         conf = f"""# strongSwan swanctl.conf — Generated for {scenario.name}
 # Role: {"Initiator (VM1)" if is_initiator else "Responder (VM2)"}
 # IPsec Mode: {mode.capitalize()} | IP Version: {scenario.ip_version}
 # {pfs_comment}
+# {esp_comment}
 
 connections {{
     site-to-site {{
@@ -152,10 +160,10 @@ connections {{
 
         children {{
             net-tunnel {{
-                mode = {mode}
+                mode = {child_mode}
                 local_ts = {local_ts}
                 remote_ts = {remote_ts}
-                esp_proposals = {esp_prop}
+{esp_line}
                 start_action = {start_action}
                 rekey_time = {rekey_time}
             }}

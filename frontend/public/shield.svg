@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Privcomm shield</title>
+  <desc id="desc">A simple navy shield with a white network mark.</desc>
+  <path fill="#005ea8" d="M32 4 54 12v17c0 14.2-8.9 25.5-22 31C18.9 54.5 10 43.2 10 29V12L32 4Z"/>
+  <path fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="m22 32 7 7 14-15M20 20h24M20 44h24"/>
+  <circle cx="20" cy="20" r="3" fill="#fff"/>
+  <circle cx="44" cy="20" r="3" fill="#fff"/>
+  <circle cx="20" cy="44" r="3" fill="#fff"/>
+  <circle cx="44" cy="44" r="3" fill="#fff"/>
+</svg>

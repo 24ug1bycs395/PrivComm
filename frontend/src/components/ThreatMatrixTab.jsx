@@ -1,9 +1,9 @@
 import React from 'react';
 import { Shield, AlertTriangle, CheckCircle } from 'lucide-react';
 
-export default function ThreatMatrixTab() {
+export function ThreatMatrixDetails() {
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', animation: 'fade-in 0.35s ease' }}>
+    <div className="record-page" style={{ maxWidth: '1000px', margin: '0 auto', animation: 'fade-in 0.35s ease' }}>
       <div style={{ marginBottom: '32px' }}>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -52,7 +52,7 @@ export default function ThreatMatrixTab() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
         <div className="card-glass">
-          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--accent-red)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <AlertTriangle size={18} />
             <span>High / Critical Severity Triggers</span>
           </h4>
@@ -65,7 +65,7 @@ export default function ThreatMatrixTab() {
         </div>
 
         <div className="card-glass">
-          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <CheckCircle size={18} />
             <span>Secure / Compliant Baselines</span>
           </h4>
@@ -79,4 +79,8 @@ export default function ThreatMatrixTab() {
       </div>
     </div>
   );
+}
+
+export default function ThreatMatrixTab() {
+  return <ThreatMatrixDetails />;
 }

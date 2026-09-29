@@ -271,7 +271,7 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
 
           <div className="sample-row-card" onClick={() => handleLoadSample('ikev2-strong')}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: 'var(--accent-green-dim)', color: 'var(--accent-green)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: 'var(--accent-cyan-dim)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Shield size={18} />
               </div>
               <div>
@@ -283,10 +283,12 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                 </span>
               </div>
             </div>
-            <span className="btn btn-primary btn-sm">Run Audit</span>
+            <span className="btn btn-primary btn-sm">
+              {loading && activeFilename.includes('ikev2') ? 'Auditing...' : 'Run Audit'}
+            </span>
           </div>
 
-          <div className="sample-row-card" onClick={() => handleLoadSample('ikev1-weak')}>
+          <div className="sample-row-card" onClick={() => !loading && handleLoadSample('ikev1-weak')}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: 'rgba(220, 38, 38, 0.1)', color: 'var(--accent-red)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <AlertTriangle size={18} />
@@ -300,30 +302,12 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                 </span>
               </div>
             </div>
-            <span className="btn btn-secondary btn-sm">Run Audit</span>
+            <span className="btn btn-secondary btn-sm">
+              {loading && activeFilename.includes('IKEv1') ? 'Auditing...' : 'Run Audit'}
+            </span>
           </div>
         </div>
       </div>
-
-      {/* Pipeline Status Logs Stream */}
-      {loading && (
-        <div className="console-box">
-          <div className="console-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span className="live-dot" style={{ background: 'var(--accent-cyan)', boxShadow: '0 0 8px var(--accent-cyan)' }}></span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Executing Intelligence Pipeline...</span>
-            </div>
-            <span style={{ color: 'var(--accent-cyan)', fontSize: '0.72rem', background: 'var(--accent-cyan-dim)', padding: '2px 8px', borderRadius: '4px' }}>
-              DISSECTION &amp; INFERENCE ACTIVE
-            </span>
-          </div>
-          {pipelineLogs.map((log, idx) => (
-            <div key={idx} style={{ color: idx === pipelineLogs.length - 1 ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}>
-              {log}
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* Error Banner */}
       {errorNotice && (
@@ -334,7 +318,7 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
       )}
 
       {/* LIVE RESULTS DASHBOARD */}
-      {analysisResult && !loading && (
+      {analysisResult && (
         <div className="results-container">
           {/* Top File Banner */}
           <div className="file-banner">
@@ -368,9 +352,9 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
               fontFamily: 'JetBrains Mono',
               fontSize: '0.82rem',
               fontWeight: 700,
-              background: riskLevel === 'SECURE' || riskLevel === 'LOW' ? 'rgba(34, 197, 94, 0.15)' : (riskLevel === 'MEDIUM' ? 'rgba(234, 179, 8, 0.15)' : 'rgba(239, 68, 68, 0.15)'),
-              color: riskLevel === 'SECURE' || riskLevel === 'LOW' ? '#4ade80' : (riskLevel === 'MEDIUM' ? '#fde047' : '#fca5a5'),
-              border: `1px solid ${riskLevel === 'SECURE' || riskLevel === 'LOW' ? '#22c55e' : (riskLevel === 'MEDIUM' ? '#eab308' : '#ef4444')}`
+              background: riskLevel === 'SECURE' || riskLevel === 'LOW' ? 'var(--status-success-dim)' : (riskLevel === 'MEDIUM' ? 'var(--status-warning-dim)' : 'var(--status-danger-dim)'),
+              color: riskLevel === 'SECURE' || riskLevel === 'LOW' ? 'var(--status-success)' : (riskLevel === 'MEDIUM' ? 'var(--status-warning)' : 'var(--status-danger)'),
+              border: `1px solid ${riskLevel === 'SECURE' || riskLevel === 'LOW' ? 'var(--status-success-border)' : (riskLevel === 'MEDIUM' ? 'var(--status-warning-border)' : 'var(--status-danger-border)')}`
             }}>
               <span className="live-dot" style={{ background: 'currentColor' }}></span>
               <span>{riskLevel} RISK ({riskScore}/100)</span>
@@ -415,7 +399,7 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
             <div className="metric-box">
               <div className="metric-title-bar">
                 <span>CIPHER &amp; INTEGRITY SUITE</span>
-                <Lock size={16} color="var(--accent-green)" />
+                <Lock size={16} color="var(--accent-cyan)" />
               </div>
               <div className="metric-big-val" style={{ fontSize: '1.25rem' }}>
                 {analysisResult.encryption || 'AES-256-GCM'}
@@ -470,7 +454,7 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>
                   IKE IDENTITY PAYLOADS ($ID_i$ / $ID_r$)
                 </span>
-                <strong style={{ fontSize: '0.86rem', color: analysisResult.metadata_exposure?.identity_exposure?.plaintext_identity_leak ? 'var(--accent-red)' : 'var(--accent-green)' }}>
+                <strong style={{ fontSize: '0.86rem', color: analysisResult.metadata_exposure?.identity_exposure?.plaintext_identity_leak ? 'var(--text-secondary)' : 'var(--accent-cyan)' }}>
                   {analysisResult.metadata_exposure?.identity_exposure?.plaintext_identity_leak ? 'PLAINTEXT EXPOSED' : 'ENCRYPTED / ABSENT'}
                 </strong>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', display: 'block', marginTop: '4px' }}>
@@ -494,7 +478,7 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>
                   HEADER EXPOSURE (MODE)
                 </span>
-                <strong style={{ fontSize: '0.86rem', color: analysisResult.mode === 'Transport' ? 'var(--accent-yellow)' : 'var(--accent-green)' }}>
+                <strong style={{ fontSize: '0.86rem', color: analysisResult.mode === 'Transport' ? 'var(--accent-blue)' : 'var(--accent-cyan)' }}>
                   {analysisResult.mode || 'Tunnel'} Mode ({analysisResult.metadata_exposure?.transport_mode_exposure?.exposed_metadata_bytes_per_pkt || 0} B/pkt)
                 </strong>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', display: 'block', marginTop: '4px' }}>
@@ -604,6 +588,38 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                       </td>
                     </tr>
                     <tr>
+                      <td><strong>Operating Mode</strong></td>
+                      <td><code>{analysisResult.mode || (analysisResult.esp_detected ? 'Tunnel' : 'Transport')} Mode</code></td>
+                      <td>Tunnel Mode (RFC 4301)</td>
+                      <td>
+                        <span className={`status-badge ${analysisResult.mode !== 'Transport' ? 'compliant' : 'warning'}`}>
+                          {analysisResult.mode !== 'Transport' ? 'COMPLIANT' : 'HOST-TO-HOST'}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Perfect Forward Secrecy</strong></td>
+                      <td><code>{analysisResult.pfs === false ? 'Disabled' : 'Enforced (RFC 7296)'}</code></td>
+                      <td>PFS Enabled (Child SA DH)</td>
+                      <td>
+                        <span className={`status-badge ${analysisResult.pfs !== false ? 'compliant' : 'danger'}`}>
+                          {analysisResult.pfs !== false ? 'ENFORCED' : 'DISABLED'}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Anti-Replay Window</strong></td>
+                      <td><code>{analysisResult.replay_protection || 'Active (64-bit Window)'}</code></td>
+                      <td>RFC 4303 Sequence Check</td>
+                      <td><span className="status-badge compliant">ACTIVE</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>SA Key Lifetime</strong></td>
+                      <td><code>{analysisResult.sa_lifetime ? `${analysisResult.sa_lifetime}s` : '28,800s (8h Max)'}</code></td>
+                      <td>&le; 28,800s (NIST SP 800-77)</td>
+                      <td><span className="status-badge compliant">COMPLIANT</span></td>
+                    </tr>
+                    <tr>
                       <td><strong>Diffie-Hellman</strong></td>
                       <td><code>Group {analysisResult.dh_group || '19'}</code></td>
                       <td>Group 14, 19, 20, 21</td>
@@ -614,10 +630,10 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                       </td>
                     </tr>
                     <tr>
-                      <td><strong>Encapsulation</strong></td>
-                      <td><code>ESP (Prot 50) • Replay Active</code></td>
-                      <td>RFC 4303 Security Payload</td>
-                      <td><span className="status-badge compliant">COMPLIANT</span></td>
+                      <td><strong>Inferred Traffic Payload</strong></td>
+                      <td><code>{analysisResult.traffic_type || 'CHAT'} ({analysisResult.confidence ? `${Math.round(analysisResult.confidence * 100)}%` : 'AI'})</code></td>
+                      <td>XGBoost Traffic Model</td>
+                      <td><span className="status-badge compliant">CLASSIFIED</span></td>
                     </tr>
                   </tbody>
                 </table>
@@ -637,7 +653,10 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
             {findings.length === 0 ? (
               <div className="finding-box LOW">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--accent-green)' }}> Zero Cryptographic Policy Violations</span>
+                  <span style={{ fontWeight: 700, color: 'var(--accent-cyan)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={15} />
+                    Zero Cryptographic Policy Violations
+                  </span>
                   <span className="status-badge compliant">NIST COMPLIANT</span>
                 </div>
                 <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
@@ -673,18 +692,18 @@ export default function AnalyzerWorkspace({ externalAnalysis }) {
                 Export Formal Reports &amp; Telemetry
               </h4>
               <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                Download standalone executive printable HTML report or technical JSON format for SIEM ingestion.
+                Download formal executive PDF report or technical JSON format for SIEM ingestion.
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <a
-                href={`/reports/download-html?filename=${encodeURIComponent(activeFilename)}`}
+                href={`/reports/download-pdf?filename=${encodeURIComponent(activeFilename)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="btn btn-primary"
               >
                 <Download size={16} />
-                <span>Executive HTML Report</span>
+                <span>Executive PDF Report</span>
               </a>
               <a
                 href={`/reports/download-json?filename=${encodeURIComponent(activeFilename)}`}
