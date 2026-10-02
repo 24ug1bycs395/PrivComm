@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Play, RefreshCw, Download, ArrowRight, WifiOff, Activity, ShieldAlert, CheckCircle2, AlertTriangle, Radio, Server, Zap, Shield, ChevronDown, Info } from "lucide-react";
 import AttackSimulator from "./AttackSimulator";
+import LiveDashboardTab from "./LiveDashboardTab";
 import { useTheme } from "../ThemeContext";
 
 const STAGES = ["CONFIG", "RESPONDER", "INITIATOR", "CAPTURE", "TUNNEL", "TRAFFIC", "PCAP", "AI"];
@@ -1440,6 +1441,22 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
             </div>
           )}
 
+          {/* Lower-page flow: Live Dashboard, then Attack Simulator, then the vault. */}
+          {activeJob?.id && (
+            <LiveDashboardTab liveJobId={activeJob.id} />
+          )}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <AttackSimulator
+              isTestbedConnected={nodeStatus?.all_online ?? true}
+              topology={{
+                initiator: { host: topology.initiator_ip, interface: "eth1" },
+                responder: { host: topology.responder_ip, interface: "eth1" },
+                observer: { host: topology.observer_ip, interface: "eth1" },
+              }}
+            />
+          </div>
+
           {/* Execution Vault */}
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
@@ -1506,6 +1523,19 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
             </div>
           </div>
         </>
+      )}
+
+      {subTab === "attack" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <AttackSimulator
+            isTestbedConnected={nodeStatus?.all_online ?? true}
+            topology={{
+              initiator: { host: topology.initiator_ip, interface: "eth1" },
+              responder: { host: topology.responder_ip, interface: "eth1" },
+              observer: { host: topology.observer_ip, interface: "eth1" },
+            }}
+          />
+        </div>
       )}
 
       <style>{`@keyframes blink-caret{0%,100%{opacity:1}50%{opacity:0}}`}</style>

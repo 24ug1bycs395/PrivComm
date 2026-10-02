@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import TelemetryDashboard from './components/TelemetryDashboard';
 import LiveDashboardTab from './components/LiveDashboardTab';
@@ -7,19 +7,46 @@ import TestbedTab from './components/TestbedTab';
 import HistoryVaultTab from './components/HistoryVaultTab';
 import Overview from './components/Overview';
 import ComplianceTab from './components/ComplianceTab';
+import TechnicalDocsTab from './components/TechnicalDocsTab';
 import { ThemeProvider } from './ThemeContext';
 
+const VALID_TABS = ['dashboard', 'live', 'analyzer', 'testbed', 'vault', 'overview', 'compliance', 'docs'];
+
+function getInitialTab() {
+  if (typeof window !== 'undefined') {
+    const hash = window.location.hash.replace('#', '').trim().toLowerCase();
+    if (hash === 'documentation' || hash === 'technical-documentation') return 'docs';
+    if (VALID_TABS.includes(hash)) return hash;
+  }
+  return 'overview';
+}
+
 export default function App() {
-  const [activeTab, setActiveTabRaw] = useState('overview');
+  const [activeTab, setActiveTabRaw] = useState(getInitialTab);
   const [inspectedAnalysis, setInspectedAnalysis] = useState(null);
   const [liveJobId, setLiveJobId] = useState(null);
   const [liveDashboardEnabled, setLiveDashboardEnabled] = useState(false);
   const [showLiveBlockedDialog, setShowLiveBlockedDialog] = useState(false);
 
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '').trim().toLowerCase();
+      const resolved = (hash === 'documentation' || hash === 'technical-documentation') ? 'docs' : hash;
+      if (VALID_TABS.includes(resolved)) {
+        setActiveTabRaw(resolved);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   const setActiveTab = (tab) => {
     if (tab === 'live' && !liveDashboardEnabled) {
       setShowLiveBlockedDialog(true);
       return;
+    }
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', `/#${tab}`);
     }
     setActiveTabRaw(tab);
   };
@@ -79,6 +106,7 @@ export default function App() {
             />
           )}
           {activeTab === 'compliance' && <ComplianceTab />}
+          {activeTab === 'docs' && <TechnicalDocsTab />}
         </main>
 
         {/* Footer */}
