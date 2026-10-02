@@ -3,14 +3,17 @@ import {
   Activity,
   Server,
   Zap,
+  ShieldAlert,
   ChevronRight,
   Radio
 } from 'lucide-react';
 import TelemetryDashboard from './TelemetryDashboard';
 import TestbedTab from './TestbedTab';
+import AttackSimulator from './AttackSimulator';
 
 const SUB_TABS = [
   { id: 'dashboard', label: 'Live Dashboard',      icon: Activity },
+  { id: 'attack',    label: 'Attack Simulation',   icon: ShieldAlert },
   { id: 'testbed',   label: 'strongSwan Testbed',  icon: Server },
 ];
 
@@ -133,6 +136,9 @@ export default function LiveSecurityLabPage({
           onNavigateToAnalyzer={onNavigateToAnalyzer}
           onNavigateToOverview={onNavigateToOverview}
         />
+      </div>
+      <div style={{ display: activeSection === 'attack' ? 'block' : 'none' }}>
+        <AttackSimulator />
       </div>
       <div style={{ display: activeSection === 'testbed' ? 'block' : 'none' }}>
         <TestbedTab onNavigateToAnalysis={onNavigateToAnalysis} />
