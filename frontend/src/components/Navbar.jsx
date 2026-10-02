@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+<<<<<<< HEAD
 import { Activity, Layers, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Shield, Radio, BookOpen } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 
@@ -11,6 +12,16 @@ const tabs = [
   { id: 'overview',     label: 'Architecture',     icon: Layers },
   { id: 'compliance',   label: 'Compliance',       icon: FileCheck },
   { id: 'docs',         label: 'Docs',             icon: BookOpen },
+=======
+import { Shield, Radio, Database, Layers, Sun, Moon, Menu, X } from 'lucide-react';
+import { useTheme } from '../ThemeContext';
+
+const tabs = [
+  { id: 'ipsec-security', label: 'IPsec Security',     icon: Shield },
+  { id: 'live-security',  label: 'Live Security Lab',   icon: Radio },
+  { id: 'vault',          label: 'Vault',               icon: Database },
+  { id: 'overview',       label: 'Architecture',        icon: Layers },
+>>>>>>> 2d29104 (testing)
 ];
 
 export default function Navbar({ activeTab, setActiveTab }) {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
+<<<<<<< HEAD
 import TelemetryDashboard from './components/TelemetryDashboard';
 import LiveDashboardTab from './components/LiveDashboardTab';
 import AnalyzerWorkspace from './components/AnalyzerWorkspace';
@@ -8,6 +9,12 @@ import HistoryVaultTab from './components/HistoryVaultTab';
 import Overview from './components/Overview';
 import ComplianceTab from './components/ComplianceTab';
 import TechnicalDocsTab from './components/TechnicalDocsTab';
+=======
+import IPsecSecurityPage from './components/IPsecSecurityPage';
+import LiveSecurityLabPage from './components/LiveSecurityLabPage';
+import HistoryVaultTab from './components/HistoryVaultTab';
+import Overview from './components/Overview';
+>>>>>>> 2d29104 (testing)
 import { ThemeProvider } from './ThemeContext';
 
 const VALID_TABS = ['dashboard', 'live', 'analyzer', 'testbed', 'vault', 'overview', 'compliance', 'docs'];
@@ -53,7 +60,7 @@ export default function App() {
 
   const handleNavigateToAnalysis = (analysisData) => {
     setInspectedAnalysis(analysisData);
-    setActiveTab('dashboard');
+    setActiveTab('live-security');
   };
 
   return (
@@ -73,14 +80,18 @@ export default function App() {
 
         {/* Main Tab Content */}
         <main className="main-content">
-          {activeTab === 'dashboard' && (
-            <TelemetryDashboard
+          {activeTab === 'ipsec-security' && (
+            <IPsecSecurityPage externalAnalysis={inspectedAnalysis} />
+          )}
+          {activeTab === 'live-security' && (
+            <LiveSecurityLabPage
               externalAnalysis={inspectedAnalysis}
-              onNavigateToTestbed={() => setActiveTab('testbed')}
-              onNavigateToAnalyzer={() => setActiveTab('analyzer')}
+              onNavigateToAnalyzer={() => setActiveTab('ipsec-security')}
               onNavigateToOverview={() => setActiveTab('overview')}
+              onNavigateToAnalysis={handleNavigateToAnalysis}
             />
           )}
+<<<<<<< HEAD
           {activeTab === 'live' && (
             <LiveDashboardTab
               liveJobId={liveJobId}
@@ -99,15 +110,20 @@ export default function App() {
               onLiveAvailabilityChange={setLiveDashboardEnabled}
             />
           )}
+=======
+>>>>>>> 2d29104 (testing)
           {activeTab === 'vault' && <HistoryVaultTab onSelectAnalysis={handleNavigateToAnalysis} />}
           {activeTab === 'overview' && (
             <Overview
-              onStartAnalysis={() => setActiveTab('analyzer')}
-              onViewTelemetry={() => setActiveTab('dashboard')}
+              onStartAnalysis={() => setActiveTab('ipsec-security')}
+              onViewTelemetry={() => setActiveTab('live-security')}
             />
           )}
+<<<<<<< HEAD
           {activeTab === 'compliance' && <ComplianceTab />}
           {activeTab === 'docs' && <TechnicalDocsTab />}
+=======
+>>>>>>> 2d29104 (testing)
         </main>
 
         {/* Footer */}
