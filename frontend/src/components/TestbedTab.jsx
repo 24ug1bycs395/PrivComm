@@ -784,8 +784,9 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
   });
 
   const [subTab, setSubTab] = useState("orchestrator"); // 'orchestrator' | 'attack'
-  const attackSectionRef = useRef(null);
   const orchestratorSectionRef = useRef(null);
+  const liveDashboardSectionRef = useRef(null);
+  const attackSectionRef = useRef(null);
   const [nodeStatus, setNodeStatus] = useState(null);
   const [isCheckingNodes, setIsCheckingNodes] = useState(false);
   const [nodeCheckError, setNodeCheckError] = useState(null);
@@ -809,20 +810,12 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
     activeJob?.id && ["TRAFFIC", "PCAP", "AI"].includes(currentStage) && activeJob.state !== "FAILED"
   );
 
-  const focusTestbedSection = useCallback((section, ref) => {
+  const scrollToTestbedSection = useCallback((section, ref) => {
     setSubTab(section);
     window.requestAnimationFrame(() => {
       ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }, []);
-
-  const handleLiveOrchestratorClick = () => {
-    if (liveDashboardReady && activeJob?.id) {
-      onNavigateToLive?.(activeJob.id);
-      return;
-    }
-    focusTestbedSection("orchestrator", orchestratorSectionRef);
-  };
 
   useEffect(() => {
     onLiveAvailabilityChange?.(liveDashboardReady);
@@ -1093,8 +1086,11 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
               type="button"
               className={`testbed-view-button${subTab === "orchestrator" ? " active" : ""}`}
               style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", padding: "6px 14px", fontWeight: 700 }}
-              onClick={handleLiveOrchestratorClick}
-              title={liveDashboardReady ? "Open the live packet dashboard" : "Show the live orchestrator"}
+              onClick={() => scrollToTestbedSection(
+                "orchestrator",
+                liveDashboardSectionRef.current ? liveDashboardSectionRef : orchestratorSectionRef
+              )}
+              title="Scroll to the live dashboard"
             >
               <Activity size={14} /> Live Orchestrator
             </button>
@@ -1102,7 +1098,8 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
               type="button"
               className={`testbed-view-button${subTab === "attack" ? " active" : ""}`}
               style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", padding: "6px 14px", fontWeight: 700, color: subTab === "attack" ? "#f87171" : undefined }}
-              onClick={() => focusTestbedSection("attack", attackSectionRef)}
+              onClick={() => scrollToTestbedSection("attack", attackSectionRef)}
+              title="Scroll to the attack simulator"
             >
               <ShieldAlert size={14} color={subTab === "attack" ? "#f87171" : "currentColor"} /> Attack Simulator
             </button>
@@ -1232,24 +1229,9 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
         </div>
       )}
 
-      {/* VIEW 1: ATTACK SIMULATOR */}
-      {subTab === "attack" && (
-        <div ref={attackSectionRef} style={{ display: "flex", flexDirection: "column", gap: "16px", scrollMarginTop: "96px" }}>
-          <AttackSimulator
-            isTestbedConnected={nodeStatus?.all_online ?? true}
-            topology={{
-              initiator: { host: topology.initiator_ip, interface: "eth1" },
-              responder: { host: topology.responder_ip, interface: "eth1" },
-              observer: { host: topology.observer_ip, interface: "eth1" },
-            }}
-          />
-        </div>
-      )}
-
       {/* VIEW 2: LIVE ORCHESTRATOR */}
-      {subTab === "orchestrator" && (
+      <div ref={orchestratorSectionRef}>
         <>
-          <div ref={orchestratorSectionRef} style={{ scrollMarginTop: "96px" }} />
           {/* Controls Bar for Scenario Selection */}
           <div style={{
             display: "flex",
@@ -1369,7 +1351,7 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
               type="button"
               className="btn-secondary testbed-live-button"
               disabled={!liveDashboardReady}
-              onClick={() => activeJob?.id && onNavigateToLive?.(activeJob.id)}
+              onClick={() => scrollToTestbedSection("orchestrator", liveDashboardSectionRef)}
               title={liveDashboardReady
                 ? "Open observer packet telemetry"
                 : "Available when the observer begins receiving packets"}
@@ -1443,10 +1425,12 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
 
           {/* Lower-page flow: Live Dashboard, then Attack Simulator, then the vault. */}
           {activeJob?.id && (
-            <LiveDashboardTab liveJobId={activeJob.id} />
+            <div ref={liveDashboardSectionRef} style={{ scrollMarginTop: "96px" }}>
+              <LiveDashboardTab liveJobId={activeJob.id} />
+            </div>
           )}
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div ref={attackSectionRef} style={{ display: "flex", flexDirection: "column", gap: "16px", scrollMarginTop: "96px" }}>
             <AttackSimulator
               isTestbedConnected={nodeStatus?.all_online ?? true}
               topology={{
@@ -1523,20 +1507,7 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
             </div>
           </div>
         </>
-      )}
-
-      {subTab === "attack" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <AttackSimulator
-            isTestbedConnected={nodeStatus?.all_online ?? true}
-            topology={{
-              initiator: { host: topology.initiator_ip, interface: "eth1" },
-              responder: { host: topology.responder_ip, interface: "eth1" },
-              observer: { host: topology.observer_ip, interface: "eth1" },
-            }}
-          />
-        </div>
-      )}
+      </div>
 
       <style>{`@keyframes blink-caret{0%,100%{opacity:1}50%{opacity:0}}`}</style>
     </div>

@@ -5,7 +5,7 @@ import {
   TrendingUp, GitBranch, Globe, Award, ChevronRight, Terminal,
   ExternalLink, Layers, Check
 } from 'lucide-react';
-import TopologyCanvas from './TopologyCanvas';
+import PrivCommTunnelVisualizer from './PrivCommTunnelVisualizer';
 
 /* ── Pipeline Steps (makingsoftware.com Chapter Breakdown) ──────────── */
 const steps = [
@@ -67,14 +67,14 @@ const steps = [
 
 /* ── Capability Highlights ──────────────────────────────────────────── */
 const capabilities = [
-  { icon: Cpu, label: 'XGBoost Traffic Classification', sub: 'ML-driven IKE/ESP classification · 99.4% accuracy' },
-  { icon: Zap, label: 'Real-Time PCAP Dissection', sub: 'Zero-latency protocol stream parser (<80ms)' },
-  { icon: Database, label: 'Analysis Persistence Vault', sub: 'Tamper-evident SQLite/Supabase session ledger' },
-  { icon: TrendingUp, label: 'CVSS Risk Score Engine', sub: 'Automated cryptographic debt quantification' },
-  { icon: GitBranch, label: 'strongSwan 3-Node Testbed', sub: 'Multi-VM tunnel orchestration & packet replay' },
-  { icon: Globe, label: 'Sovereign Air-Gapped Mode', sub: 'Zero external cloud egress · 100% on-premise' },
-  { icon: Shield, label: 'NIST SP 800-77 Rev 1 Audit', sub: 'Federal cryptographic policy enforcement' },
-  { icon: Award, label: 'FIPS 140-3 & NSA CSfC 4.1', sub: 'Compliant cipher suite validation' },
+  { icon: Cpu,        label: 'XGBoost Traffic Classification',  sub: 'ML-driven IKE/ESP classification · 91.17% accuracy' },
+  { icon: Zap,        label: 'Real-Time PCAP Dissection',       sub: 'Zero-latency protocol stream parser (<80ms)' },
+  { icon: Database,   label: 'Analysis Persistence Vault',      sub: 'Tamper-evident SQLite/Supabase session ledger' },
+  { icon: TrendingUp, label: 'CVSS Risk Score Engine',          sub: 'Automated cryptographic debt quantification' },
+  { icon: GitBranch,  label: 'strongSwan 3-Node Testbed',       sub: 'Multi-VM tunnel orchestration & packet replay' },
+  { icon: Globe,      label: 'Sovereign Air-Gapped Mode',       sub: 'Zero external cloud egress · 100% on-premise' },
+  { icon: Shield,     label: 'NIST SP 800-77 Rev 1 Audit',      sub: 'Federal cryptographic policy enforcement' },
+  { icon: Award,      label: 'FIPS 140-3 & NSA CSfC 4.1',       sub: 'Compliant cipher suite validation' },
 ];
 
 /* ── Interactive Architecture FAQ Console Data ──────────────────────── */
@@ -137,30 +137,6 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
 
         {/* LEFT COLUMN: Editorial Narrative & Specifications */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-
-          {/* Technical Spec Tag */}
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--accent-blue)',
-            marginBottom: '16px',
-          }}>
-            <span style={{
-              display: 'inline-block',
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: 'var(--accent-blue)',
-              boxShadow: '0 0 6px var(--accent-blue)',
-            }} />
-            [ SYS_SPEC // NIST SP 800-77 REV 1 · NSA CSfC 4.1 · FIPS 140-3 ]
-          </div>
 
           {/* Large Retro Blueprint Header */}
           <h1 style={{
@@ -259,70 +235,14 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <span style={{ color: 'var(--text-tertiary)' }}>CLASSIFICATION ACCURACY</span>
               <span className="leader-dots" />
-              <strong style={{ color: 'var(--accent-blue)' }}>99.4% (XGBoost)</strong>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ color: 'var(--text-tertiary)' }}>DISSECTION LATENCY</span>
-              <span className="leader-dots" />
-              <strong style={{ color: 'var(--text-primary)' }}>&lt;80ms STREAM TAP</strong>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ color: 'var(--text-tertiary)' }}>CIPHER SUITES AUDITED</span>
-              <span className="leader-dots" />
-              <strong style={{ color: 'var(--text-primary)' }}>200+ PROFILES</strong>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ color: 'var(--text-tertiary)' }}>SOVEREIGN PRIVACY</span>
-              <span className="leader-dots" />
-              <strong style={{ color: '#16a34a' }}>ZERO EXTERNAL EGRESS</strong>
+              <strong style={{ color: 'var(--accent-blue)' }}>91.17% (XGBoost)</strong>
             </div>
           </div>
         </div>
 
         {/* RIGHT COLUMN: Interactive Architecture Blueprint Chassis */}
-        <div className="blueprint-frame" style={{ position: 'sticky', top: '90px' }}>
-          {/* Blueprint Header */}
-          <div className="blueprint-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: 'var(--accent-blue)', fontWeight: 800 }}>FIG_001 //</span>
-              <span>NETWORK TOPOLOGY &amp; CRYPTOGRAPHIC MESH</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '0.68rem' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} />
-              <span>STATE: VERIFIED</span>
-            </div>
-          </div>
-
-          {/* Interactive Topology Canvas */}
-          <div style={{ background: 'var(--bg-secondary)', padding: '4px' }}>
-            <TopologyCanvas />
-          </div>
-
-          {/* Blueprint Footer Metadata */}
-          <div style={{
-            padding: '12px 18px',
-            background: 'var(--bg-card)',
-            borderTop: '1px solid var(--border-blueprint, rgba(37,99,235,0.2))',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.72rem',
-            color: 'var(--text-secondary)',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-            gap: '8px',
-          }}>
-            <div>
-              <span style={{ display: 'block', color: 'var(--text-tertiary)', fontSize: '0.64rem' }}>GATEWAY ALPHA</span>
-              <strong>192.168.56.10 (IKEv2)</strong>
-            </div>
-            <div>
-              <span style={{ display: 'block', color: 'var(--text-tertiary)', fontSize: '0.64rem' }}>GATEWAY BETA</span>
-              <strong>192.168.56.20 (IKEv2)</strong>
-            </div>
-            <div>
-              <span style={{ display: 'block', color: 'var(--text-tertiary)', fontSize: '0.64rem' }}>ACTIVE CIPHER</span>
-              <strong style={{ color: 'var(--accent-blue)' }}>AES-256-GCM / DH-19</strong>
-            </div>
-          </div>
+        <div className="blueprint-frame" style={{ position: 'static', alignSelf: 'center', padding: 0, overflow: 'hidden' }}>
+          <PrivCommTunnelVisualizer showHeader={false} showTelemetry={false} />
         </div>
       </section>
 
@@ -332,17 +252,6 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
       {/* ─── Six-Stage Pipeline: Table of Contents Style (makingsoftware.com style) ─── */}
       <section style={{ marginBottom: '64px' }}>
         <div style={{ marginBottom: '32px' }}>
-          <div style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.74rem',
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: 'var(--accent-blue)',
-            marginBottom: '6px',
-          }}>
-            [ SPEC_SEC_02 // EXECUTION PIPELINE ]
-          </div>
           <h2 style={{
             fontFamily: 'var(--font-mono)',
             fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
@@ -467,17 +376,6 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
       {/* ─── Capabilities Matrix (Hardware Manual Style) ────────────── */}
       <section style={{ marginBottom: '64px' }}>
         <div style={{ marginBottom: '32px' }}>
-          <div style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.74rem',
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: 'var(--accent-blue)',
-            marginBottom: '6px',
-          }}>
-            [ SPEC_SEC_03 // CORE CAPABILITIES ]
-          </div>
           <h2 style={{
             fontFamily: 'var(--font-mono)',
             fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
@@ -568,17 +466,6 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
       {/* ─── Interactive Architecture FAQ Console (makingsoftware.com style) ─── */}
       <section style={{ marginBottom: '64px' }}>
         <div style={{ marginBottom: '28px' }}>
-          <div style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.74rem',
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: 'var(--accent-blue)',
-            marginBottom: '6px',
-          }}>
-            [ SPEC_SEC_04 // INTERACTIVE ARCHITECTURE CONSOLE ]
-          </div>
           <h2 style={{
             fontFamily: 'var(--font-mono)',
             fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
@@ -741,17 +628,6 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
           marginBottom: '32px',
         }}
       >
-        <div style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.72rem',
-          fontWeight: 700,
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: 'var(--accent-blue)',
-          marginBottom: '10px',
-        }}>
-          [ INITIATE_SESSION // READY FOR INGESTION ]
-        </div>
         <h2 style={{
           fontFamily: 'var(--font-mono)',
           fontSize: 'clamp(1.6rem, 3.2vw, 2.2rem)',
