@@ -1632,3 +1632,10 @@ h1, h2, h3, h4, h5, h6 {
   .attack-controls { align-items: stretch; flex-direction: column; }
   .attack-controls label, .attack-controls select, .attack-start-button, .attack-stop-button { width: 100%; }
 }
+
+@media (max-width: 860px) {
+  .docs-grid-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+

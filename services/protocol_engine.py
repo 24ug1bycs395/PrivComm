@@ -85,17 +85,33 @@ class ProtocolIdentificationEngine:
         recommendations = generate_recommendations(findings)
         risk_res = calculate_security_risk(findings)
 
-        # 4. Generate Executive HTML & PDF Reports
+        # 4. Generate Executive HTML, PDF & JSON Reports
         base_filename = os.path.splitext(os.path.basename(pcap_path))[0]
         html_output = os.path.join("results", f"{base_filename}_executive_report.html")
         pdf_output = os.path.join("results", f"{base_filename}_executive_report.pdf")
+        json_output = os.path.join("results", f"{base_filename}.json")
+
         report_data = build_unified_analysis_report(ingest_res, traffic_res, findings, recommendations, risk_res)
         generate_html_report(report_data, html_output)
+
+        from reports.report_generator import save_json_report
+        save_json_report(report_data, json_output)
+        save_json_report(report_data, os.path.join("results", "result.json"))
+
         try:
             from reports.pdf_report_generator import generate_pdf_report
             generate_pdf_report(report_data, pdf_output)
+            
+            # Sync to frontend/public/reports for instant static and web access
+            import shutil
+            frontend_dir = os.path.join("frontend", "public", "reports")
+            os.makedirs(frontend_dir, exist_ok=True)
+            shutil.copyfile(pdf_output, os.path.join(frontend_dir, f"{base_filename}_executive_report.pdf"))
+            shutil.copyfile(pdf_output, os.path.join(frontend_dir, "executive_report.pdf"))
+            shutil.copyfile(html_output, os.path.join(frontend_dir, f"{base_filename}_executive_report.html"))
+            save_json_report(report_data, os.path.join(frontend_dir, f"{base_filename}.json"))
         except Exception as e:
-            logger.warning(f"Could not generate PDF report: {e}")
+            logger.warning(f"Could not generate or sync PDF report: {e}")
 
         from db.storage import StorageService
         report_url = StorageService.upload_report_html(f"{base_filename}_executive_report.html", html_output)
