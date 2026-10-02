@@ -38,3 +38,4 @@ models/*.joblib
 .idea/
 *.swp
 .DS_Store
+README.md

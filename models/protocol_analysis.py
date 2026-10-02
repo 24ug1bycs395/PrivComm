@@ -26,5 +26,9 @@ class ProtocolAnalysisResult(BaseModel):
     explainability: Optional[List[Dict[str, Any]]] = Field(default=None, description="Plain-English component-by-component security explanations")
     tunnel_integrity: Optional[Dict[str, Any]] = Field(default=None, description="Tunnel establishment cryptographic integrity verification results")
     rfc4303_elimination: Optional[Dict[str, Any]] = Field(default=None, description="ESP length arithmetic cipher elimination result")
+    data_provenance: Dict[str, str] = Field(
+        default_factory=dict,
+        description="How each analysis field was obtained: OBSERVED, PARSED, INFERRED, or UNKNOWN",
+    )
     report_html: Optional[str] = Field(default=None, description="Generated Executive HTML report path or download link")
 

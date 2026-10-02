@@ -11,6 +11,7 @@ from security.recommendations import generate_recommendations
 from security.risk import calculate_security_risk
 from reports.report_generator import build_unified_analysis_report
 from reports.html_report_generator import generate_html_report
+from analyzer.provenance import build_data_provenance
 
 logger = logging.getLogger("ProtocolIdentificationEngine")
 
@@ -102,6 +103,15 @@ class ProtocolIdentificationEngine:
         json_output = os.path.join("results", f"{base_filename}.json")
 
         report_data = build_unified_analysis_report(ingest_res, traffic_res, findings, recommendations, risk_res)
+        data_provenance = build_data_provenance(
+            ingest_result=ingest_res,
+            ipsec=ipsec,
+            traffic_classification=traffic_res,
+            behavioral_anomaly=anomaly_res,
+            metadata_exposure=meta_exposure,
+            rfc4303_elimination=rfc4303_result,
+        )
+        report_data["data_provenance"] = data_provenance
         generate_html_report(report_data, html_output)
 
         from reports.report_generator import save_json_report
@@ -168,5 +178,6 @@ class ProtocolIdentificationEngine:
             },
             explainability=report_data.get("explainability", []),
             rfc4303_elimination=rfc4303_result,
+            data_provenance=data_provenance,
             report_html=os.path.abspath(html_output)
         )
