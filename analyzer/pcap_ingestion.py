@@ -1,5 +1,6 @@
 import os
 import logging
+import os
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
 from typing import Dict, Any, Tuple
@@ -49,6 +50,18 @@ def ingest_and_parse_pcap(pcap_path: str) -> Dict[str, Any]:
             "metadata_exposure": {}
         }
 
+    zdp_result = None
+    try:
+        from analyzer.pcap_decoder import decode_pcap
+        zdp_result = decode_pcap(pcap_path)
+        logger.info(
+            "[ZDP] Pure-Python decoder: %d IKE pkts, %d ESP pkts",
+            len(zdp_result.ike_packets),
+            len(zdp_result.esp_packets),
+        )
+    except Exception as exc:
+        logger.warning("[ZDP] Pure-Python decoder failed: %s, continuing with Scapy/TShark", exc)
+
     # Attempt Scapy parsing for direct feature extraction and packet analysis (cap to 5000 pkts to prevent memory spikes)
     scapy_pkts = None
     try:
@@ -92,6 +105,27 @@ def ingest_and_parse_pcap(pcap_path: str) -> Dict[str, Any]:
             }
 
     ipsec_config = synthesize_ipsec_config(ike_info, esp_info)
+    if zdp_result is not None:
+        first_ike = zdp_result.ike_packets[0] if zdp_result.ike_packets else None
+        if first_ike:
+            for key, value in {
+                "ike_version": first_ike.ike_version,
+                "initiator_spi": first_ike.initiator_spi,
+                "responder_spi": first_ike.responder_spi,
+                "exchange_type": first_ike.exchange_name,
+            }.items():
+                if not ike_info.get(key) or ike_info.get(key) == "unknown":
+                    ike_info[key] = value
+            ike_info["proposals"] = first_ike.proposals
+        if not esp_info.get("esp_packet_count"):
+            esp_info["esp_packet_count"] = len(zdp_result.esp_packets)
+        if not esp_info.get("observed_spis"):
+            esp_info["observed_spis"] = sorted(zdp_result.unique_spis)
+        if not esp_info.get("esp_detected") and zdp_result.esp_packets:
+            esp_info["esp_detected"] = True
+        ipsec_config = synthesize_ipsec_config(ike_info, esp_info)
+        ipsec_config["esp_spi_list"] = sorted(zdp_result.unique_spis)
+        ipsec_config["esp_packet_count"] = len(zdp_result.esp_packets)
     flow_features = extract_flow_features_scapy(scapy_pkts) if scapy_pkts else {}
     meta_exposure = analyze_metadata_exposure(
         packets=scapy_pkts,
@@ -111,5 +145,17 @@ def ingest_and_parse_pcap(pcap_path: str) -> Dict[str, Any]:
         "source_ip": meta_exposure.get("source_ip"),
         "destination_ip": meta_exposure.get("destination_ip"),
         "ip_version": meta_exposure.get("ip_version", "IPv4"),
-        "metadata_exposure": meta_exposure
+        "metadata_exposure": meta_exposure,
+        "zdp_used": zdp_result is not None,
+        "zdp_esp_packets": [
+            {
+                "timestamp": packet.timestamp,
+                "src_ip": packet.src_ip,
+                "dst_ip": packet.dst_ip,
+                "spi": packet.spi,
+                "sequence_number": packet.sequence_number,
+                "payload_length": packet.payload_length,
+            }
+            for packet in (zdp_result.esp_packets if zdp_result is not None else [])
+        ],
     }

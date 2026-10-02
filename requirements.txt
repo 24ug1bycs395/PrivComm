@@ -35,6 +35,7 @@ httpx==0.28.1
 
 # Database & Cloud Storage
 supabase>=2.3.0
+cryptography>=41.0.0
 
 # strongSwan Testbed SSH Control
 asyncssh>=2.14.0

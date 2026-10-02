@@ -41,7 +41,6 @@ export default function App() {
         <Navbar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          liveDashboardEnabled={liveDashboardEnabled}
         />
 
         {/* Main Tab Content */}

@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Layers, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Shield, Radio } from 'lucide-react';
+import { Activity, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Shield } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 
 const tabs = [
   { id: 'dashboard',     label: 'Telemetry',       icon: LayoutDashboard },
-  { id: 'live',          label: 'Live Dashboard',  icon: Radio },
   { id: 'analyzer',     label: 'PCAP Analyzer',    icon: Activity },
   { id: 'testbed',      label: 'Testbed',          icon: Server },
   { id: 'vault',        label: 'Vault',            icon: Database },
-  { id: 'overview',     label: 'Architecture',     icon: Layers },
   { id: 'compliance',   label: 'Compliance',       icon: FileCheck },
 ];
 

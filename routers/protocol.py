@@ -3,6 +3,8 @@ import shutil
 import tempfile
 import json
 import logging
+import ipaddress
+from typing import Any
 from pydantic import BaseModel
 from fastapi import APIRouter, UploadFile, File, HTTPException, status, Query
 from fastapi.responses import FileResponse, JSONResponse
@@ -303,6 +305,77 @@ async def get_analysis_job_detail(job_id: str):
 
 class ChatRequest(BaseModel):
     message: str
+
+
+class ProbeRequest(BaseModel):
+    target_ip: str
+    port: int = 500
+    use_ikev2: bool = True
+    timeout_s: float = 5.0
+    consent_token: str
+    probe_note: str | None = None
+
+
+class AllowlistAddRequest(BaseModel):
+    ip: str
+    added_by: str
+    reason: str
+
+
+@router.post("/probe/ike", summary="Run a consent-gated active IKE probe")
+async def probe_ike(request: ProbeRequest) -> dict[str, Any]:
+    """Send IKE_SA_INIT only after token and exact allowlist checks pass."""
+    try:
+        target_address = ipaddress.ip_address(request.target_ip)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="target_ip must be a valid IPv4 address") from exc
+    if target_address.version != 4:
+        raise HTTPException(status_code=422, detail="target_ip must be a valid IPv4 address")
+    if request.port not in (500, 4500):
+        raise HTTPException(status_code=422, detail="port must be 500 or 4500")
+    from probe.consent import check_double_barrier
+    allowed, reason = check_double_barrier(request.target_ip, request.consent_token)
+    if not allowed:
+        raise HTTPException(status_code=403, detail=reason)
+    from probe.fingerprint import fingerprint_vendor
+    from probe.scanner import probe
+    result = probe(request.target_ip, request.port, request.timeout_s, request.use_ikev2)
+    if result.error and not result.reachable:
+        if "timed out" in result.error.lower():
+            raise HTTPException(status_code=504, detail=result.error)
+        raise HTTPException(status_code=502, detail=result.error)
+    response = result.to_dict()
+    response["vendor_fingerprint"] = fingerprint_vendor(
+        result.vendor_ids or [], result.proposed_transforms or []
+    )
+    response["probe_note"] = request.probe_note
+    return response
+
+
+@router.get("/probe/allowlist", summary="List active probe targets")
+async def get_probe_allowlist() -> list[dict[str, Any]]:
+    from probe.allowlist import list_allowlist
+    return list_allowlist()
+
+
+@router.post("/probe/allowlist/add", summary="Add an exact IP to the probe allowlist")
+async def add_probe_allowlist(request: AllowlistAddRequest) -> dict[str, str]:
+    try:
+        allowlist_address = ipaddress.ip_address(request.ip)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="ip must be a valid IPv4 address") from exc
+    if allowlist_address.version != 4:
+        raise HTTPException(status_code=422, detail="ip must be a valid IPv4 address")
+    from probe.allowlist import add_to_allowlist
+    add_to_allowlist(request.ip, request.added_by, request.reason)
+    return {"status": "added", "ip": request.ip}
+
+
+@router.delete("/probe/allowlist/remove/{ip}", summary="Remove an exact IP from the probe allowlist")
+async def remove_probe_allowlist(ip: str) -> dict[str, str]:
+    from probe.allowlist import remove_from_allowlist
+    remove_from_allowlist(ip)
+    return {"status": "removed", "ip": ip}
 
 
 @router.post("/api/chat")

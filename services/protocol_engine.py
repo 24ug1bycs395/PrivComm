@@ -33,6 +33,16 @@ class ProtocolIdentificationEngine:
         ingest_res = ingest_and_parse_pcap(pcap_path)
         ipsec = ingest_res.get("ipsec", {})
 
+        rfc4303_result = None
+        esp_packets = ingest_res.get("zdp_esp_packets", [])
+        if esp_packets:
+            from analyzer.rfc4303 import eliminate_impossible_ciphers
+            rfc4303_result = eliminate_impossible_ciphers(esp_packets).to_dict()
+            viable = rfc4303_result.get("viable_ciphers", [])
+            if len(viable) == 1:
+                ipsec["encryption"] = viable[0]
+                ipsec["encryption_provenance"] = "rfc4303_arithmetic"
+
         # 2. Predict Traffic Class using trained XGBoost ML model
         flow_feats = ingest_res.get("flow_features", {})
         traffic_res = predict_traffic_class(flow_feats)
@@ -141,5 +151,6 @@ class ProtocolIdentificationEngine:
                 "metadata_exposure": meta_exposure
             },
             explainability=report_data.get("explainability", []),
+            rfc4303_elimination=rfc4303_result,
             report_html=os.path.abspath(html_output)
         )
