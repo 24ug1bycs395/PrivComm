@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, FileText, Folder, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, Folder, Check } from 'lucide-react';
 
 const sections = [
   ['overview', '1. Executive Overview'], ['architecture', '2. System Architecture & Processing Pipeline'],
@@ -13,6 +13,7 @@ const BulletList = ({ children }) => <ul className="gdoc-list">{children}</ul>;
 
 export default function TechnicalDocsTab() {
   const [activeSection, setActiveSection] = useState('overview');
+  const [outlineOpen, setOutlineOpen] = useState(true);
   const [title, setTitle] = useState('PrivComm — IPsec VPN Intelligence & Traffic Classification Platform');
   const docRef = useRef(null);
 
@@ -34,7 +35,33 @@ export default function TechnicalDocsTab() {
         <div className="gdoc-title-wrap"><input aria-label="Document title" value={title} onChange={(event) => setTitle(event.target.value)} /><div className="gdoc-file-meta"><span>Starred</span><span>Last edit was a few seconds ago</span></div></div>
       </div>
       <div className="gdoc-workspace">
-        <aside className="gdoc-outline" aria-label="Document outline"><div className="gdoc-outline-title"><span>Document outline</span><button title="Collapse outline"><ChevronLeft size={16} /></button></div><div className="gdoc-outline-list">{sections.map(([id, label]) => <button key={id} className={`gdoc-outline-item ${activeSection === id ? 'active' : ''}`} onClick={() => jumpTo(id)}>{label}</button>)}</div><div className="gdoc-outline-footer"><Folder size={15} /> Technical documentation</div></aside>
+        {outlineOpen ? (
+          <aside className="gdoc-outline" aria-label="Document outline">
+            <div className="gdoc-outline-title">
+              <span>Document outline</span>
+              <button
+                type="button"
+                title="Collapse outline"
+                aria-label="Collapse document outline"
+                onClick={() => setOutlineOpen(false)}
+              >
+                <ChevronLeft size={16} />
+              </button>
+            </div>
+            <div className="gdoc-outline-list">{sections.map(([id, label]) => <button key={id} className={`gdoc-outline-item ${activeSection === id ? 'active' : ''}`} onClick={() => jumpTo(id)}>{label}</button>)}</div>
+            <div className="gdoc-outline-footer"><Folder size={15} /> Technical documentation</div>
+          </aside>
+        ) : (
+          <button
+            type="button"
+            className="gdoc-outline-reopen"
+            title="Show document outline"
+            aria-label="Show document outline"
+            onClick={() => setOutlineOpen(true)}
+          >
+            <ChevronRight size={17} />
+          </button>
+        )}
         <div className="gdoc-editor-wrap">
           <main className="gdoc-editor" ref={docRef}><article className="gdoc-page">
             <header className="gdoc-cover"><div className="gdoc-cover-kicker">TECHNICAL DOCUMENTATION</div><h1>PrivComm — IPsec VPN Intelligence &amp;<br />Traffic Classification Platform</h1><p className="gdoc-lede">A production-grade platform for analyzing, assessing, and securing encrypted VPN infrastructure in real time.</p><div className="gdoc-cover-rule" /><div className="gdoc-cover-grid"><span><b>Document owner</b>PrivComm Security Engineering</span><span><b>Classification</b>Internal technical reference</span><span><b>Updated</b>October 2026</span></div></header>
