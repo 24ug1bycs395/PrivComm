@@ -3,6 +3,9 @@
 # AI-Assisted IPsec VPN Security Intelligence Platform
 # =============================================================================
 
+# Keep a local README without tracking it in this repository.
+/README.md
+
 # ─── Python ──────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
