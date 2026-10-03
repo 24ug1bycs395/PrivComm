@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Optional
 
 from services.testbed.models import ScenarioDefinition, TestbedTopology
 
-
 TRAFFIC_LABELS = {
     "ICMP_ECHO": "ICMP",
     "HTTP_GET": "Web browsing",

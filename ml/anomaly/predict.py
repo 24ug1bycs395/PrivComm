@@ -11,8 +11,6 @@ import numpy as np
 
 from ml.anomaly.feature_extractor import extract_pcap_windows
 from ml.anomaly.model import normalized_scores, raw_anomaly_scores
-from ml.anomaly.schemas import FEATURE_COLUMNS
-
 
 DEFAULT_MODEL_PATH = Path(__file__).parent / "models" / "vpn_anomaly_detector.joblib"
 

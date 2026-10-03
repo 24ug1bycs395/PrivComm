@@ -1,9 +1,10 @@
-import os
 import json
-import uuid
 import logging
+import os
+import uuid
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
 from db.supabase_client import get_supabase_client
 
 logger = logging.getLogger("db.repository")

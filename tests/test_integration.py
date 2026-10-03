@@ -1,8 +1,11 @@
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.abspath("."))
 from fastapi.testclient import TestClient
+
 from main import app
+
 
 def run_tests():
     client = TestClient(app)

@@ -6,7 +6,8 @@ into clear, intuitive, plain-English explanations designed for non-technical sta
 Includes exact algorithm-specific explanations for AES-256-GCM, AES-128-GCM, AES-256-CBC, 3DES, DH Group 19, Group 14, Group 2, etc.
 """
 
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from security.llm_explainer import query_gemini_explainer
 
 
@@ -392,10 +393,10 @@ def generate_plain_english_explanations(
         score = metadata_exposure.get("exposure_score", 0)
         src_ip = metadata_exposure.get("source_ip", "N/A")
         dst_ip = metadata_exposure.get("destination_ip", "N/A")
-        
+
         status_map = {"LOW": "SECURE", "MEDIUM": "INFO", "HIGH": "WEAK", "CRITICAL": "OBSOLETE"}
         card_status = status_map.get(rating, "INFO")
-        
+
         explanations.append({
             "parameter": "Observable Metadata Exposure",
             "observed_value": f"{rating} Risk (Score {score}/100)",

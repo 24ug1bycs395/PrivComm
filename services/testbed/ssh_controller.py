@@ -3,7 +3,7 @@ import base64
 import logging
 import os
 import time
-from typing import Dict, Any, Tuple, Optional, Callable
+from typing import Any, Callable, Dict, Optional, Tuple
 
 from services.testbed.models import VMHostConfig
 

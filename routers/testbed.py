@@ -1,26 +1,25 @@
-import os
 import asyncio
+import os
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, BackgroundTasks, status, Query
-from fastapi.responses import FileResponse, JSONResponse
-from services.testbed import event_store
 
-from services.testbed.models import (
-    ScenarioDefinition,
-    TestbedRunRequest,
-    TestbedJobStatus,
-    TestbedTopology,
-    TestbedState,
-    PRESET_SCENARIOS
-)
-from services.testbed.orchestrator import TestbedOrchestrator
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, status
+from fastapi.responses import FileResponse
+
 from db.repository import TestbedJobRepository
+from services.testbed import event_store
 from services.testbed.attack_simulator import (
     AttackSimulationRequest,
     list_attack_status,
     start_attack,
     stop_attack,
 )
+from services.testbed.models import (
+    PRESET_SCENARIOS,
+    ScenarioDefinition,
+    TestbedRunRequest,
+    TestbedTopology,
+)
+from services.testbed.orchestrator import TestbedOrchestrator
 
 router = APIRouter(prefix="/api/testbed", tags=["strongSwan IPsec Testbed"])
 orchestrator = TestbedOrchestrator()
@@ -34,23 +33,10 @@ async def get_attack_simulations():
 
 @router.post("/attack-simulations", summary="Start a safe isolated attack simulation")
 async def create_attack_simulation(request: AttackSimulationRequest, fallback: Optional[bool] = Query(None)):
-    """Start a telemetry-only simulation; supports live testbed and offline fallback mode."""
-    allow_fallback = fallback if fallback is not None else (request.fallback or request.mode == "simulated")
-    node_status = await _check_testbed_nodes(request.topology or TestbedTopology())
-    is_live = node_status["all_online"]
-
-    if not is_live and not allow_fallback:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail={
-                "message": "All three testbed nodes must be online before starting an attack simulation, or enable fallback mode.",
-                "online_count": node_status["online_count"],
-                "total_nodes": node_status["total_nodes"],
-                "nodes": node_status["nodes"],
-            },
-        )
+    """Start a telemetry-only simulation; no traffic or host configuration is changed."""
+    use_fallback = fallback if fallback is not None else request.fallback
     try:
-        return start_attack(request, is_fallback=(not is_live))
+        return start_attack(request, is_fallback=use_fallback)
     except RuntimeError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
 
@@ -127,7 +113,7 @@ async def get_testbed_job_status(
     )
 ):
     """GET /api/testbed/jobs/{job_id}: Poll current state, live log output, and completed results.
-    
+
     Merges transient in-memory terminal_events (keyed by VM role) into the response.
     Use ?since_id=<last_event_id> to fetch only new events and avoid re-sending the full list.
     """
@@ -172,7 +158,7 @@ async def download_testbed_pcap(job_id: str):
 
 async def _probe_node(role: str, host: str, port: int = 22, username: str = "vagrant", password: str = "vagrant", timeout: float = 2.0) -> dict:
     import time
-    
+
     # host.docker.internal resolves to the Windows host from inside Docker containers
     # This allows the backend container to reach testbed containers via mapped host ports
     docker_host = os.environ.get("DOCKER_HOST_GATEWAY", "host.docker.internal")

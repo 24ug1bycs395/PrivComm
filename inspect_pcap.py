@@ -10,12 +10,12 @@ Usage:
     python inspect_pcap.py --pcap <path_to_pcap> [--output <output_json_path>]
 """
 
-import sys
-import os
-import json
 import argparse
-import warnings
+import json
 import logging
+import os
+import sys
+import warnings
 
 # Suppress noisy Scapy & Cryptography warnings on stdout/stderr
 warnings.filterwarnings("ignore")
@@ -59,7 +59,7 @@ def analyze_pcap_to_schema(pcap_path: str) -> dict:
         mode_val = "Tunnel" if is_tunnel else ("Transport" if is_transport else str(mode_str))
 
     ip_ver = (
-        report_ip_ver := ingest_res.get("ip_version")
+        _report_ip_ver := ingest_res.get("ip_version")
         or ipsec.get("ip_version")
         or meta_exposure.get("ip_version")
         or "IPv4"

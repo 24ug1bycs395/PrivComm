@@ -1,4 +1,5 @@
 import unittest
+
 from security.explainability import generate_plain_english_explanations
 
 
@@ -19,7 +20,7 @@ class TestExplainabilityEngine(unittest.TestCase):
             "confidence": 0.477
         }
         explanations = generate_plain_english_explanations(config, traffic)
-        
+
         self.assertGreaterEqual(len(explanations), 5)
         params = [e["parameter"] for e in explanations]
         self.assertIn("IKE Protocol Version", params)
@@ -50,7 +51,7 @@ class TestExplainabilityEngine(unittest.TestCase):
             "mode": "Transport"
         }
         explanations = generate_plain_english_explanations(config)
-        
+
         ike_card = next(e for e in explanations if e["parameter"] == "IKE Protocol Version")
         self.assertEqual(ike_card["status"], "WEAK")
 
@@ -74,7 +75,7 @@ class TestExplainabilityEngine(unittest.TestCase):
             "mode": "Tunnel"
         }
         explanations = generate_plain_english_explanations(config)
-        
+
         cipher_card = next(e for e in explanations if e["parameter"] == "Encryption Cipher Algorithm")
         self.assertEqual(cipher_card["status"], "SECURE")
         self.assertIn("Camellia", cipher_card["title"])

@@ -1,13 +1,14 @@
+import ipaddress
+import json
+import logging
 import os
 import shutil
 import tempfile
-import json
-import logging
-import ipaddress
-from typing import Any
+from typing import Any, Optional
+
+from fastapi import APIRouter, File, Header, HTTPException, Query, UploadFile, status
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from fastapi import APIRouter, UploadFile, File, HTTPException, status, Query
-from fastapi.responses import FileResponse, JSONResponse
 
 from models.protocol_analysis import ProtocolAnalysisResult
 from services.protocol_engine import ProtocolIdentificationEngine
@@ -28,7 +29,18 @@ ANALYSIS_HISTORY = []
     status_code=status.HTTP_200_OK,
 )
 async def analyze_protocol(
-    pcap_file: UploadFile = File(..., description="PCAP or PCAPNG capture file to analyze")
+    pcap_file: UploadFile = File(..., description="PCAP or PCAPNG capture file to analyze"),
+    tunnel_id: Optional[str] = Query(
+        None, min_length=1, max_length=128,
+        description="Optional stable operator-defined tunnel identifier for downgrade tracking",
+    ),
+    record_baseline: bool = Query(
+        False, description="Record this capture's observed configuration as the tunnel baseline",
+    ),
+    baseline_authorization: Optional[str] = Header(
+        None, alias="X-PrivComm-Baseline-Authorization",
+        description="Operator secret required only when record_baseline=true",
+    ),
 ) -> ProtocolAnalysisResult:
     """
     POST /analyze/protocol
@@ -39,6 +51,18 @@ async def analyze_protocol(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No filename provided in upload."
         )
+    if record_baseline and not tunnel_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="tunnel_id is required when record_baseline=true.",
+        )
+    if record_baseline:
+        from security.downgrade_baseline import baseline_record_authorized
+        if not baseline_record_authorized(baseline_authorization):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Baseline recording requires a valid operator authorization secret.",
+            )
 
     valid_extensions = (".pcap", ".pcapng", ".cap")
     if not pcap_file.filename.lower().endswith(valid_extensions):
@@ -59,8 +83,10 @@ async def analyze_protocol(
             )
 
     try:
-        result = engine.analyze_pcap(temp_path)
-        
+        result = engine.analyze_pcap(
+            temp_path, tunnel_id=tunnel_id, record_baseline=record_baseline
+        )
+
         # Persist to Database / Local JSON storage
         try:
             from db.repository import AnalysisJobRepository
@@ -69,7 +95,7 @@ async def analyze_protocol(
             job_record["filesize"] = os.path.getsize(temp_path) if os.path.exists(temp_path) else 0
             job_record["status"] = "COMPLETED"
             AnalysisJobRepository.save_analysis(job_record)
-        except Exception as e:
+        except Exception:
             # Non-blocking persistence error logging
             pass
 
@@ -164,6 +190,208 @@ async def analyze_sample_weak_capture():
     return result
 
 
+class VendorConfigRequest(BaseModel):
+    config_text: str
+    vendor: str = "auto"
+    filename: Optional[str] = "vendor_config.cfg"
+
+
+@router.post("/analyze/vendor-config", response_model=ProtocolAnalysisResult)
+async def analyze_vendor_config(payload: VendorConfigRequest) -> ProtocolAnalysisResult:
+    """
+    POST /analyze/vendor-config
+    Ingests and parses static router/firewall configuration text (Cisco ASA/IOS-XE,
+    Fortinet FortiOS, pfSense XML, Libreswan, strongSwan), evaluates cryptographic risk,
+    and returns a tailored hardened remediation diff.
+    """
+    if not payload.config_text or not payload.config_text.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Configuration text cannot be empty."
+        )
+
+    try:
+        result = engine.analyze_vendor_config(
+            config_text=payload.config_text,
+            filename=payload.filename or "vendor_config.cfg",
+            vendor=payload.vendor
+        )
+        _record_history(payload.filename or "vendor_config.cfg", result)
+        return result
+    except Exception as e:
+        logger.exception("Vendor config analysis error")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Vendor configuration parsing failed: {str(e)}"
+        )
+
+
+@router.post("/analyze/vendor-config/upload", response_model=ProtocolAnalysisResult)
+async def upload_vendor_config_file(
+    config_file: UploadFile = File(..., description="Configuration file (.cfg, .conf, .txt, .xml, .json)"),
+    vendor: str = Query("auto", description="Vendor override: auto, cisco, fortinet, pfsense, libreswan, strongswan")
+) -> ProtocolAnalysisResult:
+    """
+    POST /analyze/vendor-config/upload
+    Uploads a physical router/firewall configuration file to dissect and audit.
+    """
+    if not config_file.filename:
+        raise HTTPException(status_code=400, detail="No file uploaded.")
+
+    content_bytes = await config_file.read()
+    try:
+        config_text = content_bytes.decode("utf-8", errors="replace")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to decode text file: {e}")
+
+    result = engine.analyze_vendor_config(
+        config_text=config_text,
+        filename=config_file.filename,
+        vendor=vendor
+    )
+    _record_history(config_file.filename, result)
+    return result
+
+
+@router.get("/analyze/vendor-config/samples")
+async def get_vendor_config_samples():
+    """
+    GET /analyze/vendor-config/samples
+    Returns pre-populated multi-vendor configuration templates for instant UI testing.
+    """
+    return {
+        "cisco_asa_weak": {
+            "name": "Cisco ASA / IOS (Legacy IKEv1 3DES/MD5 - High Risk)",
+            "vendor": "Cisco ASA / IOS-XE",
+            "filename": "cisco_asa_legacy_3des.cfg",
+            "content": """! Cisco ASA Legacy IKEv1 VPN Configuration (Vulnerable)
+crypto isakmp policy 10
+ encr 3des
+ hash md5
+ authentication pre-share
+ group 2
+ lifetime 86400
+!
+crypto ipsec transform-set LEGACY_TRANSFORM esp-3des esp-md5-hmac
+ mode transport
+!
+crypto map OUTSIDE_MAP 10 ipsec-isakmp
+ set peer 203.0.113.15
+ set transform-set LEGACY_TRANSFORM
+ match address VPN_TRAFFIC
+!"""
+        },
+        "cisco_ios_modern": {
+            "name": "Cisco IOS-XE (Modern IKEv2 AES-256-GCM / DH19 - Zero-Trust)",
+            "vendor": "Cisco ASA / IOS-XE",
+            "filename": "cisco_ios_xe_ikev2_aes_gcm.cfg",
+            "content": """! Cisco IOS-XE Modern Compliant IKEv2 Configuration
+crypto ikev2 proposal IKEV2_GCM_PROP
+ encryption aes-gcm-256
+ prf sha256
+ group 19
+!
+crypto ikev2 policy IKEV2_GCM_POLICY
+ proposal IKEV2_GCM_PROP
+!
+crypto ipsec transform-set GCM_TRANSFORM esp-gcm 256
+ mode tunnel
+!
+crypto ipsec profile HARDENED_IPSEC_PROFILE
+ set transform-set GCM_TRANSFORM
+ set pfs group19
+ set security-association lifetime seconds 28800
+!
+crypto map SECURE_MAP 10 ipsec-isakmp
+ set peer 198.51.100.25
+ set transform-set GCM_TRANSFORM
+ set pfs group19
+!"""
+        },
+        "fortinet_fortios": {
+            "name": "Fortinet FortiOS (Phase 1 & Phase 2 S2S VPN)",
+            "vendor": "Fortinet FortiOS",
+            "filename": "fortigate_ipsec_vpn.conf",
+            "content": """# FortiGate IPsec VPN Phase 1 & 2 Config
+config vpn ipsec phase1-interface
+    edit "HQ_BRANCH_TUNNEL"
+        set interface "wan1"
+        set ike-version 2
+        set proposal aes256gcm-prfsha256 aes256-sha256
+        set dhgrp 19 14
+        set remote-gw 198.51.100.50
+        set psksecret ENC mySecretKey123
+        set keylife 28800
+    next
+end
+
+config vpn ipsec phase2-interface
+    edit "HQ_BRANCH_P2"
+        set phase1name "HQ_BRANCH_TUNNEL"
+        set proposal aes256gcm
+        set dhgrp 19
+        set pfs enable
+        set encapsulation tunnel
+        set auto-negotiate enable
+    next
+end"""
+        },
+        "pfsense_xml": {
+            "name": "pfSense / OPNsense (XML Export - Compliant)",
+            "vendor": "pfSense / OPNsense",
+            "filename": "pfsense_ipsec_config.xml",
+            "content": """<ipsec>
+    <phase1>
+        <ikeid>1</ikeid>
+        <iketype>ikev2</iketype>
+        <interface>wan</interface>
+        <remote-gateway>198.51.100.80</remote-gateway>
+        <protocol>inet</protocol>
+        <myid_type>myaddress</myid_type>
+        <peerid_type>peeraddress</peerid_type>
+        <encryption-algorithm>
+            <name>aes256gcm</name>
+            <keylen>256</keylen>
+        </encryption-algorithm>
+        <hash-algorithm>sha256</hash-algorithm>
+        <dhgroup>19</dhgroup>
+        <prf-algorithm>sha256</prf-algorithm>
+        <lifetime>28800</lifetime>
+    </phase1>
+    <phase2>
+        <ikeid>1</ikeid>
+        <mode>tunnel</mode>
+        <pfsgroup>19</pfsgroup>
+        <lifetime>3600</lifetime>
+        <encryption-algorithm-option>
+            <name>aes256gcm</name>
+            <keylen>256</keylen>
+        </encryption-algorithm-option>
+    </phase2>
+</ipsec>"""
+        },
+        "libreswan_conf": {
+            "name": "Libreswan / Openswan (/etc/ipsec.conf)",
+            "vendor": "Libreswan / Openswan",
+            "filename": "libreswan_ipsec.conf",
+            "content": """# Libreswan IPsec Site-to-Site Connection
+conn Cloud-to-Datacenter
+    authby=secret
+    type=tunnel
+    left=192.168.1.1
+    leftsubnet=192.168.1.0/24
+    right=198.51.100.99
+    rightsubnet=10.0.0.0/16
+    ikev2=insist
+    ike=aes_gcm256-sha2_512;dh19
+    esp=aes_gcm256;dh19
+    pfs=yes
+    salifetime=8h
+    auto=start"""
+        }
+    }
+
+
 @router.get("/api/report-data")
 async def get_report_data(filename: str = Query(..., description="PCAP filename")):
     """GET /api/report-data: Returns report JSON data for report.html view."""
@@ -226,6 +454,7 @@ async def get_analysis_history():
 async def download_pdf_report(filename: str = Query(..., description="PCAP filename")):
     """GET /reports/download-pdf: Generates and downloads Executive White-Mode PDF Security Report."""
     import shutil
+
     from reports.pdf_report_generator import generate_pdf_report
 
     # Clean base name
@@ -314,6 +543,20 @@ async def download_json_report(filename: str = Query(..., description="PCAP file
         raise HTTPException(status_code=404, detail=f"JSON report for '{filename}' not found.")
 
     return FileResponse(json_path, media_type="application/json", filename=f"{base_name}_analysis.json")
+
+
+@router.get("/reports/download-cbom")
+async def download_crypto_bom(filename: str = Query(..., description="PCAP filename")):
+    """Download the capture-backed cryptographic inventory for an analyzed capture."""
+    base_name = os.path.basename(os.path.splitext(filename)[0])
+    cbom_path = os.path.join("results", f"{base_name}_cbom.json")
+    if not os.path.isfile(cbom_path):
+        raise HTTPException(status_code=404, detail=f"Crypto BOM for '{filename}' not found.")
+    return FileResponse(
+        cbom_path,
+        media_type="application/json",
+        filename=f"{base_name}_cbom.json",
+    )
 
 
 @router.get("/api/jobs", summary="Get recent PCAP analysis jobs")

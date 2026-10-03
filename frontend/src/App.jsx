@@ -8,14 +8,16 @@ import HistoryVaultTab from './components/HistoryVaultTab';
 import Overview from './components/Overview';
 import ComplianceTab from './components/ComplianceTab';
 import TechnicalDocsTab from './components/TechnicalDocsTab';
+import ArchitectureTab from './components/ArchitectureTab';
 import { ThemeProvider } from './ThemeContext';
 
-const VALID_TABS = ['dashboard', 'live', 'analyzer', 'testbed', 'vault', 'overview', 'compliance', 'docs'];
+const VALID_TABS = ['dashboard', 'live', 'analyzer', 'testbed', 'vault', 'overview', 'compliance', 'architecture', 'docs'];
 
 function getInitialTab() {
   if (typeof window !== 'undefined') {
     const hash = window.location.hash.replace('#', '').trim().toLowerCase();
     if (hash === 'documentation' || hash === 'technical-documentation') return 'docs';
+    if (hash === 'system-architecture' || hash === 'hla' || hash === 'lla') return 'architecture';
     if (VALID_TABS.includes(hash)) return hash;
   }
   return 'overview';
@@ -31,7 +33,9 @@ export default function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '').trim().toLowerCase();
-      const resolved = (hash === 'documentation' || hash === 'technical-documentation') ? 'docs' : hash;
+      let resolved = hash;
+      if (hash === 'documentation' || hash === 'technical-documentation') resolved = 'docs';
+      if (hash === 'system-architecture' || hash === 'hla' || hash === 'lla') resolved = 'architecture';
       if (VALID_TABS.includes(resolved)) {
         setActiveTabRaw(resolved);
       }
@@ -106,6 +110,7 @@ export default function App() {
             />
           )}
           {activeTab === 'compliance' && <ComplianceTab />}
+          {activeTab === 'architecture' && <ArchitectureTab />}
           {activeTab === 'docs' && <TechnicalDocsTab />}
         </main>
 

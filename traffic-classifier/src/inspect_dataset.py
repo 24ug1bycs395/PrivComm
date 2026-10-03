@@ -6,7 +6,7 @@ Performs thorough discovery on raw dataset files without making destructive modi
 import argparse
 import json
 import os
-import sys
+
 import numpy as np
 import pandas as pd
 
@@ -15,9 +15,9 @@ def inspect_dataset(data_path: str, output_report_path: str) -> dict:
     if not os.path.exists(data_path):
         raise FileNotFoundError(f"Dataset file not found at: {os.path.abspath(data_path)}")
 
-    print(f"==================================================")
+    print("==================================================")
     print(f" Inspecting Dataset: {os.path.abspath(data_path)}")
-    print(f"==================================================")
+    print("==================================================")
 
     df = pd.read_csv(data_path)
     n_rows, n_cols = df.shape
@@ -85,14 +85,14 @@ def inspect_dataset(data_path: str, output_report_path: str) -> dict:
     print(f"[+] Infinite Values: {total_inf}")
     print(f"[+] Full-Row Duplicates: {full_duplicates} ({round(full_duplicates/n_rows*100, 2)}%)")
     print(f"[+] Imbalance Ratio (Max/Min Class): {imbalance_ratio}x")
-    print(f"\n--- Class Distribution ---")
+    print("\n--- Class Distribution ---")
     for cls, cnt in class_counts.items():
         print(f"  {cls:<15}: {cnt:>6} ({class_ratios[cls]*100:.2f}%)")
 
     if potential_leakage_cols:
         print(f"\n[!] WARNING: Potential identifier/leakage columns detected: {potential_leakage_cols}")
     else:
-        print(f"\n[OK] Leakage Audit Passed: No explicit IP, MAC, Port, or ID columns found.")
+        print("\n[OK] Leakage Audit Passed: No explicit IP, MAC, Port, or ID columns found.")
 
     if output_report_path:
         os.makedirs(os.path.dirname(os.path.abspath(output_report_path)), exist_ok=True)

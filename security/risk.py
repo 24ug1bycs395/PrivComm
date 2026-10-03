@@ -1,6 +1,8 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from security.findings import SecurityFinding
 from security.policy_engine import load_security_policy
+
 
 def calculate_security_risk(findings: List[SecurityFinding], policy_path: str = None) -> Dict[str, Any]:
     """

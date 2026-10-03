@@ -7,7 +7,6 @@ from typing import Iterable, List
 import numpy as np
 import pandas as pd
 
-
 SCHEMA_VERSION = "vpn-behavior-v1"
 
 # These are all measurable from packet timestamps, IP endpoints, transport

@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 
 from ml.anomaly.generate_dataset import generate_controlled_dataset

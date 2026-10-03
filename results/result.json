@@ -1,73 +1,133 @@
 {
     "capture": {
-        "filename": "ikev2_s2s_ipsec_vpn_aes_gcm.pcapng",
-        "filepath": "C:\\Users\\VIVEK\\OneDrive\\Desktop\\ipsec\\PrivComm-SIH26\\samples\\ikev2_s2s_ipsec_vpn_aes_gcm.pcapng",
-        "packet_count": 12
+        "filename": "tmpxapzdigi.pcap",
+        "filepath": "C:\\Users\\marmi\\AppData\\Local\\Temp\\tmpxapzdigi.pcap",
+        "packet_count": 2,
+        "sha256": "cac339081807bb4993cbc94ecd83e739cb839d85835836c8f36101b484fbc03e",
+        "decoder_error": null
     },
+    "packet_evidence": [
+        {
+            "frame_number": 1,
+            "timestamp": 1791047330.329587,
+            "protocol": "IKE",
+            "source_ip": "192.168.1.10",
+            "destination_ip": "10.0.0.1",
+            "capture_byte_offset": 82,
+            "capture_byte_length": 60,
+            "fields": {
+                "ike_version": {
+                    "value": "IKEv2",
+                    "capture_byte_offset": 99,
+                    "capture_byte_length": 1
+                },
+                "initiator_spi": {
+                    "value": "1122334455667788",
+                    "capture_byte_offset": 82,
+                    "capture_byte_length": 8
+                },
+                "responder_spi": {
+                    "value": "0000000000000000",
+                    "capture_byte_offset": 90,
+                    "capture_byte_length": 8
+                },
+                "ike_message": {
+                    "value": "IKE header and observable payloads",
+                    "capture_byte_offset": 82,
+                    "capture_byte_length": 60
+                },
+                "transforms": []
+            }
+        },
+        {
+            "frame_number": 2,
+            "timestamp": 1791047330.330598,
+            "protocol": "ESP",
+            "source_ip": "192.168.1.10",
+            "destination_ip": "10.0.0.1",
+            "capture_byte_offset": 192,
+            "capture_byte_length": 40,
+            "fields": {
+                "spi": {
+                    "value": "0x00001000",
+                    "capture_byte_offset": 192,
+                    "capture_byte_length": 4
+                },
+                "sequence_number": {
+                    "value": 1,
+                    "capture_byte_offset": 196,
+                    "capture_byte_length": 4
+                }
+            }
+        }
+    ],
     "ipsec": {
         "detected": true,
         "ike_detected": true,
         "ike_version": "IKEv2",
         "esp_detected": true,
         "ah_detected": false,
-        "exchange_type": "IKE_AUTH",
-        "encryption": "AES-256-GCM",
-        "key_length": 256,
-        "integrity": "AEAD",
-        "prf": "HMAC-SHA2-384",
-        "dh_group": 19,
-        "mode": "Transport (inferred)",
-        "mode_confidence": "medium",
+        "exchange_type": "IKE_SA_INIT",
+        "encryption": "3DES",
+        "key_length": null,
+        "integrity": "unknown",
+        "prf": "unknown",
+        "dh_group": "unknown",
+        "mode": "Tunnel",
+        "mode_confidence": "high",
         "pfs": "unknown",
         "replay_protection": "unknown",
         "sa_lifetime": null,
-        "initiator_spi": "62f94c9887715a34",
-        "responder_spi": "f05534eef373dc1b",
+        "initiator_spi": "1122334455667788",
+        "responder_spi": "0000000000000000",
         "esp_spis": [
-            "0x5fbd60dc",
-            "0xa70bbb39"
+            "0x00001000"
         ],
         "ip_version": "IPv4",
-        "source_ip": "10.0.0.1",
-        "destination_ip": "10.0.0.2"
+        "source_ip": "192.168.1.10",
+        "destination_ip": "10.0.0.1",
+        "esp_spi_list": [
+            "0000000000000000",
+            "0x00001000",
+            "1122334455667788"
+        ],
+        "esp_packet_count": 1
     },
     "traffic_classification": {
         "status": "success",
-        "traffic_type": "P2P",
-        "confidence": 0.41280001401901245,
+        "traffic_type": "VPN-FT",
+        "confidence": 0.27300000190734863,
         "probabilities": {
-            "BROWSING": 0.10760000348091125,
-            "CHAT": 0.1972000002861023,
-            "FT": 0.1290999948978424,
-            "MAIL": 0.0027000000700354576,
-            "P2P": 0.41280001401901245,
+            "BROWSING": 0.0027000000700354576,
+            "CHAT": 0.21070000529289246,
+            "FT": 0.2685999870300293,
+            "MAIL": 0.002199999988079071,
+            "P2P": 0.0003000000142492354,
             "STREAMING": 0.0010999999940395355,
-            "VOIP": 0.002899999963119626,
-            "VPN-BROWSING": 0.0272000003606081,
-            "VPN-CHAT": 0.05270000174641609,
-            "VPN-FT": 0.055399999022483826,
-            "VPN-MAIL": 0.0006000000284984708,
-            "VPN-P2P": 0.005799999926239252,
-            "VPN-STREAMING": 0.00019999999494757503,
-            "VPN-VOIP": 0.004800000227987766
+            "VOIP": 0.002099999925121665,
+            "VPN-BROWSING": 0.07450000196695328,
+            "VPN-CHAT": 0.04650000110268593,
+            "VPN-FT": 0.27300000190734863,
+            "VPN-MAIL": 0.01140000019222498,
+            "VPN-P2P": 0.09889999777078629,
+            "VPN-STREAMING": 0.000699999975040555,
+            "VPN-VOIP": 0.007300000172108412
         }
     },
     "metadata_exposure": {
-        "source_ip": "10.0.0.1",
-        "destination_ip": "10.0.0.2",
+        "source_ip": "192.168.1.10",
+        "destination_ip": "10.0.0.1",
         "ip_version": "IPv4",
         "exposure_score": 15,
         "exposure_rating": "LOW",
         "visible_endpoints": {
-            "source_ip": "10.0.0.1",
-            "destination_ip": "10.0.0.2",
+            "source_ip": "192.168.1.10",
+            "destination_ip": "10.0.0.1",
             "ip_version": "IPv4",
             "unique_source_ips": [
-                "10.0.0.2",
-                "10.0.0.1"
+                "192.168.1.10"
             ],
             "unique_destination_ips": [
-                "10.0.0.2",
                 "10.0.0.1"
             ],
             "outer_header_exposure": "FULL_IP_PAIR_VISIBLE"
@@ -80,19 +140,18 @@
             "summary": "No unencrypted identity payloads exposed in packet headers."
         },
         "spi_correlation": {
-            "initiator_spi": "62f94c9887715a34",
-            "responder_spi": "f05534eef373dc1b",
+            "initiator_spi": "1122334455667788",
+            "responder_spi": "0000000000000000",
             "esp_spis": [
-                "0x5fbd60dc",
-                "0xa70bbb39"
+                "0x00001000"
             ],
-            "total_unique_spis": 4,
+            "total_unique_spis": 2,
             "spi_linkability_risk": "MEDIUM",
             "session_tracking_vulnerability": true,
             "description": "ESP SPI values are transmitted in cleartext (RFC 4303). Network eavesdroppers can track tunnel session flows across network topological changes using SPI headers."
         },
         "transport_mode_exposure": {
-            "encapsulation_mode": "Transport (inferred)",
+            "encapsulation_mode": "Tunnel",
             "inner_header_exposed": false,
             "exposed_metadata_bytes_per_pkt": 0,
             "exposure_risk": "LOW",
@@ -104,56 +163,95 @@
                 "category": "Metadata Exposure",
                 "severity": "LOW",
                 "title": "Static SPI Header Linkability / Session Tracking Risk",
-                "observed": "Observable ESP SPI(s): 0x5fbd60dc, 0xa70bbb39",
+                "observed": "Observable ESP SPI(s): 0x00001000",
                 "expected": "Dynamic SA Rekeying & SPI Rotation",
                 "recommendation": "Ensure frequent Security Association rekeying to prevent passive netflow session correlation."
             }
         ]
     },
     "security_assessment": {
-        "risk_score": 5,
-        "risk_level": "LOW",
+        "risk_score": 35,
+        "risk_level": "MEDIUM",
         "methodology": "deterministic_policy_weighting",
-        "findings_count": 1,
+        "findings_count": 2,
         "findings": [
+            {
+                "finding_id": "IPSEC-ENC-001",
+                "category": "Encryption",
+                "severity": "HIGH",
+                "title": "Weak or forbidden encryption algorithm detected",
+                "observed": "3DES",
+                "expected": "Approved encryption (AES-256-GCM, AES-128-GCM, AES-256-CBC, ENCR_AES_GCM_16, ENCR_AES_CBC)",
+                "recommendation": "Reconfigure IPsec proposals to use strong encryption algorithms such as AES-256-GCM.",
+                "status": null,
+                "evidence_references": [
+                    {
+                        "frame_number": 1,
+                        "timestamp": 1791047330.329587,
+                        "protocol": "IKE",
+                        "capture_byte_offset": 82,
+                        "capture_byte_length": 60,
+                        "evidence_scope": "related packet context; this reference does not prove hidden or unobserved configuration"
+                    }
+                ],
+                "evidence_status": "referenced"
+            },
             {
                 "finding_id": "IPSEC-META-003",
                 "category": "Metadata Exposure",
                 "severity": "LOW",
                 "title": "Static SPI Header Linkability / Session Tracking Risk",
-                "observed": "Observable ESP SPI(s): 0x5fbd60dc, 0xa70bbb39",
+                "observed": "Observable ESP SPI(s): 0x00001000",
                 "expected": "Dynamic SA Rekeying & SPI Rotation",
                 "recommendation": "Ensure frequent Security Association rekeying to prevent passive netflow session correlation.",
-                "status": null
+                "status": null,
+                "evidence_references": [
+                    {
+                        "frame_number": 1,
+                        "timestamp": 1791047330.329587,
+                        "protocol": "IKE",
+                        "capture_byte_offset": 82,
+                        "capture_byte_length": 60,
+                        "evidence_scope": "related packet context; this reference does not prove hidden or unobserved configuration"
+                    }
+                ],
+                "evidence_status": "referenced"
             }
         ],
         "recommendations": [
             {
+                "finding_id": "IPSEC-ENC-001",
+                "category": "Encryption",
+                "severity": "HIGH",
+                "current_configuration": "3DES",
+                "expected_configuration": "Approved encryption (AES-256-GCM, AES-128-GCM, AES-256-CBC, ENCR_AES_GCM_16, ENCR_AES_CBC)",
+                "reason": "Weak or forbidden encryption algorithm detected",
+                "recommended_action": "Reconfigure IPsec proposals to use strong encryption algorithms such as AES-256-GCM."
+            },
+            {
                 "finding_id": "IPSEC-META-003",
                 "category": "Metadata Exposure",
                 "severity": "LOW",
-                "current_configuration": "Observable ESP SPI(s): 0x5fbd60dc, 0xa70bbb39",
+                "current_configuration": "Observable ESP SPI(s): 0x00001000",
                 "expected_configuration": "Dynamic SA Rekeying & SPI Rotation",
                 "reason": "Static SPI Header Linkability / Session Tracking Risk",
                 "recommended_action": "Ensure frequent Security Association rekeying to prevent passive netflow session correlation."
             }
         ],
         "metadata_exposure": {
-            "source_ip": "10.0.0.1",
-            "destination_ip": "10.0.0.2",
+            "source_ip": "192.168.1.10",
+            "destination_ip": "10.0.0.1",
             "ip_version": "IPv4",
             "exposure_score": 15,
             "exposure_rating": "LOW",
             "visible_endpoints": {
-                "source_ip": "10.0.0.1",
-                "destination_ip": "10.0.0.2",
+                "source_ip": "192.168.1.10",
+                "destination_ip": "10.0.0.1",
                 "ip_version": "IPv4",
                 "unique_source_ips": [
-                    "10.0.0.2",
-                    "10.0.0.1"
+                    "192.168.1.10"
                 ],
                 "unique_destination_ips": [
-                    "10.0.0.2",
                     "10.0.0.1"
                 ],
                 "outer_header_exposure": "FULL_IP_PAIR_VISIBLE"
@@ -166,19 +264,18 @@
                 "summary": "No unencrypted identity payloads exposed in packet headers."
             },
             "spi_correlation": {
-                "initiator_spi": "62f94c9887715a34",
-                "responder_spi": "f05534eef373dc1b",
+                "initiator_spi": "1122334455667788",
+                "responder_spi": "0000000000000000",
                 "esp_spis": [
-                    "0x5fbd60dc",
-                    "0xa70bbb39"
+                    "0x00001000"
                 ],
-                "total_unique_spis": 4,
+                "total_unique_spis": 2,
                 "spi_linkability_risk": "MEDIUM",
                 "session_tracking_vulnerability": true,
                 "description": "ESP SPI values are transmitted in cleartext (RFC 4303). Network eavesdroppers can track tunnel session flows across network topological changes using SPI headers."
             },
             "transport_mode_exposure": {
-                "encapsulation_mode": "Transport (inferred)",
+                "encapsulation_mode": "Tunnel",
                 "inner_header_exposed": false,
                 "exposed_metadata_bytes_per_pkt": 0,
                 "exposure_risk": "LOW",
@@ -190,7 +287,7 @@
                     "category": "Metadata Exposure",
                     "severity": "LOW",
                     "title": "Static SPI Header Linkability / Session Tracking Risk",
-                    "observed": "Observable ESP SPI(s): 0x5fbd60dc, 0xa70bbb39",
+                    "observed": "Observable ESP SPI(s): 0x00001000",
                     "expected": "Dynamic SA Rekeying & SPI Rotation",
                     "recommendation": "Ensure frequent Security Association rekeying to prevent passive netflow session correlation."
                 }
@@ -209,21 +306,21 @@
         },
         {
             "parameter": "Encryption Cipher Algorithm",
-            "observed_value": "AES-256-GCM (AEAD Cipher)",
-            "status": "SECURE",
+            "observed_value": "3DES-CBC (Triple-DES)",
+            "status": "OBSOLETE",
             "icon": "",
-            "title": "Authenticated AES-256-GCM Cipher (Galois/Counter Mode)",
-            "plain_english_summary": "Bank-grade 256-bit encryption that scrambles data while simultaneously attaching a 128-bit tamper-proof digital seal.",
-            "detailed_explanation": "Think of AES-256-GCM as placing your secret documents into an unbreakable steel vault while applying a tamper-evident holographic seal to the outside. Unlike older ciphers (like CBC) that only scramble data and require a separate process to check for tampering, GCM performs both encryption and tamper verification in a single hardware-accelerated step (RFC 4106 AEAD). If a hacker on public Wi-Fi tries to alter or inject even 1 bit of your transmitted data, the receiving server detects the broken seal and discards the packet instantly before decryption, completely stopping padding oracle attacks."
+            "title": "Obsolete 3DES-CBC Cipher (Vulnerable to Sweet32 Collision Attacks)",
+            "plain_english_summary": "Obsolete 1990s 64-bit encryption block cipher that modern high-speed computers can break through data collision attacks.",
+            "detailed_explanation": "Triple-DES scrambles data by running the 1970s DES algorithm 3 times in sequence. However, because it uses tiny 64-bit blocks of data, modern security research (Sweet32 attack / CVE-2016-2183) proves that an eavesdropper capturing around 32GB of high-speed VPN traffic can mathematically break the encryption and recover secret plaintext data. Formally retired and forbidden by NIST SP 800-131A guidelines."
         },
         {
             "parameter": "Diffie-Hellman Key Exchange",
-            "observed_value": "DH Group 19 (NIST ECP-256)",
-            "status": "SECURE",
+            "observed_value": "Standard Group",
+            "status": "INFO",
             "icon": "",
-            "title": "Elliptic Curve Diffie-Hellman Group 19 (NIST P-256 / FIPS 186-4)",
-            "plain_english_summary": "Allows two remote servers across the open internet to safely agree on identical secret encryption keys without ever sending the key over the wire.",
-            "detailed_explanation": "Imagine two people in a room full of eavesdroppers who want to agree on a secret color. They can publicly mix base colors in a specific mathematical way so that both end up with the exact same secret color mixture, but anyone watching from the outside can never work out what the secret final color is. Diffie-Hellman Group 19 uses advanced Elliptic Curve mathematics (NIST P-256 / FIPS 186-4). It provides 128 bits of high-strength symmetric security using lightweight 256-bit key math\u2014delivering over 10x faster connection speeds and drastically lower CPU battery consumption compared to legacy 2048-bit prime number calculations."
+            "title": "Cryptographic Key Agreement (DH Group Standard)",
+            "plain_english_summary": "Mathematical method allowing VPN endpoints to securely agree on session keys.",
+            "detailed_explanation": "Protects key distribution so adversaries watching network traffic cannot deduce session encryption keys for DH Group unknown."
         },
         {
             "parameter": "Perfect Forward Secrecy (PFS)",
@@ -235,28 +332,37 @@
             "detailed_explanation": "Without PFS, session keys for data traffic depend directly on the main initial master key of the VPN tunnel. If an adversary records encrypted network traffic today and later compromises the VPN gateway's private key, they can retroactively decrypt all historical captured data."
         },
         {
-            "parameter": "AI Encrypted Traffic Intelligence",
-            "observed_value": "P2P (41.3% confidence)",
+            "parameter": "IPsec Encapsulation Mode",
+            "observed_value": "Tunnel Mode (Outer IP Wrapping)",
             "status": "SECURE",
             "icon": "",
-            "title": "AI Behavioral Pattern Recognition (P2P Application)",
-            "plain_english_summary": "Machine Learning identified the exact application activity ('P2P') inside the VPN tunnel using behavioral traffic patterns without breaking encryption.",
-            "detailed_explanation": "Even though your VPN tunnel scrambles 100% of your data packets into unreadable noise, different applications leave distinct physical signatures in how they communicate. Our trained XGBoost Machine Learning model analyzed 28 non-encrypted flow characteristics\u2014such as packet size variations, transmission timing intervals, and bandwidth burst ratios. Like a detective identifying a person by the cadence of their footsteps without seeing their face, the AI correctly identified your tunnel activity as 'P2P' with 41.3% statistical confidence, zero decryption required."
+            "title": "IPsec Tunnel Mode Encapsulation (Complete Outer IP Envelope)",
+            "plain_english_summary": "Encloses your entire original IP packet\u2014including private source and destination IP addresses\u2014inside a brand-new encrypted outer IP envelope.",
+            "detailed_explanation": "Think of Transport Mode as sending a postcard where the message is written in code, but the sender and recipient home addresses are clearly visible on the outside. Tunnel Mode is like placing that entire postcard inside a thick, opaque courier envelope addressed only between two secure VPN gateways. Eavesdroppers, ISPs, or hackers monitoring public internet routers cannot see your internal company IP addresses, device names, or network architecture\u2014they only see encrypted traffic traveling between the two public gateway endpoints."
+        },
+        {
+            "parameter": "AI Encrypted Traffic Intelligence",
+            "observed_value": "VPN-FT (27.3% confidence)",
+            "status": "SECURE",
+            "icon": "",
+            "title": "AI Behavioral Pattern Recognition (VPN-FT Application)",
+            "plain_english_summary": "Machine Learning identified the exact application activity ('VPN-FT') inside the VPN tunnel using behavioral traffic patterns without breaking encryption.",
+            "detailed_explanation": "Even though your VPN tunnel scrambles 100% of your data packets into unreadable noise, different applications leave distinct physical signatures in how they communicate. Our trained XGBoost Machine Learning model analyzed 28 non-encrypted flow characteristics\u2014such as packet size variations, transmission timing intervals, and bandwidth burst ratios. Like a detective identifying a person by the cadence of their footsteps without seeing their face, the AI correctly identified your tunnel activity as 'VPN-FT' with 27.3% statistical confidence, zero decryption required."
         },
         {
             "parameter": "Observable Metadata Exposure",
             "observed_value": "LOW Risk (Score 15/100)",
             "status": "SECURE",
             "icon": "",
-            "title": "Observable Network Metadata Analysis (10.0.0.1 -> 10.0.0.2)",
+            "title": "Observable Network Metadata Analysis (192.168.1.10 -> 10.0.0.1)",
             "plain_english_summary": "Assessed outer IP header visibility, unencrypted IKE identity payloads, SPI correlation risk, and Transport mode exposure (Rating: LOW).",
-            "detailed_explanation": "Even when payload content is encrypted, eavesdroppers can perform side-channel traffic analysis using unencrypted metadata. Our metadata analyzer inspected outer endpoint IP pairs (10.0.0.1 -> 10.0.0.2), verified whether identity payloads ($ID_i$/$ID_r$) were transmitted in cleartext, and evaluated cleartext ESP Security Parameter Index (SPI) linkability risks. Current exposure score is 15/100."
+            "detailed_explanation": "Even when payload content is encrypted, eavesdroppers can perform side-channel traffic analysis using unencrypted metadata. Our metadata analyzer inspected outer endpoint IP pairs (192.168.1.10 -> 10.0.0.1), verified whether identity payloads ($ID_i$/$ID_r$) were transmitted in cleartext, and evaluated cleartext ESP Security Parameter Index (SPI) linkability risks. Current exposure score is 15/100."
         }
     ],
     "drift_detection": {
         "drift_detected": true,
         "drift_status": "DRIFTED",
-        "drift_count": 2,
+        "drift_count": 1,
         "total_fields_evaluated": 7,
         "variance_score": 30,
         "field_diffs": [
@@ -267,50 +373,69 @@
                 "observed": "IKEv2",
                 "status": "SYNCHRONIZED",
                 "severity": "NONE",
-                "impact": "Aligned with enterprise IKEv2 baseline."
+                "impact": "Observed value matches the selected reference baseline."
             },
             {
                 "field_id": "encryption",
                 "field_name": "Encryption Cipher Algorithm",
                 "baseline": "AES-256-GCM",
-                "observed": "AES-256-GCM",
-                "status": "SYNCHRONIZED",
-                "severity": "NONE",
-                "impact": "Aligned with bank-grade AEAD cipher baseline."
+                "observed": "3DES",
+                "status": "DRIFTED",
+                "severity": "HIGH",
+                "impact": "Observed value differs from the selected reference baseline."
+            },
+            {
+                "field_id": "key_length",
+                "field_name": "Symmetric Key Length",
+                "baseline": "256",
+                "observed": "unknown",
+                "status": "UNVERIFIED",
+                "severity": "INFO",
+                "impact": "The observed capture does not reveal this configuration value."
             },
             {
                 "field_id": "dh_group",
                 "field_name": "Diffie-Hellman Key Exchange Group",
-                "baseline": "Group 19 (ECP-256)",
-                "observed": "Group 19",
-                "status": "SYNCHRONIZED",
-                "severity": "NONE",
-                "impact": "Aligned with NIST Elliptic Curve key exchange baseline."
+                "baseline": "19",
+                "observed": "unknown",
+                "status": "UNVERIFIED",
+                "severity": "INFO",
+                "impact": "The observed capture does not reveal this configuration value."
             },
             {
                 "field_id": "pfs",
                 "field_name": "Perfect Forward Secrecy (PFS)",
-                "baseline": "Enforced (CREATE_CHILD_SA Rekeying)",
-                "observed": "Disabled / Static Derivation",
-                "status": "DRIFTED",
-                "severity": "HIGH",
-                "impact": "Lack of ephemeral rekeying creates retroactive decryption vulnerability."
+                "baseline": "enforced",
+                "observed": "unknown",
+                "status": "UNVERIFIED",
+                "severity": "INFO",
+                "impact": "The observed capture does not reveal this configuration value."
             },
             {
                 "field_id": "mode",
                 "field_name": "IPsec Encapsulation Mode",
                 "baseline": "Tunnel",
-                "observed": "Transport (inferred)",
-                "status": "DRIFTED",
-                "severity": "LOW",
-                "impact": "Transport mode exposes internal IP headers on public network paths."
+                "observed": "Tunnel",
+                "status": "SYNCHRONIZED",
+                "severity": "NONE",
+                "impact": "Observed value matches the selected reference baseline."
+            },
+            {
+                "field_id": "integrity",
+                "field_name": "Integrity / Authentication Method",
+                "baseline": "AEAD",
+                "observed": "unknown",
+                "status": "UNVERIFIED",
+                "severity": "INFO",
+                "impact": "The observed capture does not reveal this configuration value."
             }
-        ]
+        ],
+        "baseline_source": "built_in_reference"
     },
     "policy_as_code": {
-        "total_rules": 6,
-        "passed": 4,
-        "warnings": 1,
+        "total_rules": 7,
+        "passed": 2,
+        "warnings": 4,
         "failed": 1,
         "compliance_score": 66,
         "rule_results": [
@@ -319,83 +444,192 @@
                 "name": "Protocol Version Modernity",
                 "category": "Protocol Baseline",
                 "status": "PASS",
-                "observed": "IKEV2",
-                "requirement": "IKEv2 Mandatory",
-                "description": "IKEv2 stream exchange verified. Resists DoS state exhaustion and supports MOBIKE mobility."
+                "observed": "IKEv2",
+                "requirement": "IKEv2",
+                "description": "Unknown values are unverified; known values are checked against the active policy."
             },
             {
                 "rule_id": "POL-02",
                 "name": "Encryption Cipher Strength",
                 "category": "Confidentiality",
-                "status": "PASS",
-                "observed": "AES-256-GCM",
-                "requirement": "AEAD Cipher Required",
-                "description": "Top-tier AEAD cipher providing combined confidentiality and integrated Galois integrity verification."
+                "status": "FAIL",
+                "observed": "3DES",
+                "requirement": "AES-256-GCM, AES-128-GCM, AES-256-CBC, ENCR_AES_GCM_16, ENCR_AES_CBC",
+                "description": "Unknown values are unverified; approved and forbidden algorithms come from the active policy."
             },
             {
                 "rule_id": "POL-03",
-                "name": "Diffie-Hellman Cryptographic Margin",
+                "name": "Diffie-Hellman Key Agreement",
                 "category": "Key Agreement",
-                "status": "PASS",
-                "observed": "Group 19 (Elliptic Curve)",
-                "requirement": "Group 19+ ECP Required",
-                "description": "High-speed Elliptic Curve prime group providing 128-bit+ symmetric security margin."
+                "status": "WARNING",
+                "observed": "unknown",
+                "requirement": "14, 19, 20, 21, 28",
+                "description": "Unknown values remain unverified; group allowlists come from the active policy."
             },
             {
                 "rule_id": "POL-04",
-                "name": "Perfect Forward Secrecy (PFS)",
+                "name": "Perfect Forward Secrecy",
                 "category": "Key Isolation",
-                "status": "FAIL",
-                "observed": "Disabled",
-                "requirement": "PFS Mandatory",
-                "description": "Retroactive decryption risk: stealing server master key compromises historical recorded traffic."
+                "status": "WARNING",
+                "observed": "unknown",
+                "requirement": "Required",
+                "description": "A packet capture that cannot observe a rekey leaves PFS unverified."
             },
             {
                 "rule_id": "POL-05",
-                "name": "Obsolete Hash Prohibition",
+                "name": "PRF / Integrity Algorithm",
                 "category": "Integrity",
-                "status": "PASS",
-                "observed": "HMAC-SHA2-384",
-                "requirement": "AEAD / SHA2-256+",
-                "description": "Compliant hash verification digest."
+                "status": "WARNING",
+                "observed": "unknown",
+                "requirement": "HMAC-SHA2-256, HMAC-SHA2-384, HMAC-SHA2-512, PRF_HMAC_SHA2_256, PRF_HMAC_SHA2_384, PRF_HMAC_SHA2_512",
+                "description": "Unknown values are unverified; algorithm policy is loaded from the active overlay."
             },
             {
                 "rule_id": "POL-06",
-                "name": "Encapsulation Envelope Protection",
+                "name": "Encapsulation Mode",
                 "category": "Network Topology",
+                "status": "PASS",
+                "observed": "Tunnel",
+                "requirement": "Tunnel",
+                "description": "An absent mode cannot be treated as compliant."
+            },
+            {
+                "rule_id": "POL-07",
+                "name": "Anti-Replay Configuration",
+                "category": "Packet Protection",
                 "status": "WARNING",
-                "observed": "Transport Mode",
-                "requirement": "Tunnel Mode Preferred",
-                "description": "Transport mode leaves original source/destination IP headers visible."
+                "observed": "unknown",
+                "requirement": "Required",
+                "description": "ESP sequence numbers do not reveal the configured anti-replay window."
             }
-        ]
+        ],
+        "policy_name": "Corporate Standard Context-Aware IPsec Security Policy",
+        "policy_version": "2.0",
+        "overlay_applied": false
     },
     "post_quantum_readiness": {
-        "pqc_status": "PQC_TRANSITIONAL",
-        "quantum_threat_rating": "MEDIUM_RISK",
-        "readiness_score": 70,
-        "key_exchange_family": "Classical Elliptic Curve Cryptography (ECC / ECP)",
-        "symmetric_quantum_status": "QUANTUM_RESISTANT",
-        "crypto_agility_rating": "EXCELLENT",
+        "pqc_status": "INSUFFICIENT_EVIDENCE",
+        "readiness_score": null,
+        "key_exchange_family": "unknown",
+        "symmetric_quantum_status": "UNKNOWN",
+        "crypto_agility_rating": "UNVERIFIED",
+        "pqc_candidate": {
+            "status": "UNKNOWN",
+            "observed": "unknown",
+            "source": "https://csrc.nist.gov/pubs/fips/203/final",
+            "note": "The NIST reference defines ML-KEM; an observed name is not proof of conformance."
+        },
+        "cnsa_2": {
+            "status": "NOT_ASSESSED",
+            "profile_version": "2.0",
+            "published_date": "2022-09-07",
+            "applicability": "U.S. National Security Systems; applicability outside NSS is not assumed.",
+            "source": "https://media.defense.gov/2022/Sep/07/2003071834/-1/-1/0/CSI_CNSA_2.0_ALGORITHMS_.PDF",
+            "note": "Algorithm observations do not establish CNSA 2.0 profile compliance or deployment readiness."
+        },
+        "mosca_timeline": {
+            "status": "NOT_ASSESSED",
+            "required_inputs": [
+                "data_shelf_life_years",
+                "migration_lead_time_years",
+                "estimated_crqc_years"
+            ],
+            "source": "https://doi.org/10.1109/MSP.2018.3761723",
+            "source_model": "Mosca's x + y > z inequality; the assessor does not invent a CRQC arrival date."
+        },
         "pqc_checks": [
             {
                 "control": "Key Exchange Quantum Resilience",
-                "observed": "Group 19 (Classical Elliptic Curve Cryptography (ECC / ECP))",
-                "status": "WARNING",
-                "impact": "High classical performance, but fully vulnerable to Quantum Shor's algorithm. Requires migration path to hybrid Post-Quantum ML-KEM (Kyber)."
+                "status": "UNKNOWN",
+                "observed": "unknown",
+                "impact": "The capture or configuration does not expose a key-exchange algorithm.",
+                "evidence": "No observable value",
+                "source": "https://csrc.nist.gov/pubs/fips/203/final"
             },
             {
-                "control": "Symmetric Cipher Quantum Strength (Grover's Algorithm)",
-                "observed": "AES-256-GCM (256-bit key)",
-                "status": "PASS",
-                "impact": "Grover's Quantum Search Algorithm reduces 256-bit keys to 128-bit quantum security, which remains mathematically unbreakable."
+                "control": "Symmetric Cipher Quantum Margin",
+                "status": "UNKNOWN",
+                "observed": "3DES",
+                "key_length_bits": null,
+                "impact": "The key length cannot be established from the observed cipher name."
             },
             {
-                "control": "Protocol Crypto-Agility (RFC 8784 / Hybrid PQ Support)",
-                "observed": "IKEv2 (Supports Multiple Transform Substructures)",
-                "status": "PASS",
-                "impact": "IKEv2 supports RFC 8784 Post-Quantum Preshared Keys and hybrid key exchange extensions without requiring architecture redesign."
+                "control": "Negotiated Post-Quantum Key Exchange",
+                "status": "NOT_VERIFIED",
+                "observed": "IKEv2",
+                "impact": "IKE version alone does not prove that a hybrid or post-quantum key exchange was configured or negotiated."
+            },
+            {
+                "control": "CNSA 2.0 Profile",
+                "status": "NOT_ASSESSED",
+                "observed": "No explicit CNSA 2.0 profile or implementation evidence supplied",
+                "profile": "Commercial National Security Algorithm Suite 2.0",
+                "profile_version": "2.0",
+                "published_date": "2022-09-07",
+                "applicability": "U.S. National Security Systems; applicability outside NSS is not assumed.",
+                "source": "https://media.defense.gov/2022/Sep/07/2003071834/-1/-1/0/CSI_CNSA_2.0_ALGORITHMS_.PDF"
             }
+        ]
+    },
+    "crypto_bom": {
+        "bom_format": "PrivComm Crypto Bill of Materials",
+        "schema_version": "privcomm.cbom.v1",
+        "generated_at": "2026-10-03T17:08:59.074522+00:00",
+        "capture": {
+            "sha256": "cac339081807bb4993cbc94ecd83e739cb839d85835836c8f36101b484fbc03e"
+        },
+        "components": [
+            {
+                "type": "protocol",
+                "name": "IKEv2",
+                "source_field": "ike_version",
+                "description": "IKE protocol",
+                "evidence": [
+                    {
+                        "frame_number": 1,
+                        "capture_byte_offset": 99,
+                        "capture_byte_length": 1
+                    }
+                ],
+                "evidence_status": "observed"
+            },
+            {
+                "type": "symmetric-encryption",
+                "name": "3DES",
+                "source_field": "encryption",
+                "description": "Encryption algorithm",
+                "evidence": [
+                    {
+                        "frame_number": 1,
+                        "capture_byte_offset": 82,
+                        "capture_byte_length": 60,
+                        "evidence_scope": "IKE message; algorithm identified from decoded proposal"
+                    }
+                ],
+                "evidence_status": "observed"
+            }
+        ],
+        "unresolved": [
+            {
+                "field": "integrity",
+                "status": "unknown",
+                "reason": "No value was available in the analyzed configuration or capture."
+            },
+            {
+                "field": "prf",
+                "status": "unknown",
+                "reason": "No value was available in the analyzed configuration or capture."
+            },
+            {
+                "field": "dh_group",
+                "status": "unknown",
+                "reason": "No value was available in the analyzed configuration or capture."
+            }
+        ],
+        "limitations": [
+            "A packet reference proves only the bytes and fields at that location; it does not prove endpoint configuration or implementation correctness.",
+            "Encrypted IKE_AUTH exchanges and unobserved rekeys may conceal negotiated or configured values.",
+            "This is the PrivComm CBOM schema, not a claim of CycloneDX schema conformance."
         ]
     },
     "known_limitations": [
@@ -406,13 +640,35 @@
         },
         {
             "field": "pfs",
-            "reason": "Perfect Forward Secrecy can only be confirmed by observing a CREATE_CHILD_SA exchange with a Diffie-Hellman KE payload. If the capture does not include a rekeying event, PFS status remains unverifiable.",
-            "status": "not_observable_without_rekey_capture"
+            "reason": "A CREATE_CHILD_SA exchange with a Diffie-Hellman KE payload can be observed in some captures, but its absence does not prove PFS is disabled and its presence does not establish the endpoint's enforcement policy.",
+            "status": "enforcement_policy_not_proven_by_capture"
         },
         {
             "field": "replay_protection",
-            "reason": "Anti-replay sequence numbers are inside the ESP header which is encrypted. The window size configuration is not visible in a standard capture.",
-            "status": "not_observable_without_esp_decryption"
+            "reason": "The ESP sequence number is visible in the ESP header, but the configured anti-replay window and enforcement behavior are not established by observing sequence numbers alone.",
+            "status": "window_configuration_not_observable_from_sequence_numbers"
         }
-    ]
+    ],
+    "data_provenance": {
+        "ipsec_detected": "OBSERVED",
+        "ike_version": "PARSED",
+        "esp_detected": "OBSERVED",
+        "ah_detected": "OBSERVED",
+        "mode": "INFERRED",
+        "mode_confidence": "INFERRED",
+        "encryption": "PARSED",
+        "integrity": "UNKNOWN",
+        "dh_group": "UNKNOWN",
+        "pfs": "UNKNOWN",
+        "replay_protection": "UNKNOWN",
+        "ip_version": "OBSERVED",
+        "source_ip": "OBSERVED",
+        "destination_ip": "OBSERVED",
+        "traffic_classification": "INFERRED",
+        "behavioral_anomaly": "INFERRED",
+        "metadata_exposure": "OBSERVED",
+        "security_assessment": "INFERRED",
+        "explainability": "INFERRED",
+        "rfc4303_elimination": "INFERRED"
+    }
 }

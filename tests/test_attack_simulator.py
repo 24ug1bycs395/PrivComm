@@ -1,8 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from main import app
 import routers.testbed as testbed_router
+from main import app
 from services.testbed import attack_simulator
 
 
@@ -66,24 +66,24 @@ def test_unknown_attack_simulation_stop_returns_not_found():
     assert response.status_code == 404
 
 
-def test_attack_simulation_requires_all_nodes_online(monkeypatch):
-    async def one_node_offline(_topology):
+def test_attack_simulation_is_telemetry_only_when_nodes_are_offline(monkeypatch):
+    async def all_nodes_offline(_topology):
         return {
             "all_online": False,
-            "online_count": 2,
+            "online_count": 0,
             "total_nodes": 3,
-            "nodes": {"observer": {"status": "OFFLINE"}},
+            "nodes": {},
         }
-    monkeypatch.setattr(testbed_router, "_check_testbed_nodes", one_node_offline)
-
+    monkeypatch.setattr(testbed_router, "_check_testbed_nodes", all_nodes_offline)
     response = TestClient(app).post(
         "/api/testbed/attack-simulations",
         json={"attack_type": "mitm"},
     )
 
-    assert response.status_code == 503
-    assert response.json()["detail"]["online_count"] == 2
-    assert response.json()["detail"]["total_nodes"] == 3
+    assert response.status_code == 200
+    session = response.json()
+    assert session["mode"] == "simulated"
+    assert any("no traffic was injected" in item for item in session["evidence"])
 
 
 def test_attack_simulation_supports_fallback_mode_when_offline(monkeypatch):

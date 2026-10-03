@@ -1,21 +1,22 @@
 """FastAPI endpoints for VPN Behavioral Anomaly Detection."""
 
 from __future__ import annotations
+
 import os
 import shutil
 import tempfile
-from typing import List, Dict, Any, Optional
+from typing import List
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Query, status
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
 
-from anomaly.schemas import (
-    AnomalyModelStatus,
-    AnomalyBaselineMetric,
-    AnomalyPredictRequest,
-    AnomalyPredictionResult,
-    AnomalyPcapAnalysisResponse,
-)
 from anomaly import service
+from anomaly.schemas import (
+    AnomalyBaselineMetric,
+    AnomalyModelStatus,
+    AnomalyPcapAnalysisResponse,
+    AnomalyPredictionResult,
+    AnomalyPredictRequest,
+)
 
 router = APIRouter(prefix="/anomaly", tags=["VPN Behavioral Anomaly Detection"])
 

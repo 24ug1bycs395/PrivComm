@@ -1,9 +1,9 @@
-import pytest
-from services.testbed.models import ScenarioDefinition, TestbedTopology, PRESET_SCENARIOS
-from services.testbed.orchestrator import TestbedOrchestrator
-from services.testbed.config_generator import StrongSwanConfigGenerator
 from fastapi.testclient import TestClient
+
 from main import app
+from services.testbed.config_generator import StrongSwanConfigGenerator
+from services.testbed.models import PRESET_SCENARIOS, ScenarioDefinition, TestbedTopology
+from services.testbed.orchestrator import TestbedOrchestrator
 
 
 def test_scenario_default_hash_algorithm():
@@ -30,24 +30,24 @@ def test_all_presets_have_default_hash():
             assert preset.hash_algorithm in {"SHA-256", "SHA-384"}
 
 
-def test_compute_handshake_integrity():
-    """Verify cryptographic handshake integrity computation for SHA-256, SHA-384, MD5."""
+def test_handshake_integrity_is_not_claimed_from_configured_parameters():
+    """Configured proposals are context, not cryptographic handshake evidence."""
     topology = TestbedTopology()
 
-    # 1. Test SHA-256
     s_sha256 = ScenarioDefinition(
         id="test-sha256",
         name="SHA-256 Tunnel",
         description="Testing SHA-256 handshake integrity",
-        hash_algorithm="SHA-256"
+        hash_algorithm="SHA-256",
+        pre_shared_key="super-secret-test-value",
     )
     res_sha256 = TestbedOrchestrator.compute_handshake_integrity(s_sha256, topology)
-    assert res_sha256["status"] == "VERIFIED"
-    assert res_sha256["algorithm"] == "SHA-256"
-    assert res_sha256["compliance_status"] == "COMPLIANT"
-    assert len(res_sha256["handshake_digest"]) == 64  # SHA-256 hex length
+    assert res_sha256["status"] == "NOT_VERIFIED"
+    assert res_sha256["verification_method"] == "configuration_only"
+    assert res_sha256["configured_parameters"]["integrity"] == "SHA-256"
+    assert "handshake_digest" not in res_sha256
+    assert "super-secret-test-value" not in repr(res_sha256)
 
-    # 2. Test SHA-384
     s_sha384 = ScenarioDefinition(
         id="test-sha384",
         name="SHA-384 Tunnel",
@@ -55,12 +55,9 @@ def test_compute_handshake_integrity():
         hash_algorithm="SHA-384"
     )
     res_sha384 = TestbedOrchestrator.compute_handshake_integrity(s_sha384, topology)
-    assert res_sha384["status"] == "VERIFIED"
-    assert res_sha384["algorithm"] == "SHA-384"
-    assert res_sha384["compliance_status"] == "COMPLIANT"
-    assert len(res_sha384["handshake_digest"]) == 96  # SHA-384 hex length
+    assert res_sha384["status"] == "NOT_VERIFIED"
+    assert res_sha384["configured_parameters"]["integrity"] == "SHA-384"
 
-    # 3. Test MD5 (legacy / weak)
     s_md5 = ScenarioDefinition(
         id="test-md5",
         name="MD5 Legacy Tunnel",
@@ -69,10 +66,8 @@ def test_compute_handshake_integrity():
         is_weak_compliance=True
     )
     res_md5 = TestbedOrchestrator.compute_handshake_integrity(s_md5, topology)
-    assert res_md5["status"] == "VERIFIED"
-    assert res_md5["algorithm"] == "MD5"
-    assert res_md5["compliance_status"] == "WEAK_DEPRECATED"
-    assert len(res_md5["handshake_digest"]) == 32  # MD5 hex length
+    assert res_md5["status"] == "NOT_VERIFIED"
+    assert res_md5["configured_parameters"]["integrity"] == "MD5"
 
 
 def test_config_generator_proposal_incorporates_hash():

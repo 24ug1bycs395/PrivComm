@@ -93,18 +93,7 @@ def extract_behavioral_features(
             "duration_sec": 0.0,
             "packet_count": 0.0,
             "byte_count": 0.0,
-            **{name: 0.0 for name in (
-                "packets_per_second", "bytes_per_second", "mean_packet_size",
-                "std_packet_size", "min_packet_size", "max_packet_size",
-                "mean_inter_arrival_time", "std_inter_arrival_time",
-                "forward_packet_count", "backward_packet_count", "forward_byte_count",
-                "backward_byte_count", "flow_count", "new_flows_per_minute",
-                "concurrent_flows", "unique_source_count", "unique_destination_count",
-                "peer_count", "inbound_outbound_byte_ratio", "inbound_outbound_packet_ratio",
-                "tcp_packet_count", "udp_packet_count", "icmp_packet_count",
-                "other_packet_count", "esp_packet_count", "ike_packet_count",
-                "sa_establishment_frequency", "session_duration_mean", "session_duration_std"
-            )},
+            **dict.fromkeys(("packets_per_second", "bytes_per_second", "mean_packet_size", "std_packet_size", "min_packet_size", "max_packet_size", "mean_inter_arrival_time", "std_inter_arrival_time", "forward_packet_count", "backward_packet_count", "forward_byte_count", "backward_byte_count", "flow_count", "new_flows_per_minute", "concurrent_flows", "unique_source_count", "unique_destination_count", "peer_count", "inbound_outbound_byte_ratio", "inbound_outbound_packet_ratio", "tcp_packet_count", "udp_packet_count", "icmp_packet_count", "other_packet_count", "esp_packet_count", "ike_packet_count", "sa_establishment_frequency", "session_duration_mean", "session_duration_std"), 0.0),
         }
 
     timestamps = np.asarray([record["timestamp"] for record in records], dtype=float)

@@ -9,13 +9,13 @@ import argparse
 import datetime
 import json
 import os
-import sys
+
 import joblib
 import numpy as np
-import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
+
 try:
     from xgboost import XGBClassifier
     XGBOOST_INSTALLED = True
@@ -58,11 +58,11 @@ def train_models(
     data = np.load(processed_data_path)
     X_train, y_train = data["X_train"], data["y_train"]
     X_val, y_val = data["X_val"], data["y_val"]
-    X_test, y_test = data["X_test"], data["y_test"]
+    X_test, _y_test = data["X_test"], data["y_test"]
 
-    print(f"\n==================================================")
-    print(f" Training XGBoost Encrypted Traffic Classifier")
-    print(f"==================================================")
+    print("\n==================================================")
+    print(" Training XGBoost Encrypted Traffic Classifier")
+    print("==================================================")
     print(f"[+] Train shape: {X_train.shape}, Validation shape: {X_val.shape}, Test shape: {X_test.shape}")
     print(f"[+] Number of classes: {schema['num_classes']}")
 
@@ -89,13 +89,13 @@ def train_models(
         "early_stopping_rounds": 20
     }
 
-    print(f"\n[+] Initializing XGBClassifier with hyperparameter configuration:")
+    print("\n[+] Initializing XGBClassifier with hyperparameter configuration:")
     for k, v in xgb_params.items():
         print(f"    - {k}: {v}")
 
     xgb_model = XGBClassifier(**xgb_params)
 
-    print(f"\n[+] Fitting XGBoost with balanced class sample weighting & early stopping...")
+    print("\n[+] Fitting XGBoost with balanced class sample weighting & early stopping...")
     xgb_model.fit(
         X_train,
         y_train,
@@ -120,7 +120,7 @@ def train_models(
 
     # 2. Dedicated Model Training: Random Forest Classifier
     if run_comparison:
-        print(f"\n[+] Training Dedicated Comparison Model: Random Forest Classifier...")
+        print("\n[+] Training Dedicated Comparison Model: Random Forest Classifier...")
         rf_model = RandomForestClassifier(
             n_estimators=300,
             max_depth=20,
@@ -136,7 +136,7 @@ def train_models(
         print(f"[OK] Random Forest Model saved to: {os.path.abspath(rf_model_path)}")
         print(f"    - Random Forest Validation Accuracy: {rf_val_acc*100:.2f}%")
 
-        print(f"\n[+] Training Comparison Model: Logistic Regression...")
+        print("\n[+] Training Comparison Model: Logistic Regression...")
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
         X_val_scaled = scaler.transform(X_val)
@@ -163,6 +163,21 @@ def train_models(
         "xgboost_parameters": xgb_params,
         "best_iteration": int(best_iteration),
         "dataset_split": schema["split_ratios"],
+        "split_method": schema.get(
+            "split_method",
+            "random row-level stratified split; source-capture identifiers unavailable",
+        ),
+        "group_column": schema.get("group_column"),
+        "source_group_count": schema.get("source_group_count"),
+        "source_row_count": schema.get("source_row_count"),
+        "cleaned_row_count": schema.get("cleaned_row_count"),
+        "group_counts": schema.get("group_counts"),
+        "group_hashes_by_split": schema.get("group_hashes_by_split"),
+        "class_support_by_split": schema.get("class_support_by_split"),
+        "missing_classes_by_split": schema.get("missing_classes_by_split"),
+        "training_rows": int(len(X_train)),
+        "validation_rows": int(len(X_val)),
+        "test_rows": int(len(X_test)),
         "comparison_models": comparison_results
     }
 

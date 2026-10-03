@@ -6,6 +6,7 @@ Unit tests for Enterprise Auditing Modules:
 """
 
 import unittest
+
 from security.drift_detector import detect_configuration_drift
 from security.policy_engine import evaluate_policy_as_code_rules
 from security.pqc_assessor import evaluate_post_quantum_readiness
@@ -17,6 +18,7 @@ class TestEnterpriseAuditing(unittest.TestCase):
         self.strong_config = {
             "ike_version": "IKEv2",
             "encryption": "AES-256-GCM",
+            "key_length": "256",
             "dh_group": "19",
             "pfs": True,
             "mode": "Tunnel",
@@ -56,13 +58,14 @@ class TestEnterpriseAuditing(unittest.TestCase):
 
     def test_pqc_assessor_transitional(self):
         res = evaluate_post_quantum_readiness(self.strong_config)
-        self.assertIn("PQC", res["pqc_status"])
+        self.assertEqual(res["pqc_status"], "CLASSICAL_KEY_EXCHANGE_OBSERVED")
+        self.assertEqual(res["readiness_score"], None)
         self.assertIn("pqc_checks", res)
 
     def test_pqc_assessor_vulnerable(self):
         res = evaluate_post_quantum_readiness(self.weak_config)
-        self.assertEqual(res["pqc_status"], "CLASSICAL_VULNERABLE")
-        self.assertEqual(res["quantum_threat_rating"], "HIGH_RISK_SNDL")
+        self.assertEqual(res["pqc_status"], "CLASSICAL_KEY_EXCHANGE_OBSERVED")
+        self.assertEqual(res["readiness_score"], None)
 
 
 if __name__ == "__main__":

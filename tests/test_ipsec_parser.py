@@ -1,7 +1,9 @@
-import unittest
 import os
-from analyzer.pcap_ingestion import ingest_and_parse_pcap
+import unittest
+
 from analyzer.ipsec_parser import synthesize_ipsec_config
+from analyzer.pcap_ingestion import ingest_and_parse_pcap
+
 
 class TestIPsecParser(unittest.TestCase):
 

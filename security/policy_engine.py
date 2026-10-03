@@ -1,37 +1,83 @@
-import os
-import math
-import yaml
 import logging
-from typing import Dict, Any, List, Optional
+import math
+import os
+from typing import Any, Dict, List, Optional
+
+import yaml
 
 from security.findings import SecurityFinding
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_POLICY_PATH = os.getenv(
-    "SECURITY_POLICY_PATH",
-    os.path.join("config", "security_policy.yaml"),
-)
+_env_policy_path = os.getenv("SECURITY_POLICY_PATH")
+if _env_policy_path and os.path.isfile(_env_policy_path):
+    DEFAULT_POLICY_PATH = _env_policy_path
+else:
+    DEFAULT_POLICY_PATH = os.path.join("config", "security_policy.yaml")
+DEFAULT_POLICY_OVERLAY_PATH = os.getenv("SECURITY_POLICY_OVERLAY_PATH")
 
-def load_security_policy(policy_path: str = DEFAULT_POLICY_PATH) -> Dict[str, Any]:
-    """Load security policy baseline from YAML file."""
-    if os.path.exists(policy_path):
+
+def _validate_policy_fragment(value: Any, baseline: Any, path: str = "policy") -> None:
+    if isinstance(baseline, dict):
+        if not isinstance(value, dict):
+            raise ValueError(f"{path} must be a mapping.")
+        unknown_keys = set(value) - set(baseline)
+        if unknown_keys:
+            raise ValueError(f"{path} contains unsupported keys: {sorted(unknown_keys)}")
+        for key, child in value.items():
+            _validate_policy_fragment(child, baseline[key], f"{path}.{key}")
+        return
+    if isinstance(baseline, list):
+        if not isinstance(value, list) or (
+            baseline and not all(type(item) is type(baseline[0]) for item in value)
+        ):
+            raise ValueError(f"{path} must be a list matching the baseline item type.")
+        return
+    if baseline is not None and not isinstance(value, type(baseline)):
+        raise ValueError(f"{path} must have type {type(baseline).__name__}.")
+
+
+def _merge_policy(base: Dict[str, Any], overlay: Dict[str, Any]) -> Dict[str, Any]:
+    merged = dict(base)
+    for key, value in overlay.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _merge_policy(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def load_security_policy(
+    policy_path: str = DEFAULT_POLICY_PATH,
+    overlay_path: Optional[str] = DEFAULT_POLICY_OVERLAY_PATH,
+) -> Dict[str, Any]:
+    """Load a baseline policy and an optional validated, precedence-based overlay."""
+    if not os.path.isfile(policy_path):
+        raise FileNotFoundError(f"Security policy file not found: '{policy_path}'")
+    try:
+        with open(policy_path, "r", encoding="utf-8") as policy_file:
+            policy = yaml.safe_load(policy_file)
+    except (OSError, yaml.YAMLError) as exc:
+        raise ValueError(f"Could not load security policy '{policy_path}': {exc}") from exc
+    if not isinstance(policy, dict):
+        raise ValueError(f"Security policy '{policy_path}' must contain a YAML mapping.")
+
+    if overlay_path:
+        if not os.path.isfile(overlay_path):
+            raise FileNotFoundError(f"Security policy overlay not found: '{overlay_path}'")
         try:
-            with open(policy_path, "r") as f:
-                return yaml.safe_load(f)
-        except Exception as e:
-            logger.warning(f"Could not load policy file '{policy_path}': {e}")
+            with open(overlay_path, "r", encoding="utf-8") as overlay_file:
+                overlay = yaml.safe_load(overlay_file)
+        except (OSError, yaml.YAMLError) as exc:
+            raise ValueError(
+                f"Could not load security policy overlay '{overlay_path}': {exc}"
+            ) from exc
+        if not isinstance(overlay, dict):
+            raise ValueError(f"Security policy overlay '{overlay_path}' must be a YAML mapping.")
+        _validate_policy_fragment(overlay, policy)
+        policy = _merge_policy(policy, overlay)
 
-    # Fallback policy
-    return {
-        "encryption": {"approved": ["AES-256-GCM", "AES-128-GCM", "AES-256-CBC"], "forbidden": ["DES", "3DES"]},
-        "dh_groups": {"approved": [14, 19, 20, 21, 28], "forbidden": [1, 2, 5]},
-        "integrity": {"approved": ["AEAD", "HMAC-SHA2-256", "HMAC-SHA2-384"], "forbidden": ["MD5", "SHA1"]},
-        "prf": {"approved": ["HMAC-SHA2-256", "HMAC-SHA2-384", "HMAC-SHA2-512"], "forbidden": ["MD5", "SHA1"]},
-        "protocol": {"approved_versions": ["IKEv2"], "disapproved_versions": ["IKEv1"]},
-        "risk_weights": {"HIGH": 30, "MEDIUM": 15, "LOW": 5},
-        "sa_lifetime": {"max_seconds": 28800, "warn_if_unknown": False}
-    }
+    return policy
 
 
 def _evaluate_sa_lifetime(ipsec_config: Dict[str, Any], policy: Dict[str, Any]) -> List[SecurityFinding]:
@@ -76,13 +122,14 @@ def _evaluate_sa_lifetime(ipsec_config: Dict[str, Any], policy: Dict[str, Any]) 
 def evaluate_ipsec_security(
     ipsec_config: Dict[str, Any],
     policy_path: str = DEFAULT_POLICY_PATH,
-    traffic_type: Optional[str] = None
+    traffic_type: Optional[str] = None,
+    overlay_path: Optional[str] = DEFAULT_POLICY_OVERLAY_PATH,
 ) -> List[SecurityFinding]:
     """
     Evaluate IPsec configuration against editable & context-aware security policy.
     Combines hard cryptographic rules with AI-detected traffic type context.
     """
-    policy = load_security_policy(policy_path)
+    policy = load_security_policy(policy_path, overlay_path)
     findings: List[SecurityFinding] = []
 
     if not ipsec_config.get("detected", False):
@@ -218,193 +265,132 @@ def evaluate_ipsec_security(
     return findings
 
 
-def evaluate_policy_as_code_rules(ipsec_info: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Evaluates org-defined Policy-as-Code control rules and produces explicit PASS/WARNING/FAIL badges.
-    """
+def evaluate_policy_as_code_rules(
+    ipsec_info: Dict[str, Any],
+    policy_path: str = DEFAULT_POLICY_PATH,
+    overlay_path: Optional[str] = DEFAULT_POLICY_OVERLAY_PATH,
+) -> Dict[str, Any]:
+    """Evaluate policy badges from the same baseline/overlay and preserve unknowns."""
+    policy = load_security_policy(policy_path, overlay_path)
     rules: List[Dict[str, Any]] = []
 
-    # POL-01: Protocol Modernity
-    ike_ver = str(ipsec_info.get("ike_version", "IKEv2")).upper()
-    if "V2" in ike_ver or ike_ver == "IKEV2":
+    def add_rule(rule_id: str, name: str, category: str, observed: Any, requirement: str,
+                 description: str, status: str) -> None:
         rules.append({
-            "rule_id": "POL-01",
-            "name": "Protocol Version Modernity",
-            "category": "Protocol Baseline",
-            "status": "PASS",
-            "observed": ike_ver,
-            "requirement": "IKEv2 Mandatory",
-            "description": "IKEv2 stream exchange verified. Resists DoS state exhaustion and supports MOBIKE mobility."
-        })
-    elif "AGGRESSIVE" in ike_ver:
-        rules.append({
-            "rule_id": "POL-01",
-            "name": "Protocol Version Modernity",
-            "category": "Protocol Baseline",
-            "status": "FAIL",
-            "observed": "IKEv1 Aggressive Mode",
-            "requirement": "IKEv2 Mandatory",
-            "description": "CRITICAL: Aggressive Mode exposes PSK hashes to offline GPU cracking."
-        })
-    else:
-        rules.append({
-            "rule_id": "POL-01",
-            "name": "Protocol Version Modernity",
-            "category": "Protocol Baseline",
-            "status": "WARNING",
-            "observed": ike_ver,
-            "requirement": "IKEv2 Mandatory",
-            "description": "Legacy protocol handshake detected. Migration to IKEv2 required."
+            "rule_id": rule_id,
+            "name": name,
+            "category": category,
+            "status": status,
+            "observed": observed if observed is not None else "unknown",
+            "requirement": requirement,
+            "description": description,
         })
 
-    # POL-02: Encryption Cipher Strength
-    enc = str(ipsec_info.get("encryption", "AES-256-GCM")).upper()
-    if any(forbidden in enc for forbidden in ["3DES", "DES", "NULL", "NONE"]):
-        rules.append({
-            "rule_id": "POL-02",
-            "name": "Encryption Cipher Strength",
-            "category": "Confidentiality",
-            "status": "FAIL",
-            "observed": enc,
-            "requirement": "AES-256-GCM / AES-128-GCM / ChaCha20-Poly1305",
-            "description": "Prohibited cipher detected. Vulnerable to Sweet32 collision or raw plaintext eavesdropping."
-        })
-    elif "GCM" in enc or "CHACHA" in enc:
-        rules.append({
-            "rule_id": "POL-02",
-            "name": "Encryption Cipher Strength",
-            "category": "Confidentiality",
-            "status": "PASS",
-            "observed": enc,
-            "requirement": "AEAD Cipher Required",
-            "description": "Top-tier AEAD cipher providing combined confidentiality and integrated Galois integrity verification."
-        })
-    else:
-        rules.append({
-            "rule_id": "POL-02",
-            "name": "Encryption Cipher Strength",
-            "category": "Confidentiality",
-            "status": "WARNING",
-            "observed": enc,
-            "requirement": "AEAD Cipher Preferred",
-            "description": "CBC block mode cipher requires external HMAC integrity checks."
-        })
+    def observed(field: str) -> Any:
+        value = ipsec_info.get(field)
+        return None if value is None or str(value).strip().lower() in {"", "unknown", "none"} else value
 
-    # POL-03: Diffie-Hellman Key Agreement Margin
-    dh = str(ipsec_info.get("dh_group", "19")).upper()
-    if dh in ["1", "2", "5", "MODP-1024"]:
-        rules.append({
-            "rule_id": "POL-03",
-            "name": "Diffie-Hellman Cryptographic Margin",
-            "category": "Key Agreement",
-            "status": "FAIL",
-            "observed": f"Group {dh} (1024-bit)",
-            "requirement": "Group 14+ or Group 19+",
-            "description": "Sub-minimum prime modulus vulnerable to supercomputer precomputation (Logjam attack)."
-        })
-    elif dh in ["19", "20", "21", "28", "31", "ECP-256", "ECP-384"]:
-        rules.append({
-            "rule_id": "POL-03",
-            "name": "Diffie-Hellman Cryptographic Margin",
-            "category": "Key Agreement",
-            "status": "PASS",
-            "observed": f"Group {dh} (Elliptic Curve)",
-            "requirement": "Group 19+ ECP Required",
-            "description": "High-speed Elliptic Curve prime group providing 128-bit+ symmetric security margin."
-        })
-    else:
-        rules.append({
-            "rule_id": "POL-03",
-            "name": "Diffie-Hellman Cryptographic Margin",
-            "category": "Key Agreement",
-            "status": "PASS" if dh in ["14", "15", "16", "2048"] else "WARNING",
-            "observed": f"Group {dh}",
-            "requirement": "Group 14+ (2048-bit MODP)",
-            "description": "Modular prime group meets NIST enterprise baseline."
-        })
+    ike = observed("ike_version")
+    allowed_versions = policy.get("protocol", {}).get("approved_versions", [])
+    banned_versions = policy.get("protocol", {}).get("disapproved_versions", [])
+    ike_text = str(ike).upper() if ike is not None else ""
+    ike_status = (
+        "WARNING" if ike is None
+        else "FAIL" if any(str(item).upper() in ike_text for item in banned_versions)
+        else "PASS" if any(str(item).upper() in ike_text for item in allowed_versions)
+        else "WARNING"
+    )
+    add_rule("POL-01", "Protocol Version Modernity", "Protocol Baseline", ike,
+             ", ".join(map(str, allowed_versions)) or "Approved IKE version",
+             "Unknown values are unverified; known values are checked against the active policy.", ike_status)
 
-    # POL-04: Perfect Forward Secrecy (PFS)
-    pfs_val = ipsec_info.get("pfs")
-    pfs_enforced = True if pfs_val in [True, "enforced", "yes"] else False
-    if pfs_enforced:
-        rules.append({
-            "rule_id": "POL-04",
-            "name": "Perfect Forward Secrecy (PFS)",
-            "category": "Key Isolation",
-            "status": "PASS",
-            "observed": "Enforced",
-            "requirement": "CREATE_CHILD_SA Rekeying Mandatory",
-            "description": "Ephemeral key generation isolates session keys from master key compromise."
-        })
-    else:
-        rules.append({
-            "rule_id": "POL-04",
-            "name": "Perfect Forward Secrecy (PFS)",
-            "category": "Key Isolation",
-            "status": "FAIL",
-            "observed": "Disabled",
-            "requirement": "PFS Mandatory",
-            "description": "Retroactive decryption risk: stealing server master key compromises historical recorded traffic."
-        })
+    encryption = observed("encryption")
+    encryption_text = str(encryption).upper() if encryption is not None else ""
+    enc_policy = policy.get("encryption", {})
+    enc_forbidden = enc_policy.get("forbidden", [])
+    enc_approved = enc_policy.get("approved", [])
+    encryption_status = (
+        "WARNING" if encryption is None
+        else "FAIL" if any(str(item).upper() in encryption_text for item in enc_forbidden)
+        else "PASS" if any(str(item).upper() in encryption_text for item in enc_approved)
+        else "WARNING"
+    )
+    add_rule("POL-02", "Encryption Cipher Strength", "Confidentiality", encryption,
+             ", ".join(map(str, enc_approved)) or "Approved encryption",
+             "Unknown values are unverified; approved and forbidden algorithms come from the active policy.",
+             encryption_status)
 
-    # POL-05: Obsolete Hash Prohibition
-    prf = str(ipsec_info.get("prf", ipsec_info.get("integrity", "AEAD"))).upper()
-    if any(weak in prf for weak in ["MD5", "SHA1"]):
-        rules.append({
-            "rule_id": "POL-05",
-            "name": "Obsolete Hash Prohibition",
-            "category": "Integrity",
-            "status": "FAIL",
-            "observed": prf,
-            "requirement": "MD5 & SHA-1 Prohibited",
-            "description": "Legacy hash algorithm vulnerable to cryptographic collision attacks."
-        })
-    else:
-        rules.append({
-            "rule_id": "POL-05",
-            "name": "Obsolete Hash Prohibition",
-            "category": "Integrity",
-            "status": "PASS",
-            "observed": prf,
-            "requirement": "AEAD / SHA2-256+",
-            "description": "Compliant hash verification digest."
-        })
+    dh = observed("dh_group")
+    dh_text = str(dh) if dh is not None else ""
+    dh_policy = policy.get("dh_groups", {})
+    dh_forbidden = {str(item) for item in dh_policy.get("forbidden", [])}
+    dh_approved = {str(item) for item in dh_policy.get("approved", [])}
+    dh_status = (
+        "WARNING" if dh is None
+        else "FAIL" if dh_text in dh_forbidden
+        else "PASS" if dh_text in dh_approved
+        else "WARNING"
+    )
+    add_rule("POL-03", "Diffie-Hellman Key Agreement", "Key Agreement", dh,
+             ", ".join(sorted(dh_approved)) or "Approved key-exchange groups",
+             "Unknown values remain unverified; group allowlists come from the active policy.", dh_status)
 
-    # POL-06: Encapsulation Envelope
-    mode = str(ipsec_info.get("mode", "Tunnel")).capitalize()
-    if mode == "Tunnel":
-        rules.append({
-            "rule_id": "POL-06",
-            "name": "Encapsulation Envelope Protection",
-            "category": "Network Topology",
-            "status": "PASS",
-            "observed": "Tunnel Mode",
-            "requirement": "Tunnel Mode Mandatory",
-            "description": "Complete packet encapsulation hides internal private IP architecture."
-        })
-    else:
-        rules.append({
-            "rule_id": "POL-06",
-            "name": "Encapsulation Envelope Protection",
-            "category": "Network Topology",
-            "status": "WARNING",
-            "observed": "Transport Mode",
-            "requirement": "Tunnel Mode Preferred",
-            "description": "Transport mode leaves original source/destination IP headers visible."
-        })
+    pfs = observed("pfs")
+    pfs_enabled = pfs is True or str(pfs).lower() in {"enforced", "yes", "true"}
+    pfs_required = bool(policy.get("pfs", {}).get("required", True))
+    pfs_status = "WARNING" if pfs is None else (
+        "PASS" if pfs_enabled or not pfs_required else "FAIL"
+    )
+    add_rule("POL-04", "Perfect Forward Secrecy", "Key Isolation", pfs,
+             "Required" if pfs_required else "Not required",
+             "A packet capture that cannot observe a rekey leaves PFS unverified.", pfs_status)
 
-    passed = sum(1 for r in rules if r["status"] == "PASS")
-    warnings = sum(1 for r in rules if r["status"] == "WARNING")
-    failed = sum(1 for r in rules if r["status"] == "FAIL")
+    prf = observed("prf") or observed("integrity")
+    prf_text = str(prf).upper() if prf is not None else ""
+    prf_policy = policy.get("prf", {})
+    prf_forbidden = prf_policy.get("forbidden", [])
+    prf_approved = prf_policy.get("approved", [])
+    prf_status = (
+        "WARNING" if prf is None
+        else "FAIL" if any(str(item).upper() in prf_text for item in prf_forbidden)
+        else "PASS" if any(str(item).upper() in prf_text for item in prf_approved)
+        else "WARNING"
+    )
+    add_rule("POL-05", "PRF / Integrity Algorithm", "Integrity", prf,
+             ", ".join(map(str, prf_approved)) or "Approved PRF / integrity",
+             "Unknown values are unverified; algorithm policy is loaded from the active overlay.",
+             prf_status)
 
-    comp_score = int((passed / len(rules)) * 100) if rules else 100
+    mode = observed("mode")
+    mode_status = "WARNING" if mode is None else (
+        "PASS" if str(mode).lower() == "tunnel" else "WARNING"
+    )
+    add_rule("POL-06", "Encapsulation Mode", "Network Topology", mode,
+             "Tunnel" if mode is not None else "Mode is not observable",
+             "An absent mode cannot be treated as compliant.", mode_status)
 
+    replay = observed("replay_protection")
+    replay_required = bool(policy.get("replay_protection", {}).get("required", True))
+    replay_enabled = replay is True or str(replay).lower() in {"enabled", "yes", "true"}
+    replay_status = "WARNING" if replay is None else (
+        "PASS" if replay_enabled or not replay_required else "FAIL"
+    )
+    add_rule("POL-07", "Anti-Replay Configuration", "Packet Protection", replay,
+             "Required" if replay_required else "Not required",
+             "ESP sequence numbers do not reveal the configured anti-replay window.", replay_status)
+
+    passed = sum(rule["status"] == "PASS" for rule in rules)
+    warnings = sum(rule["status"] == "WARNING" for rule in rules)
+    failed = sum(rule["status"] == "FAIL" for rule in rules)
+    assessed = passed + failed
     return {
         "total_rules": len(rules),
         "passed": passed,
         "warnings": warnings,
         "failed": failed,
-        "compliance_score": comp_score,
-        "rule_results": rules
+        "compliance_score": int((passed / assessed) * 100) if assessed else None,
+        "rule_results": rules,
+        "policy_name": policy.get("policy_name"),
+        "policy_version": policy.get("version"),
+        "overlay_applied": bool(overlay_path),
     }
-

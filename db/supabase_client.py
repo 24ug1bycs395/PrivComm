@@ -1,6 +1,6 @@
-import os
 import logging
-from typing import Optional
+import os
+
 from dotenv import load_dotenv
 
 for env_file in [".env", "/etc/secrets/.env", os.path.join(os.getcwd(), ".env")]:
@@ -32,7 +32,7 @@ def get_supabase_client():
         return None
 
     try:
-        from supabase import create_client, Client
+        from supabase import create_client
         _supabase_client = create_client(url, key)
         print(f"[DB] Connected to Supabase at {url}")
         logger.info(f"[DB] Connected to Supabase at {url}")

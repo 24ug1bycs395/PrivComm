@@ -1,5 +1,7 @@
 import unittest
+
 from ml.xgboost_adapter import predict_traffic_class
+
 
 class TestXGBoostAdapter(unittest.TestCase):
 

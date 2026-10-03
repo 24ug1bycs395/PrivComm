@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+
 KEY_FILE = "seal_keys.json"
 _P = 2**255 - 19
 _Q = 2**252 + 27742317777372353535851937790883648493

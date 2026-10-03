@@ -1,7 +1,8 @@
-import unittest
 import os
-from unittest.mock import patch, MagicMock
-from security.llm_explainer import _invoke_llm, query_gemini_assistant, query_gemini_explainer
+import unittest
+from unittest.mock import MagicMock, patch
+
+from security.llm_explainer import query_gemini_assistant, query_gemini_explainer
 
 
 class TestLLMExplainerProxy(unittest.TestCase):

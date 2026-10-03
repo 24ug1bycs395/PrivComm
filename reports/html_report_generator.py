@@ -1,8 +1,7 @@
-import os
-import json
 import logging
+import os
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -694,7 +693,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <div class="metric-sub">XGBoost ML inference</div>
             </div>
             <div class="metric-card">
-                <div class="metric-label">Inference Confidence</div>
+                <div class="metric-label">Raw Top-Class Score</div>
                 <div class="metric-value">
                 {% if report.traffic_classification.get('confidence') is not none %}
                     {{ (report.traffic_classification.confidence * 100)|round(1) }}%
@@ -702,7 +701,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     N/A
                 {% endif %}
                 </div>
-                <div class="metric-sub">Softmax probability</div>
+                <div class="metric-sub">Uncalibrated softmax score; not a calibrated probability</div>
             </div>
             <div class="metric-card">
                 <div class="metric-label">Observed Cipher Suite</div>
@@ -751,47 +750,47 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <tbody>
                     <tr>
                         <td><strong>IPsec Protocol / IKE Version</strong></td>
-                        <td><code>{{ report.ipsec.ike_version }}</code> ({{ report.ipsec.exchange_type or 'Standard' }})</td>
+                        <td><code>{{ report.ipsec.ike_version or 'Unverified' }}</code> ({{ report.ipsec.exchange_type or 'Unverified exchange type' }})</td>
                         <td>IKEv2 (RFC 7296)</td>
                     </tr>
                     <tr>
                         <td><strong>VPN Operating Mode</strong></td>
-                        <td><code>{{ 'Tunnel Mode (Full IP Encapsulation)' if report.ipsec.mode == 'Tunnel' or report.ipsec.esp_detected else (report.ipsec.mode or 'Transport Mode') }}</code></td>
+                        <td><code>{{ report.ipsec.mode or 'Unverified' }}</code></td>
                         <td>Tunnel Mode (RFC 4301 Envelope)</td>
                     </tr>
                     <tr>
                         <td><strong>Encryption Cipher &amp; Key Size</strong></td>
-                        <td><code>{{ report.ipsec.encryption }}</code> ({{ report.ipsec.key_length or '256' }}-bit)</td>
+                        <td><code>{{ report.ipsec.encryption or 'Unverified' }}</code> ({{ (report.ipsec.key_length|string ~ '-bit') if report.ipsec.key_length else 'key length unverified' }})</td>
                         <td>AES-256-GCM / AES-256-CBC</td>
                     </tr>
                     <tr>
                         <td><strong>Integrity &amp; PRF Algorithm</strong></td>
-                        <td><code>{{ report.ipsec.integrity }}</code> &bull; PRF: <code>{{ report.ipsec.prf or 'HMAC-SHA2-384' }}</code></td>
+                        <td><code>{{ report.ipsec.integrity or 'Unverified' }}</code> &bull; PRF: <code>{{ report.ipsec.prf or 'Unverified' }}</code></td>
                         <td>AEAD / HMAC-SHA2-256+</td>
                     </tr>
                     <tr>
                         <td><strong>Diffie-Hellman Key Exchange</strong></td>
-                        <td><code>Group {{ report.ipsec.dh_group }}</code> (NIST P-256 Curve)</td>
+                        <td><code>{{ ('Group ' ~ report.ipsec.dh_group) if report.ipsec.dh_group else 'Unverified' }}</code></td>
                         <td>Group 14, 19, 20, 21, 28 (&ge; 2048-bit)</td>
                     </tr>
                     <tr>
                         <td><strong>Perfect Forward Secrecy (PFS)</strong></td>
-                        <td><code>{{ 'Enforced (RFC 7296 Ephemeral Rekeying)' if not report.ipsec.pfs or report.ipsec.pfs == 'unknown' else report.ipsec.pfs }}</code></td>
+                        <td><code>{{ report.ipsec.pfs if report.ipsec.pfs is not none and report.ipsec.pfs != 'unknown' else 'Unverified' }}</code></td>
                         <td>PFS Enforced (Per-Child SA DH)</td>
                     </tr>
                     <tr>
                         <td><strong>Anti-Replay Protection</strong></td>
-                        <td><code>{{ 'Active (RFC 4303 64-bit Sliding Window)' if not report.ipsec.replay_protection or report.ipsec.replay_protection == 'unknown' else report.ipsec.replay_protection }}</code></td>
+                        <td><code>{{ report.ipsec.replay_protection if report.ipsec.replay_protection is not none and report.ipsec.replay_protection != 'unknown' else 'Unverified' }}</code></td>
                         <td>RFC 4303 Anti-Replay Window Enforced</td>
                     </tr>
                     <tr>
                         <td><strong>SA Key Lifetime</strong></td>
-                        <td><code>{{ report.ipsec.sa_lifetime ~ 's' if report.ipsec.sa_lifetime else '28,800s (8 Hours standard)' }}</code></td>
+                        <td><code>{{ report.ipsec.sa_lifetime ~ 's' if report.ipsec.sa_lifetime is not none else 'Unverified' }}</code></td>
                         <td>&le; 28,800 seconds (NIST SP 800-77)</td>
                     </tr>
                     <tr>
                         <td><strong>Network Layer &amp; Metadata Exposure</strong></td>
-                        <td><code>{{ report.metadata_exposure.get('ip_version', 'IPv4') if report.metadata_exposure else 'IPv4' }}</code> &bull; <code>{{ (report.metadata_exposure.source_ip ~ ' &rarr; ' ~ report.metadata_exposure.destination_ip) if report.metadata_exposure and report.metadata_exposure.get('source_ip') else 'Outer IP Header Observable' }}</code></td>
+                        <td><code>{{ report.metadata_exposure.get('ip_version', 'Unverified') if report.metadata_exposure else 'Unverified' }}</code> &bull; <code>{{ (report.metadata_exposure.source_ip ~ ' &rarr; ' ~ report.metadata_exposure.destination_ip) if report.metadata_exposure and report.metadata_exposure.get('source_ip') else 'Endpoints unverified' }}</code></td>
                         <td>IPv4/IPv6 Protected (NAT-T UDP 4500)</td>
                     </tr>
                     <tr>
@@ -801,7 +800,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     </tr>
                     <tr>
                         <td><strong>Inferred Encrypted Traffic Class</strong></td>
-                        <td><code>{{ report.traffic_classification.get('traffic_type', 'N/A') }}</code> ({{ (report.traffic_classification.confidence * 100)|round(1) if report.traffic_classification.get('confidence') else 'N/A' }}% AI Confidence)</td>
+                        <td><code>{{ report.traffic_classification.get('traffic_type', 'N/A') }}</code> ({{ (report.traffic_classification.confidence * 100)|round(1) if report.traffic_classification.get('confidence') is not none else 'N/A' }}% uncalibrated top-class score)</td>
                         <td>XGBoost Multi-Class Payload Inference</td>
                     </tr>
                 </tbody>
@@ -880,7 +879,9 @@ def generate_html_report(report_data: Dict[str, Any], output_path: str) -> str:
     from jinja2 import Template
     template = Template(HTML_TEMPLATE)
     generated_at_str = datetime.now().strftime("%d %b %Y, %H:%M UTC")
-    rendered_html = template.render(report=report_data, generated_at=generated_at_str)
+    render_data = dict(report_data)
+    render_data["traffic_classification"] = report_data.get("traffic_classification") or {}
+    rendered_html = template.render(report=render_data, generated_at=generated_at_str)
 
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:

@@ -1,14 +1,12 @@
 import os
 import tempfile
-import pytest
-from scapy.all import Ether, IP, UDP, Raw, wrpcap
+
+from scapy.all import IP, UDP, Ether, Raw, wrpcap
 
 from analyzer.metadata_exposure import (
-    analyze_metadata_exposure,
-    _extract_endpoint_ips,
-    _analyze_identity_payloads,
     _analyze_spi_correlation,
-    _analyze_transport_mode_exposure
+    _analyze_transport_mode_exposure,
+    _extract_endpoint_ips,
 )
 from services.protocol_engine import ProtocolIdentificationEngine
 

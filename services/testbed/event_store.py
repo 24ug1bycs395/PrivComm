@@ -10,8 +10,7 @@ traffic profiles never cause unbounded memory growth.
 import threading
 from collections import deque
 from datetime import datetime, timezone
-from typing import Dict, Any, Deque, List, Optional
-
+from typing import Any, Deque, Dict, List, Optional
 
 _lock = threading.Lock()
 # Map of job_id -> deque of event dicts (max 200 per job)

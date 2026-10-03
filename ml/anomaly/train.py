@@ -14,10 +14,8 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 import joblib
-import numpy as np
 import pandas as pd
 
-from ml.anomaly.evaluate import evaluate_frame
 from ml.anomaly.model import build_bundle, fit_detector, normalized_scores, raw_anomaly_scores
 from ml.anomaly.schemas import FEATURE_COLUMNS, SCHEMA_VERSION, validate_dataframe
 
@@ -118,6 +116,30 @@ def train_detector(dataset_path: str, model_dir: str, reports_dir: str, seed: in
         "validation": candidate_metrics,
         "test": test_metrics,
         "split_note": "Rows were ordered within each scenario by timestamp; anomalous scenarios were never included in the normal-only fit.",
+    }, indent=2), encoding="utf-8")
+    (reports_path / "model_card.json").write_text(json.dumps({
+        "schema_version": "privcomm.model-card.v1",
+        "model_name": metadata["model_name"],
+        "model_version": metadata["model_version"],
+        "task": "VPN behavioral anomaly detection",
+        "training_dataset_version": SCHEMA_VERSION,
+        "training_rows": int(len(train)),
+        "validation_rows": int(len(validation)),
+        "test_rows": int(len(test)),
+        "training_data_sources": metadata["training_data_sources"],
+        "synthetic_data_warning": metadata["synthetic_data_warning"],
+        "features": FEATURE_COLUMNS,
+        "split_method": metadata["training_method"],
+        "selected_detector": selected_name,
+        "validation_metrics": candidate_metrics[selected_name],
+        "test_metrics": test_metrics,
+        "score_definition": metadata["score_definition"],
+        "limitations": [
+            "The split holds out later rows within scenario types, not independently collected captures or sites.",
+            "Synthetic controlled data, when present, does not establish production generalization.",
+            "The anomaly score is a ranking score, not a probability.",
+            "False-positive rates must be interpreted with the checked-in dataset and reported test support.",
+        ],
     }, indent=2), encoding="utf-8")
     print(json.dumps(metadata, indent=2))
     print(f"Saved model artifact to {output_model}")

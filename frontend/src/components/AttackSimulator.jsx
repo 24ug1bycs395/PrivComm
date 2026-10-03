@@ -15,7 +15,7 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
   const [sessions, setSessions] = useState([]);
   const [selectedType, setSelectedType] = useState('mitm');
   const [target, setTarget] = useState('gateway-1 ↔ gateway-2');
-  const [attackVm, setAttackVm] = useState({ status: 'ready', address: '192.168.56.40' });
+  const [attackVm, setAttackVm] = useState({ status: 'ready', address: null });
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [message, setMessage] = useState('');
@@ -30,7 +30,7 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
       const apiOptions = data.options?.map((option) => ({ ...option, id: String(option.id) })) || [];
       setOptions(apiOptions.length > 0 ? apiOptions : FALLBACK_OPTIONS);
       setSessions(data.sessions || []);
-      setAttackVm(data.attack_vm || { status: 'ready', address: '192.168.56.40' });
+      setAttackVm(data.attack_vm || { status: 'ready', address: null });
       setMessage('');
     } catch (error) {
       setMessage('Simulation API unavailable. The control surface is ready when the backend is running.');
@@ -101,19 +101,17 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
           <div className="attack-eyebrow"><ShieldAlert size={15} /> CONTROLLED SECURITY EXERCISE</div>
           <h2>Attack Simulator</h2>
           <p>
-            {isTestbedConnected
-              ? 'Executing live control-plane scenarios across strongSwan Vagrant VMs.'
-              : 'Simulating controlled telemetry scenarios against reference baseline capture data (Fallback Mode).'}
+            Modeling control-plane attack telemetry only. No packets are sent and no host configuration is changed.
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <div className={`attack-mode-badge ${isTestbedConnected ? 'is-live' : 'is-fallback'}`} title={isTestbedConnected ? "Vagrant testbed VMs online" : "Testbed VMs offline; running simulated fallback"}>
+          <div className="attack-mode-badge is-fallback" title="Telemetry simulation only; no network actions are performed">
             <span className="dot" />
-            <span>{isTestbedConnected ? 'Live Testbed (Vagrant)' : 'Simulated Fallback Mode'}</span>
+            <span>{isTestbedConnected ? 'Simulated Testbed Scenario' : 'Simulated Mode'}</span>
           </div>
           <div className={`attack-vm-status ${attackVm.status === 'running' ? 'is-running' : ''}`}>
             <Activity size={16} />
-            <span><strong>Attack VM</strong><small>{attackVm.address} · {attackVm.status}</small></span>
+            <span><strong>Telemetry Model</strong><small>{attackVm.address || 'No network endpoint'} · {attackVm.status}</small></span>
           </div>
         </div>
       </div>
@@ -160,8 +158,8 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
         <div className="attack-fallback-notice">
           <Cpu size={15} color="#38bdf8" style={{ flexShrink: 0, marginTop: '2px' }} />
           <span>
-            <strong>Simulated Telemetry Fallback is Active:</strong> You can launch and test all attack scenarios immediately on synthetic telemetry data without requiring strongSwan VirtualBox VMs.
-            To switch to full multi-VM hardware testing, run <code>vagrant up</code> in your terminal.
+          <strong>Telemetry-only simulation is active:</strong> These scenarios generate synthetic detection signals only. No attack traffic is sent, even when testbed nodes are online.
+          Use a separately authorized strongSwan capture workflow to exercise real tunnels.
           </span>
         </div>
       )}
@@ -173,8 +171,8 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
           <div className="attack-active-title">
             <Terminal size={15} />
             {TYPE_LABELS[activeSession.attack_type] || activeSession.attack_type} is running
-            <span className={`session-mode-tag ${activeSession.mode || 'live'}`}>
-              {activeSession.mode === 'simulated_fallback' ? 'FALLBACK' : 'LIVE'}
+            <span className={`session-mode-tag ${activeSession.mode || 'simulated'}`}>
+              {activeSession.mode === 'simulated_fallback' ? 'FALLBACK SIMULATION' : 'SIMULATION'}
             </span>
           </div>
           <span>{activeSession.target} · Detection: {activeSession.detection}</span>
@@ -189,8 +187,8 @@ export default function AttackSimulator({ isTestbedConnected = false, topology }
               <div className="attack-session-main">
                 {session.status === 'running' ? <Activity size={14} /> : <CheckCircle size={14} />}
                 <strong>{TYPE_LABELS[session.attack_type] || session.attack_type}</strong>
-                <span className={`session-mode-tag ${session.mode || 'live'}`}>
-                  {session.mode === 'simulated_fallback' ? 'FALLBACK' : 'LIVE'}
+                <span className={`session-mode-tag ${session.mode || 'simulated'}`}>
+                  {session.mode === 'simulated_fallback' ? 'FALLBACK SIMULATION' : 'SIMULATION'}
                 </span>
                 <span>{session.status}</span>
               </div>

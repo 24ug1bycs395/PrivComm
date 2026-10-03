@@ -62,6 +62,59 @@ function ThemedScenarioSelect({ scenarios, value, onChange }) {
   );
 }
 
+function ThemedOptionSelect({ value, options, onChange, ariaLabel }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
+
+  return (
+    <div ref={menuRef} className="testbed-select-wrap testbed-themed-select testbed-custom-themed-select">
+      <button
+        type="button"
+        className="testbed-themed-select-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={ariaLabel}
+        onClick={() => setOpen((current) => !current)}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") setOpen(false);
+          if (event.key === "ArrowDown") setOpen(true);
+        }}
+      >
+        <span>{value}</span>
+        <ChevronDown size={14} aria-hidden="true" />
+      </button>
+
+      {open && (
+        <div className="testbed-themed-select-menu" role="listbox" aria-label={ariaLabel}>
+          {options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="option"
+              aria-selected={option === value}
+              className={`testbed-themed-select-option${option === value ? " selected" : ""}`}
+              onClick={() => {
+                onChange(option);
+                setOpen(false);
+              }}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const PREVIEW_LINES = {
   initiator: ["$ testbedctl preflight --initiator", "PREVIEW ONLY — waiting for backend deployment", "$ swanctl --list-sas"],
   responder: ["$ testbedctl preflight --responder", "PREVIEW ONLY — waiting for backend deployment", "$ swanctl --list-sas"],
@@ -631,18 +684,24 @@ function LinuxTerminal({ title, ip, role, lines, isActive, isPreview = false, te
 // ── Analysis Result Card ───────────────────────────────────────────────────────
 function ResultCard({ job, onNavigateToAnalysis }) {
   const result = job?.analysis_result || job?.result_json || {};
+  const isDemo = Boolean(job?.demo || job?.id?.startsWith("demo-"));
   return (
     <div style={{ background: "var(--bg-card)", border: "1px solid var(--status-success-border)", borderRadius: "10px", padding: "18px 22px", marginTop: "12px" }}>
       <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.76rem", fontWeight: 700, color: "var(--status-success)", marginBottom: "14px", letterSpacing: "0.06em" }}>
-        ANALYSIS COMPLETED SUCCESSFULLY
+        {isDemo ? "BROWSER DEMO COMPLETE — NO TESTBED ANALYSIS RAN" : "ANALYSIS COMPLETED SUCCESSFULLY"}
       </div>
+      {isDemo && (
+        <p role="status" style={{ color: "var(--text-secondary)", fontSize: "0.82rem", lineHeight: 1.5, margin: "0 0 14px" }}>
+          This is a frontend-only stage simulation. No virtual machines, strongSwan tunnel, packet capture, or classifier analysis were run.
+        </p>
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "10px", marginBottom: "14px" }}>
         {[
-          ["Risk Score", String(result.risk_score ?? result.overall_risk_score ?? "--")],
-          ["Compliance", String(result.compliance_score ?? "--")],
-          ["Integrity Hash", String(result.tunnel_integrity?.algorithm || result.integrity || "SHA-256")],
-          ["Traffic Type", String(result.traffic_classification ?? "HTTP_GET")],
-          ["Confidence", result.confidence ? (result.confidence * 100).toFixed(1) + "%" : "96.4%"],
+          ["Risk Score", isDemo ? "Not run" : String(result.risk_score ?? result.overall_risk_score ?? "--")],
+          ["Compliance", isDemo ? "Not run" : String(result.compliance_score ?? "--")],
+          ["Integrity Hash", isDemo ? "Not observed" : String(result.tunnel_integrity?.algorithm || result.integrity || "Unknown")],
+          ["Traffic Type", isDemo ? "Illustrative only" : String(result.traffic_classification ?? "Unknown")],
+          ["Confidence", isDemo ? "Not run" : result.confidence ? (result.confidence * 100).toFixed(1) + "%" : "Unknown"],
         ].map(([label, value]) => (
           <div key={label} style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-subtle)", borderRadius: "6px", padding: "10px 14px" }}>
             <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.61rem", color: "var(--text-tertiary)", marginBottom: "4px" }}>{label}</div>
@@ -650,7 +709,7 @@ function ResultCard({ job, onNavigateToAnalysis }) {
           </div>
         ))}
       </div>
-      {result.tunnel_integrity && (
+      {!isDemo && result.tunnel_integrity && (
         <div style={{ background: "rgba(56,189,248,0.06)", border: "1px solid rgba(56,189,248,0.25)", borderRadius: "6px", padding: "8px 12px", marginBottom: "12px", fontSize: "0.72rem", fontFamily: "JetBrains Mono, monospace", color: "var(--accent-cyan)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
           <span>🔒 Handshake Integrity Verified: <strong>{result.tunnel_integrity.algorithm}</strong></span>
           <span style={{ color: "var(--text-tertiary)" }}>Digest: {result.tunnel_integrity.digest_short || result.tunnel_integrity.handshake_digest?.slice(0, 20)}...</span>
@@ -664,7 +723,7 @@ function ResultCard({ job, onNavigateToAnalysis }) {
               e.preventDefault();
               const a = document.createElement('a');
               a.href = '/samples/capture.pcap';
-              a.download = `${(job.scenario || 'testbed')}_capture.pcap`;
+              a.download = 'bundled_sample_capture.pcap';
               document.body.appendChild(a);
               a.click();
               a.remove();
@@ -687,9 +746,9 @@ function ResultCard({ job, onNavigateToAnalysis }) {
             cursor: "pointer",
           }}
         >
-          <Download size={13} /> Download capture.pcap
+          <Download size={13} /> {isDemo ? "Download bundled sample PCAP (not generated by demo)" : "Download capture.pcap"}
         </a>
-        {onNavigateToAnalysis && (result.risk_score !== undefined || job.analysis_result) && (
+        {!isDemo && onNavigateToAnalysis && (result.risk_score !== undefined || job.analysis_result) && (
           <button
             type="button"
             onClick={() => onNavigateToAnalysis(result)}
@@ -804,8 +863,8 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
   const [observerLines, setObserverLines] = useState(PREVIEW_LINES.observer);
   const [currentStage, setCurrentStage] = useState(null);
 
-  // The observer capture is active only once traffic injection begins. Before
-  // that point the live dashboard must not be reachable from this tab.
+  // The observer capture is active only once traffic injection begins. The
+  // dashboard itself remains visible below the orchestrator in an idle state.
   const liveDashboardReady = Boolean(
     activeJob?.id && ["TRAFFIC", "PCAP", "AI"].includes(currentStage) && activeJob.state !== "FAILED"
   );
@@ -984,17 +1043,18 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
         } : previous);
 
         ["initiator", "responder", "observer"].forEach((role) => {
-          addLines(role, STAGE_LINES[stage]?.[role] || []);
+          addLines(role, (STAGE_LINES[stage]?.[role] || []).map((line) => `[SIMULATED] ${line}`));
         });
 
         if (stage === "AI") {
           setIsRunning(false);
           setJobHistory((previous) => [{
             id: jobId,
-            filename: "demo_testbed_capture.pcap",
+            filename: "Browser demo (no capture generated)",
             scenario_name: scenario,
             state: "COMPLETED",
             created_at: new Date().toISOString(),
+            demo: true,
           }, ...previous]);
         }
       }, index * delay);
@@ -1069,11 +1129,11 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
             )}
           </div>
           <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>
-            {subTab === "orchestrator" ? "Live Execution Environment" : "Attack Simulator & Security Exercises"}
+            {subTab === "orchestrator" ? "Testbed Orchestration & Demo Environment" : "Attack Simulator & Security Exercises"}
           </h1>
           <p style={{ fontSize: "0.88rem", color: "var(--text-secondary)", margin: "5px 0 0" }}>
             {subTab === "orchestrator"
-              ? "Real-time orchestration of 3-VM strongSwan IPsec deployment with live packet capture and AI analysis."
+              ? "Runs the backend testbed when configured; otherwise, a browser-only simulation demonstrates the interface without deploying VMs or capturing traffic."
               : "Isolated control-plane and telemetry-driven security exercises executed from the dedicated Attack VM."}
           </p>
         </div>
@@ -1081,27 +1141,29 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
         {/* Top Controls & Navigation Switcher */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
           {/* Sub-Tabs Switcher */}
-          <div className="testbed-view-switcher" style={{ display: "flex", background: "var(--bg-tertiary)", padding: "4px", borderRadius: "8px", border: "1px solid var(--border-subtle)", gap: "4px" }}>
+          <div className="testbed-view-switcher" role="group" aria-label="Testbed sections">
             <button
               type="button"
-              className={`testbed-view-button${subTab === "orchestrator" ? " active" : ""}`}
-              style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", padding: "6px 14px", fontWeight: 700 }}
+              className={`testbed-view-button testbed-view-button--orchestrator${subTab === "orchestrator" ? " active" : ""}`}
               onClick={() => scrollToTestbedSection(
                 "orchestrator",
                 liveDashboardSectionRef.current ? liveDashboardSectionRef : orchestratorSectionRef
               )}
               title="Scroll to the live dashboard"
+              aria-pressed={subTab === "orchestrator"}
             >
-              <Activity size={14} /> Live Orchestrator
+              <Activity size={16} strokeWidth={2.2} />
+              <span>Live Orchestrator</span>
             </button>
             <button
               type="button"
-              className={`testbed-view-button${subTab === "attack" ? " active" : ""}`}
-              style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", padding: "6px 14px", fontWeight: 700, color: subTab === "attack" ? "#f87171" : undefined }}
+              className={`testbed-view-button testbed-view-button--attack${subTab === "attack" ? " active" : ""}`}
               onClick={() => scrollToTestbedSection("attack", attackSectionRef)}
               title="Scroll to the attack simulator"
+              aria-pressed={subTab === "attack"}
             >
-              <ShieldAlert size={14} color={subTab === "attack" ? "#f87171" : "currentColor"} /> Attack Simulator
+              <ShieldAlert size={16} strokeWidth={2.2} />
+              <span>Attack Simulator</span>
             </button>
           </div>
 
@@ -1163,23 +1225,24 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
               border: "1px solid var(--border-blueprint)"
             }}>
               <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-blue)" }} />
-              {nodeStatus.online_count}/{nodeStatus.total_nodes} Nodes Online
+                {nodeStatus.online_count}/{nodeStatus.total_nodes} Nodes Online
             </span>
           ) : (
-            <span style={{ color: "var(--text-tertiary)" }}>Checking node status...</span>
+              <span style={{ color: "var(--text-tertiary)" }}>Node status unverified</span>
           )}
         </div>
 
         {/* Individual Node Pills */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
           {[
-            { key: "initiator", label: "VM1 (Initiator)", host: topology.initiator_ip, defaultOnline: true },
-            { key: "responder", label: "VM2 (Responder)", host: topology.responder_ip, defaultOnline: true },
-            { key: "observer", label: "VM3 (Observer)", host: topology.observer_ip, defaultOnline: true },
-            { key: "attacker", label: "VM4 (Attacker)", host: "192.168.56.40", defaultOnline: true },
+            { key: "initiator", label: "VM1 (Initiator)", host: topology.initiator_ip },
+            { key: "responder", label: "VM2 (Responder)", host: topology.responder_ip },
+            { key: "observer", label: "VM3 (Observer)", host: topology.observer_ip },
+            { key: "attacker", label: "VM4 (Attacker)", host: "192.168.56.40" },
           ].map((n) => {
             const probeInfo = nodeStatus?.nodes?.[n.key];
-            const isOnline = probeInfo ? probeInfo.status === "ONLINE" : (nodeStatus ? false : true);
+            const isOnline = probeInfo?.status === "ONLINE";
+            const nodeState = probeInfo ? (isOnline ? "ONLINE" : "OFFLINE") : "UNVERIFIED";
             const latency = probeInfo?.latency_ms;
             return (
               <div
@@ -1190,14 +1253,15 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
                   gap: "6px",
                   padding: "4px 10px",
                   borderRadius: "6px",
-                  background: "var(--accent-blue-dim)",
-                  border: "1px solid var(--border-blueprint)",
-                  color: "var(--accent-blue)"
+                  background: isOnline ? "var(--status-success-dim)" : nodeState === "OFFLINE" ? "var(--status-danger-dim)" : "var(--bg-secondary)",
+                  border: `1px solid ${isOnline ? "var(--status-success-border)" : nodeState === "OFFLINE" ? "var(--status-danger-border)" : "var(--border-subtle)"}`,
+                  color: isOnline ? "var(--status-success)" : nodeState === "OFFLINE" ? "var(--status-danger)" : "var(--text-tertiary)"
                 }}
-                title={probeInfo?.details || `${n.label} at ${n.host}`}
+                title={probeInfo?.details || `${n.label} at ${n.host} — status unverified`}
               >
-                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-blue)" }} />
+                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: isOnline ? "var(--status-success)" : nodeState === "OFFLINE" ? "var(--status-danger)" : "var(--text-tertiary)" }} />
                 <span>{n.label}</span>
+                <span style={{ fontSize: "0.62rem", fontWeight: 700 }}>{nodeState}</span>
                 <span style={{ color: "var(--text-tertiary)", fontSize: "0.66rem" }}>{n.host}</span>
                 {latency !== undefined && latency !== null && (
                   <span style={{ fontSize: "0.62rem", color: "var(--accent-cyan)", marginLeft: "2px" }}>{latency}ms</span>
@@ -1207,6 +1271,20 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
           })}
         </div>
       </div>
+
+      {activeJob?.demo && (
+        <div role="status" style={{
+          padding: "10px 16px",
+          background: "rgba(245, 158, 11, 0.1)",
+          border: "1px solid rgba(245, 158, 11, 0.55)",
+          borderRadius: "8px",
+          fontSize: "0.8rem",
+          color: "var(--text-primary)",
+          lineHeight: "1.5",
+        }}>
+          <strong style={{ color: "#f59e0b" }}>BROWSER-ONLY TESTBED SIMULATION.</strong> This UI animates example stages and terminal text; it does not deploy VMs, run strongSwan, capture packets, or perform analysis.
+        </div>
+      )}
 
       {nodeCheckError && (
         <div style={{
@@ -1224,7 +1302,7 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
           <Info size={16} color="var(--accent-cyan)" style={{ flexShrink: 0, marginTop: "2px" }} />
           <div>
             <strong style={{ color: "var(--accent-cyan)", marginRight: "6px" }}>Note:</strong>
-            <span>This environment is currently simulated for web UI demonstration. Production roadmap includes deploying containerized Docker images orchestrated via Kubernetes across cloud providers (AWS / GCP / Azure). The live testbed execution shown in our demo video represents the actual, fully operational multi-node deployment.</span>
+            <span>The browser demo can simulate testbed stages when the backend or virtual machines are unavailable. These animations are illustrative only; they do not represent a completed multi-node deployment or a real packet capture.</span>
           </div>
         </div>
       )}
@@ -1300,18 +1378,17 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
                   ].map((f) => (
                     <div key={f.key} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                       <span style={{ fontSize: "0.68rem", color: "var(--text-tertiary)" }}>{f.label}:</span>
-                      <select
-                        className="form-input testbed-custom-select"
+                      <ThemedOptionSelect
                         value={customConfig[f.key]}
-                        onChange={(e) => setCustomConfig((prev) => ({
+                        options={f.opts}
+                        ariaLabel={f.label}
+                        onChange={(value) => setCustomConfig((prev) => ({
                           ...prev,
-                          [f.key]: e.target.value,
-                          ...(f.key === "hash_algorithm" ? { integrity: e.target.value } : {}),
-                          ...(f.key === "payload_type" ? { traffic_profile: e.target.value } : {})
+                          [f.key]: value,
+                          ...(f.key === "hash_algorithm" ? { integrity: value } : {}),
+                          ...(f.key === "payload_type" ? { traffic_profile: value } : {})
                         }))}
-                      >
-                        {f.opts.map((o) => <option key={o}>{o}</option>)}
-                      </select>
+                      />
                     </div>
                   ))}
                   <label style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.68rem", color: "var(--text-tertiary)" }}>
@@ -1339,12 +1416,13 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
               className="btn-primary testbed-deploy-button"
               disabled={isRunning}
               onClick={handleLaunch}
+              title="Runs the backend testbed when available; otherwise plays a browser-only simulation."
               style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "9px 22px", fontWeight: 700, fontSize: "0.86rem" }}
             >
               {isRunning ? (
                 <><RefreshCw size={15} className="animate-spin" /> Executing...</>
               ) : (
-                <><Play size={15} fill="#fff" /> Deploy &amp; Run</>
+                <><Play size={15} fill="#fff" /> Run Testbed / Demo</>
               )}
             </button>
             <button
@@ -1366,7 +1444,7 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
             {/* SENDER — full height */}
             <div style={{ minHeight: 0, overflow: "hidden", display: "flex" }}>
               <LinuxTerminal
-                title="SENDER (VM1 — Initiator)"
+                title={activeJob?.demo ? "SENDER (SIMULATED — NO VM)" : "SENDER (VM1 — Initiator)"}
                 ip={topology.initiator_ip}
                 role="initiator"
                 lines={senderLines}
@@ -1386,7 +1464,7 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
               {/* Bottom half — green Observer terminal */}
               <div style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex" }}>
                 <LinuxTerminal
-                  title="OBSERVER (VM3 — Packet Capture)"
+                  title={activeJob?.demo ? "OBSERVER (SIMULATED — NO PACKET CAPTURE)" : "OBSERVER (VM3 — Packet Capture)"}
                   ip={topology.observer_ip}
                   role="observer"
                   lines={observerLines}
@@ -1400,7 +1478,7 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
             {/* RECEIVER — full height */}
             <div style={{ minHeight: 0, overflow: "hidden", display: "flex" }}>
               <LinuxTerminal
-                title="RECEIVER (VM2 — Responder)"
+                title={activeJob?.demo ? "RECEIVER (SIMULATED — NO VM)" : "RECEIVER (VM2 — Responder)"}
                 ip={topology.responder_ip}
                 role="responder"
                 lines={receiverLines}
@@ -1424,11 +1502,9 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
           )}
 
           {/* Lower-page flow: Live Dashboard, then Attack Simulator, then the vault. */}
-          {activeJob?.id && (
-            <div ref={liveDashboardSectionRef} style={{ scrollMarginTop: "96px" }}>
-              <LiveDashboardTab liveJobId={activeJob.id} />
-            </div>
-          )}
+          <div ref={liveDashboardSectionRef} style={{ scrollMarginTop: "96px" }}>
+            <LiveDashboardTab liveJobId={activeJob?.id || null} />
+          </div>
 
           <div ref={attackSectionRef} style={{ display: "flex", flexDirection: "column", gap: "16px", scrollMarginTop: "96px" }}>
             <AttackSimulator

@@ -17,8 +17,7 @@ import numpy as np
 import pandas as pd
 
 from ml.anomaly.feature_extractor import extract_pcap_windows
-from ml.anomaly.schemas import FEATURE_COLUMNS, SCENARIO_TYPES
-
+from ml.anomaly.schemas import FEATURE_COLUMNS
 
 SCENARIOS = [
     "normal",

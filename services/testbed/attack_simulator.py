@@ -7,7 +7,7 @@ do not inject traffic, alter host networking, or require an extra image.
 from datetime import datetime, timezone
 from enum import Enum
 from threading import Lock
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -27,7 +27,10 @@ class AttackSimulationRequest(BaseModel):
     target: str = Field(default="gateway-1 <-> gateway-2", max_length=80)
     topology: Optional[TestbedTopology] = None
     fallback: bool = Field(default=False, description="Enable simulated fallback mode if physical testbed VMs are offline")
-    mode: Optional[str] = Field(default=None, description="Execution mode: 'live' or 'simulated'")
+    mode: Optional[Literal["simulated"]] = Field(
+        default=None,
+        description="Only telemetry simulation is supported; live attack execution is unavailable.",
+    )
 
 
 class AttackSimulation(BaseModel):
@@ -39,7 +42,7 @@ class AttackSimulation(BaseModel):
     stopped_at: Optional[str] = None
     detection: str
     evidence: List[str]
-    mode: str = Field(default="live", description="Execution mode: 'live' or 'simulated_fallback'")
+    mode: str = Field(default="simulated", description="Telemetry-only model; no traffic or host changes")
 
 
 ATTACK_OPTIONS = [
@@ -107,11 +110,11 @@ def list_attack_status() -> dict:
         sessions = list(_sessions.values())[-8:]
     return {
         "attack_vm": {
-            "id": "attack-vm",
-            "name": "Attack VM",
-            "role": "Isolated simulator",
-            "status": "running" if any(s.status == "running" for s in sessions) else "ready",
-            "address": "192.168.56.40",
+            "id": "attack-simulator",
+            "name": "Attack Simulator",
+            "role": "Telemetry-only model",
+            "status": "simulating" if any(s.status == "running" for s in sessions) else "ready",
+            "address": None,
         },
         "options": ATTACK_OPTIONS,
         "sessions": sessions[-8:],
@@ -123,9 +126,8 @@ def start_attack(request: AttackSimulationRequest, is_fallback: bool = False) ->
     evidence = list(_EVIDENCE[request.attack_type])
     if is_fallback:
         evidence.insert(0, "Simulated Fallback Mode: Telemetry modeled against reference baseline capture")
-        evidence.append("Simulation executed in fallback mode without requiring live Vagrant/strongSwan VMs")
     else:
-        evidence.insert(0, "Live Testbed Mode: Executed across strongSwan testbed nodes (192.168.56.10, 20, 30)")
+        evidence.insert(0, "Simulated Mode: Telemetry modeled; no traffic was injected and no host configuration was changed")
 
     session = AttackSimulation(
         id=f"sim-{uuid4().hex[:8]}",
@@ -135,7 +137,7 @@ def start_attack(request: AttackSimulationRequest, is_fallback: bool = False) ->
         started_at=_now(),
         detection=option["signal"],
         evidence=evidence,
-        mode="simulated_fallback" if is_fallback else "live",
+        mode="simulated_fallback" if is_fallback else "simulated",
     )
     with _lock:
         if any(existing.status == "running" for existing in _sessions.values()):

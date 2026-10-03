@@ -5,8 +5,10 @@ Generates synthetic standard IPsec PCAP captures and validates extraction logic 
 
 import os
 import tempfile
+
 from fastapi.testclient import TestClient
-from scapy.all import Ether, IP, IPv6, UDP, Raw, wrpcap
+from scapy.all import IP, UDP, Ether, Raw, wrpcap
+
 try:
     from scapy.layers.ipsec import ESP
 except ImportError:
@@ -90,7 +92,9 @@ def test_engine_and_endpoint():
         assert result.ike_version == "IKEv2"
         assert result.esp_detected is True
         assert result.mode == "Tunnel"
-        assert result.replay_protection is True
+        assert result.replay_protection is None
+        assert result.capture_sha256
+        assert result.packet_evidence
         assert result.ip_version == "IPv4"
         assert result.source_ip == "192.168.1.10"
         assert result.destination_ip == "10.0.0.1"
@@ -112,6 +116,11 @@ def test_engine_and_endpoint():
         assert json_data["ike_version"] == "IKEv2"
         assert json_data["esp_detected"] is True
         assert json_data["mode"] == "Tunnel"
+        assert json_data["capture_sha256"] == result.capture_sha256
+        assert json_data["packet_evidence"][0]["frame_number"] == 1
+        assert json_data["crypto_bom"]["schema_version"] == "privcomm.cbom.v1"
+        assert json_data["pfs"] is None
+        assert json_data["replay_protection"] is None
 
         print("\n[SUCCESS] All verification tests passed flawlessly!")
 

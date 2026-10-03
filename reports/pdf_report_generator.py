@@ -1,21 +1,19 @@
-import os
-import json
 import logging
+import os
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Any, Dict
 
-from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.pdfgen import canvas
 from reportlab.platypus import (
-    SimpleDocTemplate,
     Paragraph,
+    SimpleDocTemplate,
     Spacer,
     Table,
     TableStyle,
-    KeepTogether,
 )
-from reportlab.pdfgen import canvas
 
 logger = logging.getLogger(__name__)
 
@@ -222,7 +220,7 @@ def generate_pdf_report(report_data: Dict[str, Any], output_path: str) -> str:
     enc = ipsec.get("encryption") or report_data.get("encryption") or "AES-256-GCM"
     key_len = ipsec.get("key_length") or report_data.get("key_length") or "256"
     integrity = ipsec.get("integrity") or report_data.get("integrity") or "AEAD"
-    
+
     dh_raw = ipsec.get("dh_group") if ipsec.get("dh_group") is not None else report_data.get("dh_group")
     if dh_raw is None or str(dh_raw).lower() in ("unknown", "none", ""):
         dh_str = "Group 19"

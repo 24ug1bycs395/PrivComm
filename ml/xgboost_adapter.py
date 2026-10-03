@@ -1,6 +1,7 @@
 import logging
+from typing import Any, Dict
+
 import numpy as np
-from typing import Dict, Any, Optional
 
 from ml.model_loader import load_trained_model
 
