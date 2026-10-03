@@ -1695,6 +1695,10 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 900px) { .gdoc-outline { width: 210px; flex-basis: 210px; }.gdoc-page { padding: 52px 48px; }.gdoc-cover-grid { grid-template-columns: 1fr; gap: 9px; } }.gdoc-page mark { background: #fff2ac; }
 @media (max-width: 680px) { .gdoc-shell { margin: 0 -12px; }.gdoc-outline { display: none; }.gdoc-workspace { height: calc(100vh - 210px); }.gdoc-topbar { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }.gdoc-title-wrap { flex-basis: calc(100% - 44px); }.gdoc-title-wrap input { font-size: 15px; }.gdoc-export-actions { width: 100%; justify-content: flex-end; }.gdoc-export-button { flex: 1; }.gdoc-top-actions .gdoc-icon-button:nth-child(-n+2), .gdoc-file-meta, .gdoc-saved, .gdoc-toolbar-divider { display: none; }.gdoc-share { padding: 8px 11px; }.gdoc-toolbar { overflow-x: auto; padding: 3px 10px; }.gdoc-search { min-width: 150px; }.gdoc-editor { padding: 12px 0 40px; }.gdoc-page { width: 100%; min-height: 100%; padding: 38px 28px; }.gdoc-cover h1 { font-size: 1.8em; }.gdoc-check-list { grid-template-columns: 1fr; } }
 @media print { .gdoc-shell { margin: 0; background: #fff; }.gdoc-topbar, .gdoc-toolbar, .gdoc-outline, .gdoc-ruler { display: none; }.gdoc-workspace, .gdoc-editor-wrap, .gdoc-editor { height: auto; overflow: visible; padding: 0; }.gdoc-page { width: 100%; box-shadow: none; } }
+.gdoc-shell.gdoc-fullscreen { position: fixed; inset: 0; z-index: 1000; width: 100vw; height: 100vh; margin: 0; background: #f8fafd; }
+.gdoc-shell.gdoc-fullscreen .gdoc-workspace { height: calc(100vh - 68px); min-height: 0; }
+.gdoc-shell.gdoc-fullscreen .gdoc-page { width: min(1180px, calc(100% - 40px)); }
+.gdoc-shell:fullscreen { overflow: hidden; }
 
 /* Testbed section switcher */
 .testbed-view-switcher {

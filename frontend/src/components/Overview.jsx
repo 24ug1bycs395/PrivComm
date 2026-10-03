@@ -11,70 +11,70 @@ import PrivCommTunnelVisualizer from './PrivCommTunnelVisualizer';
 const steps = [
   {
     num: '01',
-    chapter: 'CH_01: OBSERVE',
-    title: 'Traffic & Ingestion Tap',
-    desc: 'Passively ingest live interface taps, raw PCAP/PCAPNG packet streams, and gateway session telemetry without inline latency.',
+    chapter: 'CH_01: CAPTURE & INGEST',
+    title: 'Traffic & Network Trace Ingestion',
+    desc: 'Acquires network traces via Wireshark, TCP-dump, or custom packet capture utilities across IPv4/IPv6, ingesting IKE negotiation, ESP packets, AH packets, and normal communication.',
     tag: 'DATA_INGESTION',
     icon: Eye,
-    words: 'eBPF / AF_PACKET'
+    words: 'WIRESHARK / TCP-DUMP'
   },
   {
     num: '02',
     chapter: 'CH_02: IDENTIFY',
-    title: 'Protocol Demultiplexing',
-    desc: 'Dissect IKEv1/IKEv2 handshakes, ESP/AH payload types, SPI indices, and negotiation transform proposals down to byte level.',
-    tag: 'PROTOCOL_PARSING',
+    title: 'AI Protocol Identification & Mode Inference',
+    desc: 'Automatically identifies IPsec protocol, IKE version (IKEv1/IKEv2), infers Tunnel Mode vs Transport Mode, and extracts Security Association (SA) characteristics, SPIs, and key exchange methods.',
+    tag: 'PROTOCOL_IDENTIFICATION',
     icon: Search,
-    words: 'IKEv1 / IKEv2 / ESP'
+    words: 'TUNNEL & TRANSPORT'
   },
   {
     num: '03',
     chapter: 'CH_03: ASSESS',
-    title: 'Cryptographic Evaluation',
-    desc: 'Verify cipher strength, PRF/hash integrity, key lengths, and Diffie-Hellman groups against NIST SP 800-77 and NSA CSfC baselines.',
-    tag: 'CRYPTO_AUDIT',
+    title: 'Cryptographic Strength & Compliance',
+    desc: 'Evaluates cipher suite strength (AES-128, AES-256, AES-GCM, AES-CBC + HMAC), DH Groups, Perfect Forward Secrecy (PFS), key lifetime, replay protection, and metadata exposure against NIST SP 800-77.',
+    tag: 'SECURITY_ASSESSMENT',
     icon: Lock,
-    words: 'NIST SP 800-77'
+    words: 'NIST SP 800-77 & FIPS'
   },
   {
     num: '04',
-    chapter: 'CH_04: EXPLAIN',
-    title: 'Deterministic Rationale',
-    desc: 'Synthesize explainable security justifications and CVSS-calibrated threat ratings with zero black-box inference.',
-    tag: 'EXPLAINABLE_AI',
+    chapter: 'CH_04: AI INFERENCE',
+    title: 'AI Classification Engine: ESP Traffic Prediction',
+    desc: 'Predicts type of traffic inside ESP-IPsec (VoIP, WhatsApp, E-mail, Web-browsing, ICMP, Video streaming) with an AI Confidence Score, Comprehensive Security Score, and 3x3 Threat Matrix.',
+    tag: 'AI_CLASSIFICATION',
     icon: HelpCircle,
-    words: 'CVSS v3.1 SCORING'
+    words: 'ESP TRAFFIC & THREAT MATRIX'
   },
   {
     num: '05',
     chapter: 'CH_05: SIMULATE',
-    title: 'Digital Twin Modeling',
-    desc: 'Simulate hypothetical cipher downgrades, rekey exhaustion windows, and sequence replay attacks in an isolated environment.',
-    tag: 'DIGITAL_TWIN',
+    title: 'VPN Testbed Generation & Simulation',
+    desc: 'Multi-node laboratory environment establishing IPsec VPNs using multiple configurations (Tunnel/Transport mode, AES-128/256, AES-GCM, DH Groups, PFS enabled/disabled, IPv4/IPv6).',
+    tag: 'VPN_TESTBED',
     icon: Activity,
-    words: 'WHAT-IF ENGINE'
+    words: 'MULTI-CONFIG TESTBED'
   },
   {
     num: '06',
-    chapter: 'CH_06: SECURE',
-    title: 'Vendor Hardening Playbooks',
-    desc: 'Generate tailored Cisco, Fortinet, Juniper, and strongSwan remediation scripts, hardening playbooks, and compliance attestations.',
-    tag: 'HARDENING_EXPORT',
+    chapter: 'CH_06: REPORT',
+    title: 'Executive & Technical Security Reports',
+    desc: 'Automatically generates Executive Reports, Technical Reports, Risk Scores, Threat Matrices, and tailored vendor remediation playbooks (Cisco, Fortinet, Juniper, strongSwan).',
+    tag: 'SECURITY_REPORTS',
     icon: CheckSquare,
-    words: 'MULTI-VENDOR CLI'
+    words: 'EXECUTIVE & TECH REPORTS'
   },
 ];
 
 /* ── Capability Highlights ──────────────────────────────────────────── */
 const capabilities = [
-  { icon: Cpu,        label: 'XGBoost Traffic Classification',  sub: 'ML-driven IKE/ESP classification · 91.17% accuracy' },
-  { icon: Zap,        label: 'Real-Time PCAP Dissection',       sub: 'Zero-latency protocol stream parser (<80ms)' },
-  { icon: Database,   label: 'Analysis Persistence Vault',      sub: 'Tamper-evident SQLite/Supabase session ledger' },
-  { icon: TrendingUp, label: 'CVSS Risk Score Engine',          sub: 'Automated cryptographic debt quantification' },
-  { icon: GitBranch,  label: 'strongSwan 3-Node Testbed',       sub: 'Multi-VM tunnel orchestration & packet replay' },
-  { icon: Globe,      label: 'Sovereign Air-Gapped Mode',       sub: 'Zero external cloud egress · 100% on-premise' },
-  { icon: Shield,     label: 'NIST SP 800-77 Rev 1 Audit',      sub: 'Federal cryptographic policy enforcement' },
-  { icon: Award,      label: 'FIPS 140-3 & NSA CSfC 4.1',       sub: 'Compliant cipher suite validation' },
+  { icon: Cpu,        label: 'AI Classification Engine',        sub: 'Predicts traffic type inside ESP-IPsec (VoIP, WhatsApp, Web, Video) · 91.17% accuracy' },
+  { icon: Zap,        label: 'Wireshark & TCP-dump Ingestion',  sub: 'Zero-latency protocol parser (<80ms) for IKE negotiation & ESP packets' },
+  { icon: Database,   label: 'Tunnel & Transport Mode Inference', sub: 'Automated operational mode identification & metadata exposure evaluation' },
+  { icon: TrendingUp, label: 'Comprehensive Risk & Threat Matrix', sub: 'Calibrated 3x3 Threat Matrix, Risk Score, and AI Confidence Score' },
+  { icon: GitBranch,  label: 'VPN Testbed Generation Lab',      sub: 'Multi-configuration testbed (AES-GCM, AES-CBC+HMAC, DH Groups, PFS, IPv4/IPv6)' },
+  { icon: Globe,      label: 'Sovereign Air-Gapped Mode',       sub: 'Zero external cloud egress · 100% on-premise privacy preservation' },
+  { icon: Shield,     label: 'NIST SP 800-77 Rev 1 & FIPS Audit', sub: 'Evaluates cryptographic strength, SA parameters, key lifetime & replay protection' },
+  { icon: Award,      label: 'Executive & Technical Reports',   sub: 'Automated security assessment reports in standalone HTML and JSON formats' },
 ];
 
 /* ── Interactive Architecture FAQ Console Data ──────────────────────── */
@@ -162,7 +162,7 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
             color: 'var(--text-secondary)',
             marginBottom: '22px',
           }}>
-            AUTONOMOUS IPSEC CRYPTOGRAPHIC INTELLIGENCE PLATFORM
+            AI-DRIVEN IPSEC VPN PROTOCOL ANALYSIS &amp; SECURITY POSTURE ASSESSMENT PLATFORM
           </div>
 
           {/* Editorial Serif Narrative with Drop-Cap */}
@@ -173,9 +173,11 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
             color: 'var(--text-secondary)',
             marginBottom: '28px',
           }}>
-            Transforming VPN packet captures, strongSwan runtime telemetry, and encrypted ESP payloads into
-            deterministic compliance audits, CVSS risk scores, and vendor remediation playbooks — without a
-            single byte of telemetry leaving your sovereign perimeter.
+            An AI-driven protocol analysis platform capable of automatically analysing IPsec VPN deployments established
+            under different security configurations. Inspects captured traffic (Wireshark, TCP-dump) and live network streams,
+            identifies protocol characteristics, infers operating modes (Tunnel Mode vs Transport Mode), predicts encapsulated
+            traffic inside ESP-IPsec (VoIP, WhatsApp, E-mail, Web-browsing, Video streaming), evaluates cryptographic configurations,
+            and generates comprehensive Executive and Technical Security Assessment Reports with Threat Matrices and AI Confidence Scores.
           </p>
 
           {/* Action Button Row */}
@@ -237,6 +239,21 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
               <span className="leader-dots" />
               <strong style={{ color: 'var(--accent-blue)' }}>91.17% (XGBoost)</strong>
             </div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ color: 'var(--text-tertiary)' }}>PROTOCOL IDENTIFICATION</span>
+              <span className="leader-dots" />
+              <strong style={{ color: 'var(--accent-cyan)' }}>IKEv1 / IKEv2 / ESP / AH</strong>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ color: 'var(--text-tertiary)' }}>OPERATING MODES INFERRED</span>
+              <span className="leader-dots" />
+              <strong style={{ color: 'var(--text-primary)' }}>Tunnel Mode &amp; Transport Mode</strong>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ color: 'var(--text-tertiary)' }}>ESP TRAFFIC PREDICTED</span>
+              <span className="leader-dots" />
+              <strong style={{ color: 'var(--text-primary)' }}>VoIP, WhatsApp, Mail, Web, Video</strong>
+            </div>
           </div>
         </div>
 
@@ -267,9 +284,9 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
             fontSize: '1rem',
             color: 'var(--text-secondary)',
             marginTop: '8px',
-            maxWidth: '640px',
+            maxWidth: '680px',
           }}>
-            A deterministic and explainable seven-stage methodology engineered to systematically inspect, evaluate, and fortify enterprise IPsec architectures.
+            An AI-driven methodology: ingests Wireshark &amp; TCP-dump network traces, automatically identifies protocol characteristics, infers Tunnel Mode vs Transport Mode, predicts encrypted traffic inside ESP-IPsec, evaluates cryptographic strength, and generates executive &amp; technical reports.
           </p>
         </div>
 
@@ -646,7 +663,7 @@ export default function Overview({ onStartAnalysis, onViewTelemetry }) {
           maxWidth: '540px',
           margin: '0 auto 28px',
         }}>
-          Upload a raw packet capture (.pcap, .pcapng) or connect to the strongSwan multi-node testbed to start real-time protocol dissection.
+          Upload Wireshark or TCP-dump network traces (.pcap, .pcapng) or launch the multi-configuration VPN testbed to start automated AI protocol identification, ESP traffic prediction, and security assessment.
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
           <button
