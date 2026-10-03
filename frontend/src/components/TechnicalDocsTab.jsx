@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, FileText, Folder, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, Folder, Check, Maximize2, Minimize2 } from 'lucide-react';
 
 const sections = [
   ['overview', '1. Executive Overview'], ['architecture', '2. System Architecture & Processing Pipeline'],
@@ -14,8 +14,14 @@ const BulletList = ({ children }) => <ul className="gdoc-list">{children}</ul>;
 export default function TechnicalDocsTab() {
   const [activeSection, setActiveSection] = useState('overview');
   const [outlineOpen, setOutlineOpen] = useState(true);
+<<<<<<< HEAD
   const [title, setTitle] = useState('PrivComm — AI-Driven IPsec VPN Protocol Analysis & Security Assessment Platform');
+=======
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [title, setTitle] = useState('PrivComm — IPsec VPN Intelligence & Traffic Classification Platform');
+>>>>>>> 18a3ea2 (full screen for doc)
   const docRef = useRef(null);
+  const shellRef = useRef(null);
 
   useEffect(() => {
     const root = docRef.current;
@@ -27,12 +33,40 @@ export default function TechnicalDocsTab() {
     sections.forEach(([id]) => { const element = document.getElementById(id); if (element) observer.observe(element); });
     return () => observer.disconnect();
   }, []);
+  useEffect(() => {
+    const handleFullscreenChange = () => setIsFullscreen(document.fullscreenElement === shellRef.current);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
   const jumpTo = (id) => { setActiveSection(id); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  const toggleFullscreen = async () => {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen?.();
+      return;
+    }
+    if (shellRef.current?.requestFullscreen) {
+      await shellRef.current.requestFullscreen();
+    } else {
+      setIsFullscreen((current) => !current);
+    }
+  };
   return (
-    <div className="gdoc-shell">
+    <div className={`gdoc-shell ${isFullscreen ? 'gdoc-fullscreen' : ''}`} ref={shellRef}>
       <div className="gdoc-topbar">
         <div className="gdoc-file-icon"><FileText size={25} strokeWidth={1.7} /></div>
         <div className="gdoc-title-wrap"><input aria-label="Document title" value={title} onChange={(event) => setTitle(event.target.value)} /><div className="gdoc-file-meta"><span>Starred</span><span>Last edit was a few seconds ago</span></div></div>
+        <div className="gdoc-top-actions">
+          <button
+            type="button"
+            className="gdoc-icon-button"
+            title={isFullscreen ? 'Exit full screen' : 'View document full screen'}
+            aria-label={isFullscreen ? 'Exit full screen' : 'View document full screen'}
+            aria-pressed={isFullscreen}
+            onClick={toggleFullscreen}
+          >
+            {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+          </button>
+        </div>
       </div>
       <div className="gdoc-workspace">
         {outlineOpen ? (
