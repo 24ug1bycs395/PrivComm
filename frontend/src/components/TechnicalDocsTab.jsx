@@ -14,12 +14,8 @@ const BulletList = ({ children }) => <ul className="gdoc-list">{children}</ul>;
 export default function TechnicalDocsTab() {
   const [activeSection, setActiveSection] = useState('overview');
   const [outlineOpen, setOutlineOpen] = useState(true);
-<<<<<<< HEAD
-  const [title, setTitle] = useState('PrivComm — AI-Driven IPsec VPN Protocol Analysis & Security Assessment Platform');
-=======
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [title, setTitle] = useState('PrivComm — IPsec VPN Intelligence & Traffic Classification Platform');
->>>>>>> 18a3ea2 (full screen for doc)
+  const [title, setTitle] = useState('PrivComm — AI-Driven IPsec VPN Protocol Analysis & Security Assessment Platform');
   const docRef = useRef(null);
   const shellRef = useRef(null);
 
