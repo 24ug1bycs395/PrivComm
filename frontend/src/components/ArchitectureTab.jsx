@@ -36,6 +36,16 @@ import {
   Check
 } from 'lucide-react';
 
+const FlowConnector = ({ label }) => (
+  <div className="architecture-flow-connector" role="img" aria-label={`${label} workflow connector`}>
+    <div className="architecture-flow-line" aria-hidden="true">
+      <span className="architecture-flow-packet" />
+      <span className="architecture-flow-arrow">⌄</span>
+    </div>
+    <span className="architecture-flow-label">{label} <span aria-hidden="true">↓</span></span>
+  </div>
+);
+
 export default function ArchitectureTab() {
   const [activeSection, setActiveSection] = useState('hla');
 
@@ -403,12 +413,7 @@ export default function ArchitectureTab() {
                   </div>
                 </div>
 
-                {/* Downward Conduit Arrow */}
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'var(--accent-cyan)', margin: '-8px 0' }}>
-                  <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', background: 'var(--bg-primary)', padding: '2px 10px', borderRadius: '9999px', border: '1px solid var(--border-subtle)' }}>
-                    HTTPS / WebSocket Client Handshake ↓
-                  </span>
-                </div>
+                <FlowConnector label="HTTPS / WebSocket Client Handshake" />
 
                 {/* TIER 2: FRONTEND / PRESENTATION LAYER */}
                 <div style={{ border: '1px solid var(--border-blueprint)', borderRadius: '12px', padding: '16px', background: 'var(--bg-secondary)' }}>
@@ -443,12 +448,7 @@ export default function ArchitectureTab() {
                   </div>
                 </div>
 
-                {/* Downward Conduit Arrow */}
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'var(--accent-cyan)', margin: '-8px 0' }}>
-                  <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', background: 'var(--bg-primary)', padding: '2px 10px', borderRadius: '9999px', border: '1px solid var(--border-subtle)' }}>
-                    REST API JSON Payloads + Multipart Uploads ↓
-                  </span>
-                </div>
+                <FlowConnector label="REST API JSON Payloads + Multipart Uploads" />
 
                 {/* TIER 3: BACKEND / APPLICATION LAYER */}
                 <div style={{ border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '16px', background: 'var(--bg-secondary)' }}>
@@ -481,6 +481,8 @@ export default function ArchitectureTab() {
                     </div>
                   </div>
                 </div>
+
+                <FlowConnector label="Validated service events + telemetry" />
 
                 {/* TWO-COLUMN SPLIT: TESTBED (LEFT) & PERSISTENCE (RIGHT) */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

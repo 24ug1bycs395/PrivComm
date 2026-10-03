@@ -1064,9 +1064,51 @@ h1, h2, h3, h4, h5, h6 {
   max-width: var(--max-width);
   margin: 0 auto;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+}
+
+.footer-brand {
+  min-width: 0;
+}
+
+.footer-brand-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-demo {
+  width: min(100%, 560px);
+  margin-top: 18px;
+}
+
+.footer-demo-heading {
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.footer-video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: #000;
+  box-shadow: var(--shadow-sm);
+}
+
+.footer-video-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -1208,7 +1250,10 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 640px) {
   .metrics-row { grid-template-columns: 1fr; }
   .nav-tabs { display: none; }
-  .footer-inner { flex-direction: column; gap: 10px; text-align: center; }
+  .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
+  .footer-brand { width: 100%; }
+  .footer-brand-line { justify-content: center; flex-wrap: wrap; }
+  .footer-demo { margin-right: auto; margin-left: auto; }
 }
 
 /* Isolated Attack VM simulator */

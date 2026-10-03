@@ -117,10 +117,25 @@ export default function App() {
         {/* Footer */}
         <footer className="site-footer">
           <div className="footer-inner">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem' }}>Privcomm</span>
-              <span style={{ color: 'var(--text-muted)' }}>&mdash;</span>
-              <span style={{ color: 'var(--text-tertiary)', fontSize: '0.82rem' }}>AI-Assisted IPsec VPN Security Intelligence</span>
+            <div className="footer-brand">
+              <div className="footer-brand-line">
+                <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem' }}>Privcomm</span>
+                <span style={{ color: 'var(--text-muted)' }}>&mdash;</span>
+                <span style={{ color: 'var(--text-tertiary)', fontSize: '0.82rem' }}>AI-Assisted IPsec VPN Security Intelligence</span>
+              </div>
+              <div className="footer-demo">
+                <div className="footer-demo-heading">Prototype demonstration</div>
+                <div className="footer-video-frame">
+                  <iframe
+                    src="https://www.youtube.com/embed/kig2D39GOrs?si=QTdv3mNgErhLpNM9"
+                    title="Privcomm prototype demonstration video"
+                    loading="lazy"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
             </div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
               FIPS 140-3 &bull; NIST SP 800-77 &bull; NSA CSfC &bull; Zero External Data Exfiltration
