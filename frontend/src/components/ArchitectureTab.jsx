@@ -37,13 +37,25 @@ import {
 } from 'lucide-react';
 
 const FlowConnector = ({ label }) => (
-  <div className="architecture-flow-connector" role="img" aria-label={`${label} workflow connector`}>
-    <div className="architecture-flow-line" aria-hidden="true">
-      <span className="architecture-flow-packet" />
-      <span className="architecture-flow-arrow">⌄</span>
+  <>
+    <style>{`
+      .architecture-flow-connector { position: relative; display: flex; align-items: center; justify-content: center; min-height: 40px; margin: -8px 0; color: var(--accent-cyan); }
+      .architecture-flow-line { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: linear-gradient(to bottom, transparent, var(--accent-cyan), transparent); opacity: .72; transform: translateX(-50%); }
+      .architecture-flow-packet { position: absolute; top: -5px; left: 50%; width: 9px; height: 9px; border: 2px solid var(--bg-card); border-radius: 50%; background: var(--accent-blue); box-shadow: 0 0 0 3px var(--accent-cyan-dim), 0 0 14px var(--accent-cyan); transform: translateX(-50%); animation: architecture-flow-packet 2.1s ease-in-out infinite; z-index: 2; }
+      .architecture-flow-arrow { position: absolute; bottom: -5px; left: 50%; color: var(--accent-cyan); font-size: 1.2rem; line-height: 1; transform: translateX(-50%); }
+      .architecture-flow-label { position: relative; z-index: 3; padding: 3px 10px; border: 1px solid var(--border-subtle); border-radius: 9999px; background: var(--bg-primary); font-family: var(--font-mono); font-size: .7rem; white-space: nowrap; }
+      .architecture-flow-connector:hover .architecture-flow-packet { animation-play-state: paused; transform: translateX(-50%) scale(1.35); }
+      @keyframes architecture-flow-packet { 0% { top: -5px; opacity: 0; } 12% { opacity: 1; } 78% { opacity: 1; } 100% { top: calc(100% - 4px); opacity: 0; } }
+      @media (prefers-reduced-motion: reduce) { .architecture-flow-packet { animation: none; top: calc(50% - 4px); } }
+    `}</style>
+    <div className="architecture-flow-connector" role="img" aria-label={`${label} workflow connector`}>
+      <div className="architecture-flow-line" aria-hidden="true">
+        <span className="architecture-flow-packet" />
+        <span className="architecture-flow-arrow">⌄</span>
+      </div>
+      <span className="architecture-flow-label">{label} <span aria-hidden="true">↓</span></span>
     </div>
-    <span className="architecture-flow-label">{label} <span aria-hidden="true">↓</span></span>
-  </div>
+  </>
 );
 
 export default function ArchitectureTab() {
