@@ -428,8 +428,7 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
           <button
             type="button"
             onClick={handleDownloadPDF}
-            className="btn-ghost"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '6px 14px', cursor: 'pointer', border: 'none', background: 'transparent' }}
+            className="btn btn-secondary btn-sm"
             title="Download Executive PDF Report"
           >
             <FileText size={15} color="var(--accent-cyan)" />
@@ -438,9 +437,8 @@ export default function TelemetryDashboard({ externalAnalysis, onNavigateToTestb
           {onNavigateToTestbed && (
             <button
               type="button"
-              className="btn-primary"
+              className="btn btn-primary btn-sm"
               onClick={onNavigateToTestbed}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '6px 14px' }}
             >
               <Server size={15} />
               <span>Launch Testbed VM</span>
