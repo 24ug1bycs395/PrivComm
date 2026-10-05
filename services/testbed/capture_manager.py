@@ -1,11 +1,12 @@
+import logging
 import os
 import shutil
-import logging
 from pathlib import Path
 from typing import Optional
-from services.testbed.models import VMHostConfig, ScenarioDefinition
-from services.testbed.ssh_controller import SSHController
+
 from db.storage import StorageService
+from services.testbed.models import ScenarioDefinition, VMHostConfig
+from services.testbed.ssh_controller import SSHController
 
 logger = logging.getLogger("testbed.capture_manager")
 
@@ -60,7 +61,7 @@ class CaptureManager:
         Starts tcpdump / tshark in background on the observer VM.
         Returns the remote capture file path.
         """
-        remote_pcap = f"/tmp/{pcap_filename}"
+        remote_pcap = f"/tmp/{pcap_filename}"  # nosec B108
         # Filter for ISAKMP (500), IPsec NAT-T (4500), and ESP (protocol 50)
         capture_cmd = (
             f"nohup sudo tcpdump -i {interface} 'udp port 500 or udp port 4500 or ip proto 50' "

@@ -4,12 +4,12 @@ Optional Google Gemini LLM & Local Knowledge Base Assistant Module for Privcomm.
 Provides dynamic AI assistant responses for the Web UI Chatbot widget.
 """
 
-import os
 import json
 import logging
-import urllib.request
+import os
 import urllib.error
-from typing import Dict, Any, Optional
+import urllib.request
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger("LLMExplainer")
 
@@ -85,7 +85,9 @@ def _invoke_llm(prompt: str, temperature: float = 0.2, max_tokens: int = 300) ->
             req_data = json.dumps(payload).encode("utf-8")
             req = urllib.request.Request(endpoint, data=req_data, headers=headers, method="POST")
 
-            with urllib.request.urlopen(req, timeout=timeout_sec) as resp:
+            if not endpoint.startswith(("http://", "https://")):
+                raise ValueError(f"Invalid URL scheme in endpoint: {endpoint}")
+            with urllib.request.urlopen(req, timeout=timeout_sec) as resp:  # nosec B310
                 if resp.status == 200:
                     res_json = json.loads(resp.read().decode("utf-8"))
                     choices = res_json.get("choices", [])
@@ -118,7 +120,9 @@ def _invoke_llm(prompt: str, temperature: float = 0.2, max_tokens: int = 300) ->
             req_data = json.dumps(payload).encode("utf-8")
             req = urllib.request.Request(endpoint, data=req_data, headers=headers, method="POST")
 
-            with urllib.request.urlopen(req, timeout=timeout_sec) as resp:
+            if not endpoint.startswith(("http://", "https://")):
+                raise ValueError(f"Invalid URL scheme in endpoint: {endpoint}")
+            with urllib.request.urlopen(req, timeout=timeout_sec) as resp:  # nosec B310
                 if resp.status == 200:
                     res_json = json.loads(resp.read().decode("utf-8"))
                     candidates = res_json.get("candidates", [])

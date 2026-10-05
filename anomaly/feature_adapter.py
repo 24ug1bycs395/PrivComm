@@ -1,12 +1,12 @@
 """Feature adapter for VPN Behavioral Anomaly Detection."""
 
 from __future__ import annotations
-import logging
-from typing import Dict, Any, List, Optional
-from pathlib import Path
 
-from ml.anomaly.feature_extractor import extract_pcap_windows, extract_behavioral_features
-from ml.anomaly.schemas import FEATURE_COLUMNS
+import logging
+from pathlib import Path
+from typing import Any, Dict, List
+
+from ml.anomaly.feature_extractor import extract_pcap_windows
 
 logger = logging.getLogger("AnomalyFeatureAdapter")
 

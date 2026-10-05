@@ -1,119 +1,204 @@
-"""
-Post-Quantum Cryptographic Readiness & Crypto-Agility Assessment Engine.
+"""Evidence-bounded post-quantum and crypto-agility assessment."""
 
-Evaluates IPsec VPN configurations for vulnerability to quantum computing threats
-(Shor's Algorithm / Store-Now-Decrypt-Later SNDL attacks), assesses Crypto-Agility rating,
-and checks for IKEv2 Post-Quantum Hybrid Key Exchange readiness (RFC 8784 / ML-KEM Kyber).
-"""
+import math
+from typing import Any, Dict, List
 
-from typing import Dict, Any, List
+NIST_ML_KEM_REFERENCE = "https://csrc.nist.gov/pubs/fips/203/final"
+CNSA_2_REFERENCE = (
+    "https://media.defense.gov/2022/Sep/07/2003071834/-1/-1/0/"
+    "CSI_CNSA_2.0_ALGORITHMS_.PDF"
+)
+MOSCA_REFERENCE = "https://doi.org/10.1109/MSP.2018.3761723"
+
+_CLASSICAL_DH_GROUPS = {
+    "1", "2", "5", "14", "15", "16", "17", "18", "19", "20", "21",
+    "22", "23", "24", "25", "26", "27", "28", "29", "30", "31",
+    "MODP-1024", "MODP-2048", "MODP-3072", "MODP-4096",
+    "ECP-256", "ECP-384", "CURVE25519", "CURVE448",
+}
+
+
+def _known(value: Any) -> bool:
+    return value is not None and str(value).strip().lower() not in {"", "unknown", "none"}
+
+
+def _assess_key_exchange(value: Any) -> Dict[str, Any]:
+    if not _known(value):
+        return {
+            "status": "UNKNOWN",
+            "observed": "unknown",
+            "impact": "The capture or configuration does not expose a key-exchange algorithm.",
+            "evidence": "No observable value",
+        }
+    group = str(value).upper()
+    if group in _CLASSICAL_DH_GROUPS:
+        return {
+            "status": "CLASSICAL_VULNERABLE",
+            "observed": group,
+            "impact": "This is classical public-key cryptography and is not post-quantum secure.",
+            "evidence": "Observed classical IKE key-exchange group",
+        }
+    if "ML-KEM" in group or "KYBER" in group:
+        return {
+            "status": "PQ_CANDIDATE_UNVERIFIED",
+            "observed": group,
+            "impact": "A PQ algorithm is named, but the capture alone does not establish correct implementation or successful hybrid negotiation.",
+            "evidence": "Observed name only; interoperability and implementation validation are required",
+        }
+    return {
+        "status": "UNKNOWN",
+        "observed": group,
+        "impact": "The observed key-exchange identifier cannot be classified by this assessor.",
+        "evidence": "Unrecognized identifier",
+    }
+
+
+def _assess_symmetric_cipher(cipher: Any, key_length: Any) -> Dict[str, Any]:
+    if not _known(cipher):
+        return {
+            "status": "UNKNOWN",
+            "observed": "unknown",
+            "impact": "The symmetric cipher is not observable.",
+        }
+    cipher_name = str(cipher).upper()
+    bits = None
+    if _known(key_length):
+        try:
+            bits = int(key_length)
+        except (TypeError, ValueError):
+            bits = None
+    if bits is None:
+        if "256" in cipher_name or "CHACHA20" in cipher_name:
+            bits = 256
+        elif "128" in cipher_name:
+            bits = 128
+    if bits == 256:
+        status = "256_BIT_CLASSICAL"
+        impact = "A 256-bit symmetric key is not a post-quantum algorithm; Grover-style search changes the security margin."
+    elif bits is not None and bits < 256:
+        status = "BELOW_256_BITS"
+        impact = "The observed key size is below the 256-bit transition target; assess the required security margin."
+    else:
+        status = "UNKNOWN"
+        impact = "The key length cannot be established from the observed cipher name."
+    return {"status": status, "observed": cipher_name, "key_length_bits": bits, "impact": impact}
 
 
 def evaluate_post_quantum_readiness(ipsec_info: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Evaluates observed IPsec configuration for Post-Quantum readiness and Crypto-Agility.
-    """
-    dh_group = str(ipsec_info.get("dh_group", "19")).upper()
-    enc_cipher = str(ipsec_info.get("encryption", "AES-256-GCM")).upper()
-    ike_version = str(ipsec_info.get("ike_version", "IKEv2")).upper()
-    pfs_enabled = True if ipsec_info.get("pfs") in [True, "enforced", "yes"] else False
+    """Assess only observed values; missing fields remain explicitly unknown."""
+    key_exchange = _assess_key_exchange(ipsec_info.get("dh_group"))
+    symmetric = _assess_symmetric_cipher(
+        ipsec_info.get("encryption"), ipsec_info.get("key_length")
+    )
+    ike_version = ipsec_info.get("ike_version")
 
-    pqc_checks: List[Dict[str, Any]] = []
-
-    # 1. Asymmetric Key Exchange Quantum Threat Assessment (Shor's Algorithm)
-    if dh_group in ["1", "2", "5", "14", "15", "16", "MODP-1024", "MODP-2048", "MODP-3072", "MODP-4096"]:
-        key_family = "Classical Modular Prime Exponentiation (MODP)"
-        quantum_vulnerability = "CRITICAL (Shor's Algorithm breaks discrete logarithm problem in polynomial time)"
-        pqc_checks.append({
-            "control": "Key Exchange Quantum Resilience",
-            "observed": f"Group {dh_group} ({key_family})",
-            "status": "FAIL",
-            "impact": "Vulnerable to Store-Now-Decrypt-Later (SNDL) attacks. Eavesdroppers recording encrypted traffic today will decrypt it when Quantum Computers arrive."
-        })
-    elif dh_group in ["19", "20", "21", "28", "31", "ECP-256", "ECP-384", "CURVE448"]:
-        key_family = "Classical Elliptic Curve Cryptography (ECC / ECP)"
-        quantum_vulnerability = "HIGH (Shor's Algorithm breaks elliptic curve discrete logarithms faster than RSA/MODP)"
-        pqc_checks.append({
-            "control": "Key Exchange Quantum Resilience",
-            "observed": f"Group {dh_group} ({key_family})",
-            "status": "WARNING",
-            "impact": "High classical performance, but fully vulnerable to Quantum Shor's algorithm. Requires migration path to hybrid Post-Quantum ML-KEM (Kyber)."
-        })
-    elif "KYBER" in dh_group or "ML-KEM" in dh_group or "PQC" in dh_group:
-        key_family = "Post-Quantum Hybrid Lattice-Based Cryptography (ML-KEM)"
-        quantum_vulnerability = "NONE (Quantum Resistant - Lattice Math)"
-        pqc_checks.append({
-            "control": "Key Exchange Quantum Resilience",
-            "observed": f"Group {dh_group} ({key_family})",
-            "status": "PASS",
-            "impact": "Quantum-Resistant. Protected against both classical supercomputers and future quantum computers."
-        })
+    if key_exchange["status"] == "CLASSICAL_VULNERABLE":
+        overall = "CLASSICAL_KEY_EXCHANGE_OBSERVED"
+    elif key_exchange["status"] == "PQ_CANDIDATE_UNVERIFIED":
+        overall = "PQC_CANDIDATE_UNVERIFIED"
     else:
-        key_family = f"Group {dh_group}"
-        quantum_vulnerability = "UNKNOWN / Classical Baseline"
-        pqc_checks.append({
+        overall = "INSUFFICIENT_EVIDENCE"
+
+    timeline_values = [
+        ipsec_info.get("data_shelf_life_years"),
+        ipsec_info.get("migration_lead_time_years"),
+        ipsec_info.get("estimated_crqc_years"),
+    ]
+    if all(_known(value) for value in timeline_values):
+        try:
+            shelf_life, migration, crqc_horizon = map(float, timeline_values)
+        except (TypeError, ValueError):
+            shelf_life = migration = crqc_horizon = -1.0
+        valid_timeline = all(
+            math.isfinite(value) and value >= 0
+            for value in (shelf_life, migration, crqc_horizon)
+        )
+    else:
+        valid_timeline = False
+
+    if valid_timeline:
+        mosca = {
+            "status": "MIGRATION_WINDOW_EXCEEDS_HORIZON"
+            if shelf_life + migration > crqc_horizon
+            else "MIGRATION_WINDOW_WITHIN_HORIZON",
+            "data_shelf_life_years": shelf_life,
+            "migration_lead_time_years": migration,
+            "estimated_crqc_years": crqc_horizon,
+            "inequality": "data shelf life + migration lead time > estimated CRQC horizon",
+            "source": MOSCA_REFERENCE,
+            "source_model": "Mosca's x + y > z inequality; numeric inputs are caller-provided estimates.",
+        }
+    elif all(_known(value) for value in timeline_values):
+        mosca = {
+            "status": "INVALID_INPUT",
+            "required_inputs": [
+                "finite non-negative data_shelf_life_years",
+                "finite non-negative migration_lead_time_years",
+                "finite non-negative estimated_crqc_years",
+            ],
+            "source": MOSCA_REFERENCE,
+        }
+    else:
+        mosca = {
+            "status": "NOT_ASSESSED",
+            "required_inputs": [
+                "data_shelf_life_years",
+                "migration_lead_time_years",
+                "estimated_crqc_years",
+            ],
+            "source": MOSCA_REFERENCE,
+            "source_model": "Mosca's x + y > z inequality; the assessor does not invent a CRQC arrival date.",
+        }
+
+    pqc_candidate = {
+        "status": key_exchange["status"],
+        "observed": key_exchange["observed"],
+        "source": NIST_ML_KEM_REFERENCE,
+        "note": "The NIST reference defines ML-KEM; an observed name is not proof of conformance.",
+    }
+    checks: List[Dict[str, Any]] = [
+        {
             "control": "Key Exchange Quantum Resilience",
-            "observed": f"Group {dh_group}",
-            "status": "WARNING",
-            "impact": "Unclassified key exchange group. Standard classical asymmetric algorithms are vulnerable to Quantum Shor's algorithm."
-        })
-
-    # 2. Symmetric Encryption Quantum Resilience (Grover's Algorithm)
-    if "256" in enc_cipher or "CHACHA" in enc_cipher or "256-GCM" in enc_cipher:
-        pqc_checks.append({
-            "control": "Symmetric Cipher Quantum Strength (Grover's Algorithm)",
-            "observed": f"{enc_cipher} (256-bit key)",
-            "status": "PASS",
-            "impact": "Grover's Quantum Search Algorithm reduces 256-bit keys to 128-bit quantum security, which remains mathematically unbreakable."
-        })
-        sym_quantum_status = "QUANTUM_RESISTANT"
-    else:
-        pqc_checks.append({
-            "control": "Symmetric Cipher Quantum Strength (Grover's Algorithm)",
-            "observed": f"{enc_cipher} (128-bit key)",
-            "status": "WARNING",
-            "impact": "Grover's Quantum Search Algorithm reduces 128-bit keys to 64-bit effective quantum security. Upgrade to 256-bit keys recommended."
-        })
-        sym_quantum_status = "QUANTUM_MARGINAL"
-
-    # 3. Protocol Agility & RFC 8784 Hybrid Post-Quantum Rekeying Support
-    if "V2" in ike_version or ike_version == "IKEV2":
-        pqc_checks.append({
-            "control": "Protocol Crypto-Agility (RFC 8784 / Hybrid PQ Support)",
-            "observed": "IKEv2 (Supports Multiple Transform Substructures)",
-            "status": "PASS",
-            "impact": "IKEv2 supports RFC 8784 Post-Quantum Preshared Keys and hybrid key exchange extensions without requiring architecture redesign."
-        })
-        protocol_agility = "EXCELLENT"
-    else:
-        pqc_checks.append({
-            "control": "Protocol Crypto-Agility (RFC 8784 / Hybrid PQ Support)",
-            "observed": "IKEv1 (Fixed Transform Schema)",
-            "status": "FAIL",
-            "impact": "IKEv1 lacks modular transform negotiation capability required for Post-Quantum hybrid algorithms."
-        })
-        protocol_agility = "POOR"
-
-    # Determine Overall PQC Status
-    if any(c["status"] == "FAIL" for c in pqc_checks):
-        pqc_status = "CLASSICAL_VULNERABLE"
-        quantum_threat_rating = "HIGH_RISK_SNDL"
-        readiness_score = 35
-    elif any(c["status"] == "WARNING" for c in pqc_checks):
-        pqc_status = "PQC_TRANSITIONAL"
-        quantum_threat_rating = "MEDIUM_RISK"
-        readiness_score = 70
-    else:
-        pqc_status = "PQC_READY"
-        quantum_threat_rating = "QUANTUM_RESISTANT"
-        readiness_score = 100
+            **key_exchange,
+            "source": NIST_ML_KEM_REFERENCE,
+        },
+        {
+            "control": "Symmetric Cipher Quantum Margin",
+            **symmetric,
+        },
+        {
+            "control": "Negotiated Post-Quantum Key Exchange",
+            "status": "NOT_VERIFIED",
+            "observed": ike_version if _known(ike_version) else "unknown",
+            "impact": "IKE version alone does not prove that a hybrid or post-quantum key exchange was configured or negotiated.",
+        },
+        {
+            "control": "CNSA 2.0 Profile",
+            "status": "NOT_ASSESSED",
+            "observed": "No explicit CNSA 2.0 profile or implementation evidence supplied",
+            "profile": "Commercial National Security Algorithm Suite 2.0",
+            "profile_version": "2.0",
+            "published_date": "2022-09-07",
+            "applicability": "U.S. National Security Systems; applicability outside NSS is not assumed.",
+            "source": CNSA_2_REFERENCE,
+        },
+    ]
 
     return {
-        "pqc_status": pqc_status,
-        "quantum_threat_rating": quantum_threat_rating,
-        "readiness_score": readiness_score,
-        "key_exchange_family": key_family,
-        "symmetric_quantum_status": sym_quantum_status,
-        "crypto_agility_rating": protocol_agility,
-        "pqc_checks": pqc_checks
+        "pqc_status": overall,
+        "readiness_score": None,
+        "key_exchange_family": key_exchange["observed"],
+        "symmetric_quantum_status": symmetric["status"],
+        "crypto_agility_rating": "UNVERIFIED",
+        "pqc_candidate": pqc_candidate,
+        "cnsa_2": {
+            "status": "NOT_ASSESSED",
+            "profile_version": "2.0",
+            "published_date": "2022-09-07",
+            "applicability": "U.S. National Security Systems; applicability outside NSS is not assumed.",
+            "source": CNSA_2_REFERENCE,
+            "note": "Algorithm observations do not establish CNSA 2.0 profile compliance or deployment readiness.",
+        },
+        "mosca_timeline": mosca,
+        "pqc_checks": checks,
     }

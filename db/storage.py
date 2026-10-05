@@ -1,7 +1,7 @@
+import logging
 import os
 import shutil
-import logging
-from typing import Optional
+
 from db.supabase_client import get_supabase_client
 
 logger = logging.getLogger("db.storage")
@@ -42,7 +42,7 @@ class StorageService:
                 # Upload to 'reports' bucket
                 bucket_name = "reports"
                 remote_path = f"html/{base_name}"
-                
+
                 # Check / Upsert file
                 client.storage.from_(bucket_name).upload(
                     file=file_bytes,

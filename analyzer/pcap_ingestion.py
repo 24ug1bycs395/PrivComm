@@ -1,16 +1,17 @@
-import os
+import hashlib
 import logging
 import os
+
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
-from typing import Dict, Any, Tuple
+from typing import Any, Dict, Tuple
 
-from analyzer.tshark import find_tshark_path, run_tshark_json
-from analyzer.ike_parser import parse_ike_scapy, parse_ike_tshark_json
 from analyzer.esp_parser import parse_esp_scapy, parse_esp_tshark_json
-from analyzer.ipsec_parser import synthesize_ipsec_config
 from analyzer.flow_extractor import extract_flow_features_scapy
+from analyzer.ike_parser import parse_ike_scapy, parse_ike_tshark_json
+from analyzer.ipsec_parser import synthesize_ipsec_config
 from analyzer.metadata_exposure import analyze_metadata_exposure
+from analyzer.tshark import find_tshark_path, run_tshark_json
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,11 @@ def ingest_and_parse_pcap(pcap_path: str) -> Dict[str, Any]:
         }
 
     zdp_result = None
+    decoder_error = None
+    capture_sha256 = hashlib.sha256()
+    with open(pcap_path, "rb") as capture_file:
+        for chunk in iter(lambda: capture_file.read(1024 * 1024), b""):
+            capture_sha256.update(chunk)
     try:
         from analyzer.pcap_decoder import decode_pcap
         zdp_result = decode_pcap(pcap_path)
@@ -60,6 +66,7 @@ def ingest_and_parse_pcap(pcap_path: str) -> Dict[str, Any]:
             len(zdp_result.esp_packets),
         )
     except Exception as exc:
+        decoder_error = str(exc)
         logger.warning("[ZDP] Pure-Python decoder failed: %s, continuing with Scapy/TShark", exc)
 
     # Attempt Scapy parsing for direct feature extraction and packet analysis (cap to 5000 pkts to prevent memory spikes)
@@ -147,6 +154,9 @@ def ingest_and_parse_pcap(pcap_path: str) -> Dict[str, Any]:
         "ip_version": meta_exposure.get("ip_version", "IPv4"),
         "metadata_exposure": meta_exposure,
         "zdp_used": zdp_result is not None,
+        "capture_sha256": capture_sha256.hexdigest(),
+        "packet_evidence": zdp_result.packet_evidence if zdp_result is not None else [],
+        "decoder_error": decoder_error,
         "zdp_esp_packets": [
             {
                 "timestamp": packet.timestamp,

@@ -18,12 +18,11 @@ from typing import Dict, Iterable, List
 
 import pandas as pd
 
+from db.repository import TestbedJobRepository
 from ml.anomaly.feature_extractor import extract_pcap_windows
 from ml.anomaly.schemas import FEATURE_COLUMNS
-from services.testbed.models import PRESET_SCENARIOS, TestbedTopology, TestbedState, VMHostConfig
+from services.testbed.models import TestbedState, TestbedTopology, VMHostConfig
 from services.testbed.orchestrator import TestbedOrchestrator
-from db.repository import TestbedJobRepository
-
 
 SCENARIO_MAP: Dict[str, Dict[str, object]] = {
     "ikev2-aes-gcm-compliant": {"scenario_type": "normal", "label": 0},

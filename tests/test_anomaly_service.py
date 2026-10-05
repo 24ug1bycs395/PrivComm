@@ -1,12 +1,11 @@
 """Tests for VPN Behavioral Anomaly Detection service and API."""
 
-import pytest
 from fastapi.testclient import TestClient
+
+from anomaly.service import get_baseline, get_status, predict_sample
 from main import app
-from anomaly.service import get_status, get_baseline, predict_sample
 from ml.anomaly.generate_dataset import generate_controlled_dataset
 from ml.anomaly.schemas import FEATURE_COLUMNS
-
 
 client = TestClient(app)
 

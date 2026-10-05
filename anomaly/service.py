@@ -1,20 +1,22 @@
 """Service layer for VPN Behavioral Anomaly Detection."""
 
 from __future__ import annotations
+
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List
+
 import numpy as np
 
+from anomaly.feature_adapter import extract_features_from_pcap
 from anomaly.model_loader import get_anomaly_artifact, get_anomaly_metadata
-from anomaly.feature_adapter import extract_features_from_pcap, adapt_flow_features_to_behavioral
 from anomaly.schemas import (
-    AnomalyPredictionResult,
+    AnomalyBaselineMetric,
     AnomalyContributingFeature,
     AnomalyModelStatus,
-    AnomalyBaselineMetric,
     AnomalyPcapAnalysisResponse,
+    AnomalyPredictionResult,
 )
-from ml.anomaly.model import raw_anomaly_scores, normalized_scores
+from ml.anomaly.model import normalized_scores, raw_anomaly_scores
 from ml.anomaly.schemas import FEATURE_COLUMNS
 
 logger = logging.getLogger("AnomalyService")
@@ -67,7 +69,7 @@ def get_baseline() -> List[AnomalyBaselineMetric]:
     iqrs = art["baseline_iqr"]
 
     metrics = []
-    for col, med, iqr in zip(columns, medians, iqrs):
+    for col, med, iqr in zip(columns, medians, iqrs, strict=False):
         metrics.append(AnomalyBaselineMetric(
             feature=col,
             median=round(float(med), 4),
@@ -132,9 +134,9 @@ def predict_sample(features: Dict[str, Any], top_k: int = 5) -> AnomalyPredictio
 
 def analyze_pcap_windows(pcap_path: str, window_sec: float = 60.0) -> AnomalyPcapAnalysisResponse:
     """Analyze a full PCAP file across rolling time windows."""
-    artifact = get_anomaly_artifact()
+    get_anomaly_artifact()
     windows = extract_features_from_pcap(pcap_path, window_sec=window_sec)
-    
+
     if not windows:
         # Single-window / empty fallback
         return AnomalyPcapAnalysisResponse(

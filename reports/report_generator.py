@@ -1,8 +1,10 @@
-import os
-import json
 import csv
+import json
 import logging
-from typing import Dict, Any, List
+import os
+from typing import Any, Dict, List
+
+from reports.crypto_bom import build_crypto_bom
 
 logger = logging.getLogger(__name__)
 
@@ -14,20 +16,21 @@ KNOWN_LIMITATIONS = [
     },
     {
         "field": "pfs",
-        "reason": "Perfect Forward Secrecy can only be confirmed by observing a CREATE_CHILD_SA exchange with a Diffie-Hellman KE payload. If the capture does not include a rekeying event, PFS status remains unverifiable.",
-        "status": "not_observable_without_rekey_capture",
+        "reason": "A CREATE_CHILD_SA exchange with a Diffie-Hellman KE payload can be observed in some captures, but its absence does not prove PFS is disabled and its presence does not establish the endpoint's enforcement policy.",
+        "status": "enforcement_policy_not_proven_by_capture",
     },
     {
         "field": "replay_protection",
-        "reason": "Anti-replay sequence numbers are inside the ESP header which is encrypted. The window size configuration is not visible in a standard capture.",
-        "status": "not_observable_without_esp_decryption",
+        "reason": "The ESP sequence number is visible in the ESP header, but the configured anti-replay window and enforcement behavior are not established by observing sequence numbers alone.",
+        "status": "window_configuration_not_observable_from_sequence_numbers",
     },
 ]
 
-from security.explainability import generate_plain_english_explanations
 from security.drift_detector import detect_configuration_drift
+from security.explainability import generate_plain_english_explanations
 from security.policy_engine import evaluate_policy_as_code_rules
 from security.pqc_assessor import evaluate_post_quantum_readiness
+
 
 def build_unified_analysis_report(
     ingest_res: Dict[str, Any],
@@ -43,13 +46,46 @@ def build_unified_analysis_report(
     drift_res = detect_configuration_drift(ipsec_info)
     policy_rules_res = evaluate_policy_as_code_rules(ipsec_info)
     pqc_res = evaluate_post_quantum_readiness(ipsec_info)
+    crypto_bom = build_crypto_bom(
+        ipsec_info,
+        ingest_res.get("capture_sha256"),
+        ingest_res.get("packet_evidence", []),
+    )
+    serialized_findings = []
+    for finding in findings:
+        item = finding.to_dict() if hasattr(finding, "to_dict") else dict(finding)
+        category = str(item.get("category", "")).lower()
+        finding_id = str(item.get("finding_id", ""))
+        if finding_id.startswith("IPSEC-") or category in {
+            "protocol version", "encryption", "key exchange", "integrity",
+        }:
+            protocol = "ESP" if "replay" in category or "esp" in str(item.get("title", "")).lower() else "IKE"
+            item["evidence_references"] = [
+                {
+                    "frame_number": packet["frame_number"],
+                    "timestamp": packet["timestamp"],
+                    "protocol": packet["protocol"],
+                    "capture_byte_offset": packet["capture_byte_offset"],
+                    "capture_byte_length": packet["capture_byte_length"],
+                    "evidence_scope": "related packet context; this reference does not prove hidden or unobserved configuration",
+                }
+                for packet in ingest_res.get("packet_evidence", [])
+                if packet.get("protocol") == protocol
+            ]
+            item["evidence_status"] = (
+                "referenced" if item["evidence_references"] else "unavailable"
+            )
+        serialized_findings.append(item)
 
     report = {
         "capture": {
             "filename": ingest_res.get("filename", "unknown"),
             "filepath": ingest_res.get("filepath", "unknown"),
-            "packet_count": ingest_res.get("packet_count", 0)
+            "packet_count": ingest_res.get("packet_count", 0),
+            "sha256": ingest_res.get("capture_sha256"),
+            "decoder_error": ingest_res.get("decoder_error"),
         },
+        "packet_evidence": ingest_res.get("packet_evidence", []),
         "ipsec": ipsec_info,
         "traffic_classification": traffic_res,
         "metadata_exposure": meta_exposure,
@@ -58,7 +94,7 @@ def build_unified_analysis_report(
             "risk_level": risk_res.get("level", "SECURE"),
             "methodology": risk_res.get("method"),
             "findings_count": len(findings),
-            "findings": [f.to_dict() if hasattr(f, "to_dict") else f for f in findings],
+            "findings": serialized_findings,
             "recommendations": recommendations,
             "metadata_exposure": meta_exposure
         },
@@ -66,6 +102,7 @@ def build_unified_analysis_report(
         "drift_detection": drift_res,
         "policy_as_code": policy_rules_res,
         "post_quantum_readiness": pqc_res,
+        "crypto_bom": crypto_bom,
         "known_limitations": [dict(item) for item in KNOWN_LIMITATIONS],
     }
 

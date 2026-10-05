@@ -1,0 +1,104 @@
+{
+    "target_column": "traffic_type",
+    "feature_columns": [
+        "flowBytesPerSecond",
+        "flowPktsPerSecond",
+        "mean_fiat",
+        "mean_biat",
+        "duration",
+        "bytes_per_pkt",
+        "fiat_biat_ratio",
+        "log_duration",
+        "log_bytes_sec",
+        "log_pkts_sec"
+    ],
+    "num_features": 10,
+    "classes": [
+        "esp",
+        "ike",
+        "other"
+    ],
+    "num_classes": 3,
+    "dropped_columns": {
+        "capture_id": "Source-capture group identifier; retained for splitting only",
+        "flow_id": "Explicit identifier / leakage risk"
+    },
+    "initial_rows": 90,
+    "cleaned_rows": 90,
+    "source_row_count": 90,
+    "cleaned_row_count": 90,
+    "source_group_count": 30,
+    "random_seed": 42,
+    "split_ratios": {
+        "train": 0.7,
+        "validation": 0.15,
+        "test": 0.15
+    },
+    "split_method": "two-stage disjoint source-capture GroupShuffleSplit",
+    "group_column": "capture_id",
+    "group_counts": {
+        "train": 21,
+        "validation": 4,
+        "test": 5
+    },
+    "group_hashes_by_split": {
+        "train": [
+            "02f8193dce97625192762bb657fea302d428806d1f065bc8efb60e9449bbb906",
+            "0b9dca0066269c4202155b78f396a2c574444e6a6ddc6e4aeaac5c103ce2a52f",
+            "0e6a67371be84160663dd055a296f80eb65f85da74d6146f6239386e0bfc0aa9",
+            "117afbd4cd2ea0722d7190a3672379427158102a7d4469ed21373ec13b435534",
+            "228b66a0168a51ec9d38db7182fad36e40dc3675c7ad29b1701c8e45bc8747fc",
+            "3879b3a107b7de51857274705f922fb4de50c188ddf81f9c736fe5b45d1eddfe",
+            "43729bd8d5494926acb35911167ca0573a2d595fe0835600ad489805c73e740a",
+            "4794e0cd88218eb4161050301ec830baa00e95807a1a103676bc9be1edc2a871",
+            "49c2a37fe0d297292d75cac6ecfab4a17e20a0a956357e7f8fc1a065301d01ca",
+            "50f55b8cec5a55f96d1d32b5128e17fa24dd7d1288f93424b0a098d51ce57ec8",
+            "563b4a2a83a39ed2350f9576b6928af0747ebf35dfa2dd4cb16c1179829f257b",
+            "5c5d813585245de43786ba72831e1522541a46324432aa30e13f69a9e85e960c",
+            "6d55950753296e82692941008f4f54e7cc97360298212bffcf9c4beb04a9eb0e",
+            "7c8ff12074a65c6e6c80265866ab86a0402930034c80ec3b1ca0fc818c515a39",
+            "7dfcf23c0c12ec0cf15884939359158ffc9bc9f81e1428c52b3e89b0a23da13c",
+            "8a6c26a4ce21c427580d046408a4a236fa220bda2692faa2ba978920318da511",
+            "bcdc3283f7f4965bf704d8f993a42f532f530d5836c57a36eb9e069f09b3bace",
+            "befd86a35051409fcd0209ba4f71a47e3bf6a2eb2fe23a3768eb5320ac6dcf7a",
+            "dba2b054dea7e2d60767c415e471793db8460908772bec5b6336b8a88e07c03c",
+            "e0e3f3494b2d01fe2cae922f787099e280b7d9c1537835e21453ae4c87fa63aa",
+            "e9e6836ef2cdacda8c15ac564f42c0de4cb4d277560dfcf5974630164a24887a"
+        ],
+        "validation": [
+            "10602098345a8931efebfd90d1087219440f43ca804618ef6d8fbebb3775517e",
+            "588cf38089fc4c691a9b83da19f658c4e464c19757fce6fb0367cfcece1407ce",
+            "5aeaeb7de844774f0efc20690aafae54b78127aa64f9690cbd0d5d69ffff8c01",
+            "a4bff72c879e0362fb1c99219111c82e3b69fc7bf0b08f8db1540f8bb35ab88a"
+        ],
+        "test": [
+            "3d35da1360a5d8a935c9e5441232684f9b75f3e9e8ff2420e4924b6bdd1efbf5",
+            "5e07923a7976f167c60723fb044c46d8e3d1c0e5b618014839514bc13381b50d",
+            "896e671b5026e355013742341ee0d39aad28402ebc5d4d01d8b49858e8ccc71b",
+            "b4100a5f5007bc75438856bf0bb7cefb3ad025019a1ab775eff4ca7515732866",
+            "e63ab2a3b1d026a08b3130bae13fb44e0ab328c8660ab1507afb0cfbf78d05ab"
+        ]
+    },
+    "class_support_by_split": {
+        "train": {
+            "esp": 21,
+            "ike": 21,
+            "other": 21
+        },
+        "validation": {
+            "esp": 4,
+            "ike": 4,
+            "other": 4
+        },
+        "test": {
+            "esp": 5,
+            "ike": 5,
+            "other": 5
+        }
+    },
+    "missing_classes_by_split": {
+        "train": [],
+        "validation": [],
+        "test": []
+    }
+}

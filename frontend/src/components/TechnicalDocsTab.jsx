@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, FileText, Folder, Check, Maximize2, Minimize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, Folder, Check, Download, LoaderCircle, Maximize2, Minimize2 } from 'lucide-react';
 
 const sections = [
   ['overview', '1. Executive Overview'], ['architecture', '2. System Architecture & Processing Pipeline'],
@@ -11,11 +11,112 @@ const SectionHeading = ({ id, children }) => <h2 id={id} className="gdoc-section
 const Subheading = ({ children }) => <h3 className="gdoc-subheading">{children}</h3>;
 const BulletList = ({ children }) => <ul className="gdoc-list">{children}</ul>;
 
+const getSafeFilename = (documentTitle, extension) => {
+  const base = documentTitle
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[. ]+$/g, '') || 'PrivComm Technical Documentation';
+  return `${base}.${extension}`;
+};
+
+const getInlineRuns = (node, docx, styles = {}) => {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return node.textContent ? [new docx.TextRun({ text: node.textContent, ...styles })] : [];
+  }
+  if (node.nodeType !== Node.ELEMENT_NODE) return [];
+  if (node.tagName === 'BR') return [new docx.TextRun({ text: '', breakLine: true })];
+
+  const nextStyles = { ...styles };
+  if (['B', 'STRONG'].includes(node.tagName)) nextStyles.bold = true;
+  if (['I', 'EM'].includes(node.tagName)) nextStyles.italics = true;
+  if (node.tagName === 'CODE') {
+    nextStyles.font = 'Courier New';
+    nextStyles.color = '174EA6';
+  }
+  return Array.from(node.childNodes).flatMap((child) => getInlineRuns(child, docx, nextStyles));
+};
+
+const createDocxBlocks = (article, docx) => {
+  const blocks = [];
+  const appendNode = (node) => {
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const tag = node.tagName;
+    if (tag === 'H1' || tag === 'H2' || tag === 'H3') {
+      const headingLevel = tag === 'H1' ? docx.HeadingLevel.TITLE : tag === 'H2' ? docx.HeadingLevel.HEADING_1 : docx.HeadingLevel.HEADING_2;
+      blocks.push(new docx.Paragraph({ text: node.textContent.trim(), heading: headingLevel, spacing: { before: 240, after: 120 } }));
+      return;
+    }
+    if (tag === 'P') {
+      const runs = getInlineRuns(node, docx);
+      if (runs.length) blocks.push(new docx.Paragraph({ children: runs, spacing: { after: 120, line: 276 } }));
+      return;
+    }
+    if (tag === 'UL' || tag === 'OL') {
+      Array.from(node.children).filter((child) => child.tagName === 'LI').forEach((item) => {
+        blocks.push(new docx.Paragraph({
+          children: getInlineRuns(item, docx),
+          bullet: { indent: 360 },
+          spacing: { after: 60 },
+        }));
+      });
+      return;
+    }
+    if (tag === 'TABLE') {
+      const tableRows = Array.from(node.querySelectorAll('tr')).map((row) => new docx.TableRow({
+        children: Array.from(row.children).map((cell) => new docx.TableCell({
+          children: [new docx.Paragraph({ children: getInlineRuns(cell, docx) })],
+          shading: cell.tagName === 'TH' ? { fill: 'F1F3F4' } : undefined,
+          width: { size: Math.floor(100 / Math.max(row.children.length, 1)), type: docx.WidthType.PERCENTAGE },
+        })),
+      }));
+      if (tableRows.length) {
+        blocks.push(new docx.Table({
+          rows: tableRows,
+          width: { size: 100, type: docx.WidthType.PERCENTAGE },
+          borders: Object.fromEntries(['top', 'bottom', 'left', 'right', 'insideHorizontal', 'insideVertical'].map((side) => [
+            side,
+            { style: docx.BorderStyle.SINGLE, size: 1, color: 'DADCE0' },
+          ])),
+        }));
+        blocks.push(new docx.Paragraph({ text: '' }));
+      }
+      return;
+    }
+    if (node.classList.contains('gdoc-code-line')) {
+      blocks.push(new docx.Paragraph({
+        children: [new docx.TextRun({ text: node.textContent.trim(), font: 'Courier New', color: '3C4043' })],
+        spacing: { before: 120, after: 180 },
+      }));
+      return;
+    }
+    if (tag === 'DIV' || tag === 'HEADER' || tag === 'FOOTER') {
+      Array.from(node.children).forEach(appendNode);
+      return;
+    }
+    if (tag === 'SPAN') {
+      const text = node.textContent.trim();
+      if (text) blocks.push(new docx.Paragraph({ text, spacing: { after: 80 } }));
+      return;
+    }
+    if (!node.children.length && node.textContent.trim()) {
+      blocks.push(new docx.Paragraph({ children: getInlineRuns(node, docx), spacing: { after: 80 } }));
+      return;
+    }
+    Array.from(node.children).forEach(appendNode);
+  };
+
+  Array.from(article.children).forEach(appendNode);
+  return blocks;
+};
+
 export default function TechnicalDocsTab() {
   const [activeSection, setActiveSection] = useState('overview');
   const [outlineOpen, setOutlineOpen] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [title, setTitle] = useState('PrivComm — AI-Driven IPsec VPN Protocol Analysis & Security Assessment Platform');
+  const [exporting, setExporting] = useState('');
+  const [exportError, setExportError] = useState('');
   const docRef = useRef(null);
   const shellRef = useRef(null);
 
@@ -35,6 +136,73 @@ export default function TechnicalDocsTab() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
   const jumpTo = (id) => { setActiveSection(id); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+
+  const downloadPdf = async () => {
+    setExporting('pdf');
+    setExportError('');
+    try {
+      const [{ default: html2pdf }, article] = await Promise.all([
+        import('html2pdf.js'),
+        Promise.resolve(docRef.current?.querySelector('.gdoc-page')),
+      ]);
+      if (!article) throw new Error('The document content is not available for export.');
+      const exportRoot = article.cloneNode(true);
+      const coverTitle = exportRoot.querySelector('.gdoc-cover h1');
+      if (coverTitle) coverTitle.textContent = title;
+      await html2pdf().set({
+        margin: [12, 14, 14, 14],
+        filename: getSafeFilename(title, 'pdf'),
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.gdoc-section-heading'] },
+      }).from(exportRoot).save();
+    } catch (error) {
+      console.error('Failed to export technical documentation as PDF.', error);
+      setExportError(`PDF export failed: ${error.message}`);
+    } finally {
+      setExporting('');
+    }
+  };
+
+  const downloadDocx = async () => {
+    setExporting('docx');
+    setExportError('');
+    try {
+      const docx = await import('docx');
+      const article = docRef.current?.querySelector('.gdoc-page');
+      if (!article) throw new Error('The document content is not available for export.');
+      const exportRoot = article.cloneNode(true);
+      const coverTitle = exportRoot.querySelector('.gdoc-cover h1');
+      if (coverTitle) coverTitle.textContent = title;
+      const document = new docx.Document({
+        sections: [{
+          properties: {
+            page: {
+              size: { width: 11906, height: 16838 },
+              margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 },
+            },
+          },
+          children: createDocxBlocks(exportRoot, docx),
+        }],
+      });
+      const blob = await docx.Packer.toBlob(document);
+      const url = URL.createObjectURL(blob);
+      const link = window.document.createElement('a');
+      link.href = url;
+      link.download = getSafeFilename(title, 'docx');
+      window.document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      console.error('Failed to export technical documentation as DOCX.', error);
+      setExportError(`DOCX export failed: ${error.message}`);
+    } finally {
+      setExporting('');
+    }
+  };
+
   const toggleFullscreen = async () => {
     if (document.fullscreenElement) {
       await document.exitFullscreen?.();
@@ -63,7 +231,18 @@ export default function TechnicalDocsTab() {
             {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
           </button>
         </div>
+        <div className="gdoc-export-actions" aria-label="Download document">
+          <button type="button" className="gdoc-export-button" onClick={downloadDocx} disabled={Boolean(exporting)} aria-label="Download as DOCX">
+            {exporting === 'docx' ? <LoaderCircle size={15} className="gdoc-export-spinner" /> : <Download size={15} />}
+            <span>{exporting === 'docx' ? 'Preparing…' : 'DOCX'}</span>
+          </button>
+          <button type="button" className="gdoc-export-button gdoc-export-button-primary" onClick={downloadPdf} disabled={Boolean(exporting)} aria-label="Download as PDF">
+            {exporting === 'pdf' ? <LoaderCircle size={15} className="gdoc-export-spinner" /> : <Download size={15} />}
+            <span>{exporting === 'pdf' ? 'Preparing…' : 'PDF'}</span>
+          </button>
+        </div>
       </div>
+      {exportError && <div className="gdoc-export-error" role="alert">{exportError}</div>}
       <div className="gdoc-workspace">
         {outlineOpen ? (
           <aside className="gdoc-outline" aria-label="Document outline">

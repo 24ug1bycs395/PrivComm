@@ -1,25 +1,22 @@
-import os
 import asyncio
 import logging
-import hashlib
-import hmac
+import os
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-from services.testbed.models import (
-    ScenarioDefinition,
-    TestbedTopology,
-    TestbedState,
-    TestbedJobStatus,
-    PRESET_SCENARIOS
-)
-from services.testbed.config_generator import StrongSwanConfigGenerator
-from services.testbed.ssh_controller import SSHController
-from services.testbed.capture_manager import CaptureManager
-from services.testbed import event_store
+from db.repository import AnalysisJobRepository, TestbedJobRepository
 from services.protocol_engine import ProtocolIdentificationEngine
-from db.repository import TestbedJobRepository, AnalysisJobRepository
-from db.storage import StorageService
+from services.testbed import event_store
+from services.testbed.capture_manager import CaptureManager
+from services.testbed.config_generator import StrongSwanConfigGenerator
+from services.testbed.models import (
+    PRESET_SCENARIOS,
+    ScenarioDefinition,
+    TestbedJobStatus,
+    TestbedState,
+    TestbedTopology,
+)
+from services.testbed.ssh_controller import SSHController
 
 logger = logging.getLogger("testbed.orchestrator")
 
@@ -40,45 +37,24 @@ class TestbedOrchestrator:
 
     @staticmethod
     def compute_handshake_integrity(scenario: ScenarioDefinition, topology: TestbedTopology) -> Dict[str, Any]:
-        """
-        Cryptographic integrity verification layer executed during tunnel negotiation.
-        Computes an HMAC/digest of the negotiated IPsec proposal parameters across both endpoints.
-        """
         hash_algo = getattr(scenario, "hash_algorithm", None) or scenario.integrity or "SHA-256"
-        raw_algo = hash_algo.upper().replace("-", "").replace(" ", "")
-
-        algo_map = {
-            "SHA256": hashlib.sha256,
-            "SHA384": hashlib.sha384,
-            "SHA512": hashlib.sha512,
-            "MD5": hashlib.md5,
-            "SHA1": hashlib.sha1
-        }
-        hasher = algo_map.get(raw_algo, hashlib.sha256)
-
-        # Canonical string representing the agreed security association proposal
-        canonical_proposal = (
-            f"initiator:{topology.initiator.host}|responder:{topology.responder.host}|"
-            f"ike:{scenario.ike_version}|enc:{scenario.encryption}|hash:{hash_algo}|"
-            f"dh:{scenario.dh_group}|mode:{scenario.ipsec_mode}|pfs:{scenario.pfs}"
-        )
-
-        psk_bytes = scenario.pre_shared_key.encode("utf-8") if scenario.pre_shared_key else b"privcomm"
-        digest = hmac.new(psk_bytes, canonical_proposal.encode("utf-8"), hasher).hexdigest()
-
-        is_weak = any(w in raw_algo for w in ["MD5", "SHA1"])
-        compliance = "WEAK_DEPRECATED" if is_weak else "COMPLIANT"
-
         return {
-            "algorithm": hash_algo,
-            "canonical_proposal": canonical_proposal,
-            "handshake_digest": digest,
-            "digest_short": digest[:24],
-            "status": "VERIFIED",
-            "compliance_status": compliance,
-            "verified_at": datetime.now(timezone.utc).isoformat(),
-            "details": f"Mutual tunnel negotiation integrity verified using {hash_algo}. "
-                       f"Handshake proposal token and pre-shared key matched across endpoints."
+            "status": "NOT_VERIFIED",
+            "verification_method": "configuration_only",
+            "configured_parameters": {
+                "initiator": topology.initiator.host,
+                "responder": topology.responder.host,
+                "ike_version": scenario.ike_version,
+                "encryption": scenario.encryption,
+                "integrity": hash_algo,
+                "dh_group": scenario.dh_group,
+                "mode": scenario.ipsec_mode,
+                "pfs": scenario.pfs,
+            },
+            "details": (
+                "Configured proposal values are recorded for context only. No cryptographic "
+                "handshake attestation or independent endpoint comparison was performed."
+            ),
         }
 
     @staticmethod
@@ -197,14 +173,14 @@ class TestbedOrchestrator:
                 )
             )
 
-            resp_cb = make_vm_callback("responder", topology.responder.host)
+            make_vm_callback("responder", topology.responder.host)
             init_cb = make_vm_callback("initiator", topology.initiator.host)
 
             # ── Phase 4: Observer / Packet Capture ───────────────────────────
             pcap_filename = f"testbed_{scenario.id}_{job_id[:8]}.pcap"
             local_pcap_path = os.path.join("captures", pcap_filename)
 
-            obs_cb = make_vm_callback("observer", topology.observer.host)
+            make_vm_callback("observer", topology.observer.host)
 
             emit("observer", topology.observer.host, "connection",
                  phase="OBSERVER_CAPTURE_START",
@@ -231,24 +207,19 @@ class TestbedOrchestrator:
                  output=f"Wire capture active — recording IPsec traffic on {topology.observer.interface}",
                  status="running")
 
-            # ── Phase 5: Tunnel Negotiation & Integrity Verification ─────────
+            # ── Phase 5: Tunnel Negotiation ──────────────────────────────────
             hash_algo = getattr(scenario, "hash_algorithm", None) or scenario.integrity or "SHA-256"
             integrity_info = self.compute_handshake_integrity(scenario, topology)
 
             log_step(
                 f"Initiating IKE SA & CHILD SA exchange from {topology.initiator.host} to {topology.responder.host} "
-                f"with {hash_algo} integrity verification layer...",
+                f"using configured {hash_algo} integrity proposal...",
                 progress=65
             )
 
             emit("initiator", topology.initiator.host, "status",
                  phase="TUNNEL_NEGOTIATION",
-                 output=f"[Integrity Layer] Computing handshake integrity digest using {hash_algo}...",
-                 status="running")
-
-            emit("initiator", topology.initiator.host, "status",
-                 phase="TUNNEL_NEGOTIATION",
-                 output=f"[Integrity Layer] Initiator SA integrity token: {integrity_info['digest_short']}... ({hash_algo})",
+                 output=f"Configured integrity proposal: {hash_algo}. This is not a handshake attestation.",
                  status="running")
 
             emit("initiator", topology.initiator.host, "status",
@@ -269,22 +240,17 @@ class TestbedOrchestrator:
 
             emit("responder", topology.responder.host, "status",
                  phase="TUNNEL_NEGOTIATION",
-                 output=f"[Integrity Layer] Verifying proposal digest from {topology.initiator.host} via {hash_algo}...",
-                 status="running")
-
-            emit("responder", topology.responder.host, "status",
-                 phase="TUNNEL_NEGOTIATION",
-                 output=f"[Integrity Layer] Verification: MATCH (Token: {integrity_info['digest_short']}...) — Zero tampering or drift detected",
-                 status="success")
+                 output="Independent cryptographic handshake attestation was not performed.",
+                 status="info")
 
             emit("initiator", topology.initiator.host, "status",
                  phase="TUNNEL_NEGOTIATION",
-                 output=f"IPsec tunnel established — IKE_SA and CHILD_SA active with {hash_algo} integrity check",
+                 output="swanctl initiation command succeeded; negotiated values are assessed from the capture when observable.",
                  status="success")
 
             emit("responder", topology.responder.host, "status",
                  phase="TUNNEL_NEGOTIATION",
-                 output=f"CHILD_SA negotiation complete — ESP channel open ({hash_algo} verified)",
+                 output="Tunnel negotiation command completed; ESP observations are assessed from the capture.",
                  status="success")
 
             # ── Phase 6: Traffic Injection ───────────────────────────────────
@@ -374,23 +340,6 @@ class TestbedOrchestrator:
 
             analysis_res = self.engine.analyze_pcap(local_pcap_path)
 
-            # Apply weak-compliance overrides when scenario is explicitly weak
-            if scenario.is_weak_compliance:
-                analysis_res.ike_version = "IKEv1 (Aggressive Mode)"
-                analysis_res.encryption = scenario.encryption
-                analysis_res.integrity = scenario.hash_algorithm or scenario.integrity
-                analysis_res.dh_group = scenario.dh_group
-                analysis_res.pfs = False
-                analysis_res.security_assessment["risk_level"] = "HIGH"
-                analysis_res.security_assessment["risk_score"] = 65
-
-            # If integrity not identified from PCAP, use scenario's configured hash algorithm
-            if not analysis_res.integrity or analysis_res.integrity == "unknown":
-                analysis_res.integrity = scenario.hash_algorithm or scenario.integrity
-
-            # Always propagate scenario-level ip_version and mode to analysis result
-            analysis_res.ip_version = scenario.ip_version
-            analysis_res.mode = scenario.ipsec_mode.capitalize()
             analysis_res.tunnel_integrity = integrity_info
 
             result_dict = analysis_res.model_dump() if hasattr(analysis_res, "model_dump") else analysis_res.dict()

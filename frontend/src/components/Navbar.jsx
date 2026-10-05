@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Shield, BookOpen } from 'lucide-react';
+import { Activity, FileCheck, Server, Database, LayoutDashboard, Sun, Moon, Menu, X, Shield, BookOpen, Layers } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 
 const tabs = [
@@ -8,6 +8,7 @@ const tabs = [
   { id: 'testbed',      label: 'Testbed',          icon: Server },
   { id: 'vault',        label: 'Vault',            icon: Database },
   { id: 'compliance',   label: 'Compliance',       icon: FileCheck },
+  { id: 'architecture', label: 'Architecture',     icon: Layers },
   { id: 'docs',         label: 'Docs',             icon: BookOpen },
 ];
 

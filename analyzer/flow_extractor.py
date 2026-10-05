@@ -1,7 +1,9 @@
 import logging
+
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+from typing import Any, Dict, List
+
 import numpy as np
-from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +54,7 @@ def extract_flow_features_scapy(packets: List[Any]) -> Dict[str, float]:
         return {}
 
     # Sort packets chronologically if out of order
-    sorted_pairs = sorted(zip(timestamps, sizes, directions), key=lambda x: x[0])
+    sorted_pairs = sorted(zip(timestamps, sizes, directions, strict=False), key=lambda x: x[0])
     timestamps = [p[0] for p in sorted_pairs]
     sizes = [p[1] for p in sorted_pairs]
     directions = [p[2] for p in sorted_pairs]

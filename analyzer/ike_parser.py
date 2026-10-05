@@ -1,6 +1,7 @@
 import logging
+
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,7 @@ def parse_ike_scapy(packets: List[Any]) -> Dict[str, Any]:
         "exchange_type": "unknown"
     }
 
-    from scapy.all import ISAKMP, IP, IPv6
+    from scapy.all import IP, ISAKMP, IPv6
 
     for pkt in packets:
         if pkt.haslayer(ISAKMP):
@@ -152,7 +153,7 @@ def _parse_transform_load(load_bytes: bytes, result: Dict[str, Any]):
                 result["encryption"] = enc_name
 
         elif tf_type == 2: # PRF
-            result["prf"] = PRF_TRANSFORMS.get(tf_id, f"HMAC-SHA2-384" if tf_id == 5 else f"PRF_{tf_id}")
+            result["prf"] = PRF_TRANSFORMS.get(tf_id, "HMAC-SHA2-384" if tf_id == 5 else f"PRF_{tf_id}")
 
         elif tf_type == 3: # Integrity
             result["integrity"] = INTEGRITY_TRANSFORMS.get(tf_id, f"INTEG_{tf_id}")
@@ -185,7 +186,7 @@ def parse_ike_tshark_json(tshark_packets: List[Dict[str, Any]]) -> Dict[str, Any
 
     for pkt in tshark_packets:
         layers = pkt.get("_source", {}).get("layers", {})
-        
+
         if result["initiator_ip"] is None:
             if "ip" in layers:
                 result["initiator_ip"] = layers["ip"].get("ip.src")

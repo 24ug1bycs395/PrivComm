@@ -1,0 +1,72 @@
+{
+  "schema_version": "privcomm.model-card.v1",
+  "model_name": "XGBoost Encrypted Traffic Classifier",
+  "model_type": "multiclass gradient-boosted decision trees",
+  "target_column": "traffic_type",
+  "classes": [
+    "BROWSING",
+    "CHAT",
+    "FT",
+    "MAIL",
+    "P2P",
+    "STREAMING",
+    "VOIP",
+    "VPN-BROWSING",
+    "VPN-CHAT",
+    "VPN-FT",
+    "VPN-MAIL",
+    "VPN-P2P",
+    "VPN-STREAMING",
+    "VPN-VOIP"
+  ],
+  "feature_count": 28,
+  "training_dataset": {
+    "name": "consolidated_traffic_data.csv",
+    "source_version": "not recorded",
+    "source_row_count": 59706,
+    "duplicate_full_rows_reported": 18719,
+    "capture_count": null,
+    "group_identifiers_available": false
+  },
+  "split": {
+    "train_fraction": 0.7,
+    "validation_fraction": 0.15,
+    "test_fraction": 0.15,
+    "method": "random row-level stratified split",
+    "test_samples": 6149,
+    "capture_grouped": false
+  },
+  "test_metrics": {
+    "accuracy": 0.9112,
+    "macro_precision": 0.8844,
+    "macro_recall": 0.8859,
+    "macro_f1": 0.8847,
+    "weighted_f1": 0.9113,
+    "log_loss": 0.2738
+  },
+  "calibration": {
+    "status": "NOT_MEASURED_FOR_CHECKED_IN_RUN",
+    "reason": "The legacy report does not contain per-record probabilities needed to compute calibration metrics.",
+    "evaluator": "traffic-classifier/src/evaluate.py now computes top-label ECE and multiclass Brier score when rerun."
+  },
+  "ablation_study": {
+    "status": "NOT_RUN",
+    "command": "python src/evaluate.py --ablation",
+    "artifacts_replaced": false
+  },
+  "external_validation": {
+    "status": "NOT_AVAILABLE",
+    "independent_capture_count": null,
+    "reason": "No hash-pinned, licensed independent capture corpus is currently checked in."
+  },
+  "intended_use": "Descriptive classification of encrypted network-flow traffic classes from extracted flow statistics.",
+  "limitations": [
+    "Row-level random splitting does not establish generalization to unseen captures, hosts, or network environments.",
+    "Capture/source identifiers and capture counts are not present in the checked-in training metadata.",
+    "Class labels and data provenance are inherited from the source dataset; this card does not independently audit their ground truth.",
+    "Raw XGBoost scores are not calibrated probabilities.",
+    "No model retraining or replacement is performed by report generation."
+  ],
+  "metrics_source": "traffic-classifier/reports/classification_report.json",
+  "model_metadata_source": "models/model_metadata.json"
+}

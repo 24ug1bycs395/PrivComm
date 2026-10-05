@@ -1,7 +1,9 @@
 import unittest
+
 from security.policy_engine import evaluate_ipsec_security
-from security.risk import calculate_security_risk
 from security.recommendations import generate_recommendations
+from security.risk import calculate_security_risk
+
 
 class TestSecurityEngine(unittest.TestCase):
 

@@ -8,14 +8,16 @@ import HistoryVaultTab from './components/HistoryVaultTab';
 import Overview from './components/Overview';
 import ComplianceTab from './components/ComplianceTab';
 import TechnicalDocsTab from './components/TechnicalDocsTab';
+import ArchitectureTab from './components/ArchitectureTab';
 import { ThemeProvider } from './ThemeContext';
 
-const VALID_TABS = ['dashboard', 'live', 'analyzer', 'testbed', 'vault', 'overview', 'compliance', 'docs'];
+const VALID_TABS = ['dashboard', 'live', 'analyzer', 'testbed', 'vault', 'overview', 'compliance', 'architecture', 'docs'];
 
 function getInitialTab() {
   if (typeof window !== 'undefined') {
     const hash = window.location.hash.replace('#', '').trim().toLowerCase();
     if (hash === 'documentation' || hash === 'technical-documentation') return 'docs';
+    if (hash === 'system-architecture' || hash === 'hla' || hash === 'lla') return 'architecture';
     if (VALID_TABS.includes(hash)) return hash;
   }
   return 'overview';
@@ -31,7 +33,9 @@ export default function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '').trim().toLowerCase();
-      const resolved = (hash === 'documentation' || hash === 'technical-documentation') ? 'docs' : hash;
+      let resolved = hash;
+      if (hash === 'documentation' || hash === 'technical-documentation') resolved = 'docs';
+      if (hash === 'system-architecture' || hash === 'hla' || hash === 'lla') resolved = 'architecture';
       if (VALID_TABS.includes(resolved)) {
         setActiveTabRaw(resolved);
       }
@@ -106,16 +110,32 @@ export default function App() {
             />
           )}
           {activeTab === 'compliance' && <ComplianceTab />}
+          {activeTab === 'architecture' && <ArchitectureTab />}
           {activeTab === 'docs' && <TechnicalDocsTab />}
         </main>
 
         {/* Footer */}
         <footer className="site-footer">
           <div className="footer-inner">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem' }}>Privcomm</span>
-              <span style={{ color: 'var(--text-muted)' }}>&mdash;</span>
-              <span style={{ color: 'var(--text-tertiary)', fontSize: '0.82rem' }}>AI-Assisted IPsec VPN Security Intelligence</span>
+            <div className="footer-brand">
+              <div className="footer-brand-line">
+                <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem' }}>Privcomm</span>
+                <span style={{ color: 'var(--text-muted)' }}>&mdash;</span>
+                <span style={{ color: 'var(--text-tertiary)', fontSize: '0.82rem' }}>AI-Assisted IPsec VPN Security Intelligence</span>
+              </div>
+              <div className="footer-demo">
+                <div className="footer-demo-heading">Prototype demonstration</div>
+                <div className="footer-video-frame">
+                  <iframe
+                    src="https://www.youtube.com/embed/kig2D39GOrs?si=QTdv3mNgErhLpNM9"
+                    title="Privcomm prototype demonstration video"
+                    loading="lazy"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
             </div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
               FIPS 140-3 &bull; NIST SP 800-77 &bull; NSA CSfC &bull; Zero External Data Exfiltration

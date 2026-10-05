@@ -1,33 +1,34 @@
-import sys
-import os
 import argparse
 import logging
+import os
+import sys
 import warnings
+
 warnings.filterwarnings("ignore", category=UserWarning, module="scapy.*")
 warnings.filterwarnings("ignore", message=".*libpcap.*")
 import json
 import subprocess
-from typing import List, Dict, Any
+from contextlib import asynccontextmanager
+from typing import Any, Dict
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
-from analyzer.tshark import check_tshark_version, find_tshark_path
 from analyzer.pcap_ingestion import ingest_and_parse_pcap
+from analyzer.tshark import check_tshark_version
+from anomaly.routes import router as anomaly_router
+from db.supabase_client import get_supabase_client, is_supabase_enabled
 from ml.model_loader import find_model_dir
 from ml.xgboost_adapter import predict_traffic_class
+from routers.protocol import router as protocol_router
+from routers.seal import router as seal_router
+from routers.testbed import router as testbed_router
 from security.policy_engine import evaluate_ipsec_security
 from security.recommendations import generate_recommendations
 from security.risk import calculate_security_risk
-from routers.protocol import router as protocol_router
-from routers.testbed import router as testbed_router
-from anomaly.routes import router as anomaly_router
-from routers.seal import router as seal_router
-from db.supabase_client import get_supabase_client, is_supabase_enabled
-from contextlib import asynccontextmanager
 
 for env_file in [".env", "/etc/secrets/.env", os.path.join(os.getcwd(), ".env")]:
     if os.path.exists(env_file):

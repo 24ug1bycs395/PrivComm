@@ -6,7 +6,7 @@ golden baseline policies on a field-by-field basis. Highlights configuration dri
 variance scores, and severity rankings for auditing compliance.
 """
 
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 DEFAULT_GOLDEN_BASELINE = {
     "ike_version": "IKEv2",
@@ -67,10 +67,7 @@ def detect_configuration_drift(
     baseline: Dict[str, Any] = None,
     traffic_type: str = None
 ) -> Dict[str, Any]:
-    """
-    Compares observed IPsec tunnel parameters against golden enterprise baseline.
-    Supports traffic-type specific dynamic baseline selection.
-    """
+    """Compare known observations with an explicit or reference security baseline."""
     if baseline:
         target_baseline = baseline
     elif traffic_type and traffic_type.upper() in TRAFFIC_SPECIFIC_BASELINES:
@@ -79,153 +76,78 @@ def detect_configuration_drift(
         target_baseline = DEFAULT_GOLDEN_BASELINE
 
     field_diffs: List[Dict[str, Any]] = []
-
-    total_fields = len(target_baseline)
     drift_count = 0
     total_penalty = 0
+    penalties = {"ike_version": 25, "encryption": 30, "dh_group": 25, "pfs": 20, "mode": 10}
+    severities = {"ike_version": "HIGH", "encryption": "HIGH", "dh_group": "HIGH", "pfs": "HIGH", "mode": "LOW"}
 
-    # 1. Evaluate IKE Version
-    obs_ike = str(ipsec_info.get("ike_version", "UNKNOWN")).upper()
-    base_ike = str(target_baseline.get("ike_version", "IKEv2")).upper()
-    if base_ike not in obs_ike and "V2" not in obs_ike:
-        drift_count += 1
-        total_penalty += 25
+    tracked_fields = [
+        field for field in target_baseline
+        if field in FIELD_DISPLAY_NAMES
+    ]
+    total_fields = len(tracked_fields)
+    for field in tracked_fields:
+        baseline_value = target_baseline.get(field)
+        observed = ipsec_info.get(field)
+        known = (
+            observed is not None
+            and str(observed).strip().lower() not in {"", "unknown", "none"}
+        )
+        matches = False
+        if known:
+            if field in {"pfs"}:
+                matches = bool(observed is True or str(observed).lower() in {"enforced", "yes", "true"})
+                baseline_bool = bool(
+                    baseline_value is True
+                    or str(baseline_value).lower() in {"enforced", "yes", "true"}
+                )
+                matches = matches == baseline_bool
+            else:
+                matches = str(observed).strip().lower() == str(baseline_value).strip().lower()
+        if not known:
+            status = "UNVERIFIED"
+            severity = "INFO"
+            impact = "The observed capture does not reveal this configuration value."
+            observed_value = observed if observed is not None else "unknown"
+        elif matches:
+            status = "SYNCHRONIZED"
+            severity = "NONE"
+            impact = "Observed value matches the selected reference baseline."
+            observed_value = observed
+        else:
+            status = "DRIFTED"
+            severity = severities.get(field, "MEDIUM")
+            impact = "Observed value differs from the selected reference baseline."
+            observed_value = observed
+            drift_count += 1
+            total_penalty += penalties.get(field, 10)
         field_diffs.append({
-            "field_id": "ike_version",
-            "field_name": FIELD_DISPLAY_NAMES["ike_version"],
-            "baseline": target_baseline.get("ike_version", "IKEv2"),
-            "observed": ipsec_info.get("ike_version", "Unknown"),
-            "status": "DRIFTED",
-            "severity": "HIGH",
-            "impact": "Legacy protocol handshake exposes session initiation to DoS and hash cracking."
-        })
-    else:
-        field_diffs.append({
-            "field_id": "ike_version",
-            "field_name": FIELD_DISPLAY_NAMES["ike_version"],
-            "baseline": target_baseline.get("ike_version", "IKEv2"),
-            "observed": ipsec_info.get("ike_version", "IKEv2"),
-            "status": "SYNCHRONIZED",
-            "severity": "NONE",
-            "impact": "Aligned with enterprise IKEv2 baseline."
-        })
-
-    # 2. Evaluate Encryption Cipher Algorithm
-    obs_enc = str(ipsec_info.get("encryption", "UNKNOWN")).upper()
-    base_enc = str(target_baseline.get("encryption", "AES-256-GCM")).upper()
-    if base_enc not in obs_enc and "256-GCM" not in obs_enc and "GCM" not in obs_enc:
-        drift_count += 1
-        sev = "CRITICAL" if any(b in obs_enc for b in ["3DES", "DES", "NULL"]) else "MEDIUM"
-        penalty = 30 if sev == "CRITICAL" else 15
-        total_penalty += penalty
-        field_diffs.append({
-            "field_id": "encryption",
-            "field_name": FIELD_DISPLAY_NAMES["encryption"],
-            "baseline": target_baseline.get("encryption", "AES-256-GCM"),
-            "observed": ipsec_info.get("encryption", "Unknown Cipher"),
-            "status": "DRIFTED",
-            "severity": sev,
-            "impact": "Sub-optimal or obsolete cipher algorithm compromises data confidentiality margin."
-        })
-    else:
-        field_diffs.append({
-            "field_id": "encryption",
-            "field_name": FIELD_DISPLAY_NAMES["encryption"],
-            "baseline": target_baseline.get("encryption", "AES-256-GCM"),
-            "observed": ipsec_info.get("encryption", "AES-256-GCM"),
-            "status": "SYNCHRONIZED",
-            "severity": "NONE",
-            "impact": "Aligned with bank-grade AEAD cipher baseline."
-        })
-
-    # 3. Evaluate DH Group
-    obs_dh = str(ipsec_info.get("dh_group", "UNKNOWN"))
-    base_dh = str(target_baseline.get("dh_group", "19"))
-    if obs_dh != base_dh and obs_dh not in ["19", "20", "31", "ECP-256", "ECP-384"]:
-        drift_count += 1
-        sev = "HIGH" if obs_dh in ["1", "2", "5"] else "MEDIUM"
-        penalty = 25 if sev == "HIGH" else 15
-        total_penalty += penalty
-        field_diffs.append({
-            "field_id": "dh_group",
-            "field_name": FIELD_DISPLAY_NAMES["dh_group"],
-            "baseline": f"Group {base_dh} (ECP-256)",
-            "observed": f"Group {obs_dh}",
-            "status": "DRIFTED",
-            "severity": sev,
-            "impact": "Key agreement group below NIST Group 19 Elliptic Curve baseline."
-        })
-    else:
-        field_diffs.append({
-            "field_id": "dh_group",
-            "field_name": FIELD_DISPLAY_NAMES["dh_group"],
-            "baseline": f"Group {base_dh} (ECP-256)",
-            "observed": f"Group {obs_dh if obs_dh != 'UNKNOWN' else base_dh}",
-            "status": "SYNCHRONIZED",
-            "severity": "NONE",
-            "impact": "Aligned with NIST Elliptic Curve key exchange baseline."
-        })
-
-    # 4. Evaluate Perfect Forward Secrecy (PFS)
-    pfs_val = ipsec_info.get("pfs")
-    pfs_enforced = True if pfs_val in [True, "enforced", "yes"] else False
-    if not pfs_enforced:
-        drift_count += 1
-        total_penalty += 20
-        field_diffs.append({
-            "field_id": "pfs",
-            "field_name": FIELD_DISPLAY_NAMES["pfs"],
-            "baseline": "Enforced (CREATE_CHILD_SA Rekeying)",
-            "observed": "Disabled / Static Derivation",
-            "status": "DRIFTED",
-            "severity": "HIGH",
-            "impact": "Lack of ephemeral rekeying creates retroactive decryption vulnerability."
-        })
-    else:
-        field_diffs.append({
-            "field_id": "pfs",
-            "field_name": FIELD_DISPLAY_NAMES["pfs"],
-            "baseline": "Enforced",
-            "observed": "Enforced",
-            "status": "SYNCHRONIZED",
-            "severity": "NONE",
-            "impact": "Aligned with ephemeral key isolation baseline."
-        })
-
-    # 5. Evaluate Encapsulation Mode
-    obs_mode = str(ipsec_info.get("mode", "Tunnel")).capitalize()
-    base_mode = str(target_baseline.get("mode", "Tunnel")).capitalize()
-    if obs_mode != base_mode:
-        drift_count += 1
-        total_penalty += 10
-        field_diffs.append({
-            "field_id": "mode",
-            "field_name": FIELD_DISPLAY_NAMES["mode"],
-            "baseline": base_mode,
-            "observed": obs_mode,
-            "status": "DRIFTED",
-            "severity": "LOW",
-            "impact": "Transport mode exposes internal IP headers on public network paths."
-        })
-    else:
-        field_diffs.append({
-            "field_id": "mode",
-            "field_name": FIELD_DISPLAY_NAMES["mode"],
-            "baseline": base_mode,
-            "observed": obs_mode,
-            "status": "SYNCHRONIZED",
-            "severity": "NONE",
-            "impact": "Aligned with outer IP envelope protection baseline."
+            "field_id": field,
+            "field_name": FIELD_DISPLAY_NAMES[field],
+            "baseline": baseline_value,
+            "observed": observed_value,
+            "status": status,
+            "severity": severity,
+            "impact": impact,
         })
 
     variance_score = min(100, total_penalty)
     is_drifted = drift_count > 0
+    drift_status = "DRIFTED" if is_drifted else (
+        "UNVERIFIED"
+        if any(item["status"] == "UNVERIFIED" for item in field_diffs)
+        else "SYNCHRONIZED"
+    )
 
     return {
         "drift_detected": is_drifted,
-        "drift_status": "DRIFTED" if is_drifted else "SYNCHRONIZED",
+        "drift_status": drift_status,
         "drift_count": drift_count,
         "total_fields_evaluated": total_fields,
         "variance_score": variance_score,
-        "field_diffs": field_diffs
+        "field_diffs": field_diffs,
+        "baseline_source": "explicit" if baseline else (
+            "traffic_specific_reference" if traffic_type and traffic_type.upper() in TRAFFIC_SPECIFIC_BASELINES
+            else "built_in_reference"
+        ),
     }

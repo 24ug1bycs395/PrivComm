@@ -7,7 +7,7 @@ confusion matrix plots, gain-based feature importances, SHAP plots, and JSON rep
 import argparse
 import json
 import os
-import sys
+
 import joblib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,8 +18,9 @@ from sklearn.metrics import (
     classification_report,
     confusion_matrix,
     log_loss,
-    precision_recall_fscore_support
+    precision_recall_fscore_support,
 )
+
 try:
     from xgboost import XGBClassifier
     XGBOOST_INSTALLED = True
@@ -35,10 +36,154 @@ except ImportError:
     SHAP_AVAILABLE = False
 
 
+def top_label_calibration(
+    y_true: np.ndarray,
+    probabilities: np.ndarray,
+    bins: int = 10,
+) -> dict:
+    """Measure top-label calibration; this does not calibrate the model."""
+    if probabilities.ndim != 2 or len(y_true) != probabilities.shape[0]:
+        raise ValueError("Expected one probability row per label.")
+    if bins < 1:
+        raise ValueError("bins must be positive.")
+    confidence = np.max(probabilities, axis=1)
+    predicted = np.argmax(probabilities, axis=1)
+    correct = (predicted == y_true).astype(float)
+    calibration_bins = []
+    ece = 0.0
+    for index in range(bins):
+        lower = index / bins
+        upper = (index + 1) / bins
+        mask = (confidence >= lower) & (
+            confidence <= upper if index == bins - 1 else confidence < upper
+        )
+        count = int(np.sum(mask))
+        accuracy = float(np.mean(correct[mask])) if count else None
+        mean_confidence = float(np.mean(confidence[mask])) if count else None
+        if count:
+            ece += count / len(y_true) * abs(accuracy - mean_confidence)
+        calibration_bins.append({
+            "lower_confidence": lower,
+            "upper_confidence": upper,
+            "samples": count,
+            "accuracy": accuracy,
+            "mean_confidence": mean_confidence,
+        })
+    one_hot = np.eye(probabilities.shape[1])[y_true.astype(int)]
+    brier_score = float(np.mean(np.sum((probabilities - one_hot) ** 2, axis=1)))
+    return {
+        "definition": "top-label expected calibration error with uniform confidence bins; descriptive only",
+        "expected_calibration_error": float(ece),
+        "multiclass_brier_score": brier_score,
+        "bins": calibration_bins,
+    }
+
+
+def evaluate_feature_ablations(
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    X_val: np.ndarray,
+    y_val: np.ndarray,
+    X_test: np.ndarray,
+    y_test: np.ndarray,
+    feature_columns: list[str],
+    model_metadata: dict,
+    reports_dir: str,
+    baseline_metrics: dict | None = None,
+) -> dict:
+    """Train held-out feature-group ablations without replacing saved artifacts."""
+    if not XGBOOST_INSTALLED:
+        raise ModuleNotFoundError("XGBoost is required to run feature ablations.")
+    from sklearn.utils.class_weight import compute_sample_weight
+
+    groups = {
+        "rate_volume": {
+            "flowPktsPerSecond", "flowBytesPerSecond", "bytes_per_pkt",
+            "log_bytes_sec", "log_pkts_sec",
+        },
+        "timing": {
+            feature for feature in feature_columns
+            if any(token in feature.lower() for token in ("duration", "fiat", "biat", "flowiat", "active", "idle"))
+        },
+    }
+    assigned = set().union(*groups.values())
+    groups["remaining"] = set(feature_columns) - assigned
+    base_params = dict(model_metadata.get("xgboost_parameters", {}))
+    base_params["verbosity"] = 0
+    ablations = {}
+    weights = compute_sample_weight("balanced", y_train)
+
+    for group_name, excluded in groups.items():
+        retained_indices = [index for index, name in enumerate(feature_columns) if name not in excluded]
+        if not retained_indices:
+            raise ValueError(f"Ablation '{group_name}' would remove every feature.")
+        model = XGBClassifier(**base_params)
+        model.fit(
+            X_train[:, retained_indices],
+            y_train,
+            sample_weight=weights,
+            eval_set=[(X_val[:, retained_indices], y_val)],
+            verbose=False,
+        )
+        partial_probabilities = model.predict_proba(X_test[:, retained_indices])
+        number_of_classes = len(model_metadata.get("classes", [])) or int(
+            np.max(np.concatenate((y_train, y_val, y_test))) + 1
+        )
+        probabilities = np.zeros((len(y_test), number_of_classes), dtype=float)
+        for local_index, class_id in enumerate(model.classes_):
+            probabilities[:, int(class_id)] = partial_probabilities[:, local_index]
+        predictions = np.argmax(probabilities, axis=1)
+        precision, recall, f1, support = precision_recall_fscore_support(
+            y_test, predictions, average=None,
+            labels=np.arange(number_of_classes), zero_division=0,
+        )
+        macro_precision, macro_recall, macro_f1, _ = precision_recall_fscore_support(
+            y_test, predictions, labels=np.arange(number_of_classes),
+            average="macro", zero_division=0,
+        )
+        ablations[group_name] = {
+            "excluded_features": sorted(excluded),
+            "retained_features": [feature_columns[index] for index in retained_indices],
+            "test_samples": int(len(y_test)),
+            "accuracy": float(accuracy_score(y_test, predictions)),
+            "macro_precision": float(macro_precision),
+            "macro_recall": float(macro_recall),
+            "macro_f1": float(macro_f1),
+            "log_loss": float(log_loss(
+                y_test, probabilities, labels=np.arange(number_of_classes)
+            )),
+            "per_class": {
+                str(index): {
+                    "precision": float(precision[index]),
+                    "recall": float(recall[index]),
+                    "f1": float(f1[index]),
+                    "support": int(support[index]),
+                }
+                for index in range(len(support))
+            },
+            "split_note": "One existing held-out split; this result is not a repeated-split confidence interval.",
+        }
+    report = {
+        "study": "feature-group ablation",
+        "base_model": model_metadata.get("model_name"),
+        "test_split_method": model_metadata.get(
+            "split_method", "capture grouping not recorded in the checked-in metadata"
+        ),
+        "full_model_test_metrics": baseline_metrics,
+        "artifacts_replaced": False,
+        "ablations": ablations,
+    }
+    os.makedirs(reports_dir, exist_ok=True)
+    with open(os.path.join(reports_dir, "ablation_report.json"), "w", encoding="utf-8") as output_file:
+        json.dump(report, output_file, indent=4)
+    return report
+
+
 def evaluate_pipeline(
     processed_data_path: str = "../data/processed/processed_data.npz",
     models_dir: str = "../models",
-    reports_dir: str = "../reports"
+    reports_dir: str = "../reports",
+    run_ablations: bool = False,
 ) -> dict:
     # Smart path resolution for running from root or src/
     if not os.path.exists(processed_data_path):
@@ -76,9 +221,9 @@ def evaluate_pipeline(
     data = np.load(processed_data_path)
     X_test, y_test = data["X_test"], data["y_test"]
 
-    print(f"\n==================================================")
-    print(f" Evaluating XGBoost Model on Untouched Test Set")
-    print(f"==================================================")
+    print("\n==================================================")
+    print(" Evaluating XGBoost Model on Untouched Test Set")
+    print("==================================================")
     print(f"[+] Test dataset size: {X_test.shape[0]} samples")
 
     # Evaluate XGBoost Model
@@ -88,9 +233,15 @@ def evaluate_pipeline(
     y_pred_xgb = np.argmax(y_proba_xgb, axis=1)
 
     acc_xgb = accuracy_score(y_test, y_pred_xgb)
-    macro_p_xgb, macro_r_xgb, macro_f1_xgb, _ = precision_recall_fscore_support(y_test, y_pred_xgb, average="macro")
-    weight_p_xgb, weight_r_xgb, weight_f1_xgb, _ = precision_recall_fscore_support(y_test, y_pred_xgb, average="weighted")
-    logloss_xgb = log_loss(y_test, y_proba_xgb)
+    class_labels = np.arange(len(classes))
+    macro_p_xgb, macro_r_xgb, macro_f1_xgb, _ = precision_recall_fscore_support(
+        y_test, y_pred_xgb, labels=class_labels, average="macro", zero_division=0
+    )
+    weight_p_xgb, weight_r_xgb, weight_f1_xgb, _ = precision_recall_fscore_support(
+        y_test, y_pred_xgb, labels=class_labels, average="weighted", zero_division=0
+    )
+    logloss_xgb = log_loss(y_test, y_proba_xgb, labels=class_labels)
+    calibration = top_label_calibration(y_test, y_proba_xgb)
 
     # Evaluate Random Forest Model if available
     rf_model_path = os.path.join(models_dir, "random_forest_model.joblib")
@@ -101,9 +252,13 @@ def evaluate_pipeline(
         y_pred_rf = np.argmax(y_proba_rf, axis=1)
 
         acc_rf = accuracy_score(y_test, y_pred_rf)
-        macro_p_rf, macro_r_rf, macro_f1_rf, _ = precision_recall_fscore_support(y_test, y_pred_rf, average="macro")
-        weight_p_rf, weight_r_rf, weight_f1_rf, _ = precision_recall_fscore_support(y_test, y_pred_rf, average="weighted")
-        logloss_rf = log_loss(y_test, y_proba_rf)
+        macro_p_rf, macro_r_rf, macro_f1_rf, _ = precision_recall_fscore_support(
+            y_test, y_pred_rf, labels=class_labels, average="macro", zero_division=0
+        )
+        weight_p_rf, weight_r_rf, weight_f1_rf, _ = precision_recall_fscore_support(
+            y_test, y_pred_rf, labels=class_labels, average="weighted", zero_division=0
+        )
+        logloss_rf = log_loss(y_test, y_proba_rf, labels=class_labels)
 
         rf_metrics = {
             "accuracy": float(round(acc_rf, 4)),
@@ -139,7 +294,7 @@ def evaluate_pipeline(
     best_class = sorted_classes[0]
     worst_class = sorted_classes[-1]
 
-    print(f"\n--- Key Test Performance Metrics (XGBoost) ---")
+    print("\n--- Key Test Performance Metrics (XGBoost) ---")
     print(f"  Test Accuracy   : {acc*100:.2f}%")
     print(f"  Macro Precision : {macro_p*100:.2f}%")
     print(f"  Macro Recall    : {macro_r*100:.2f}%")
@@ -150,9 +305,9 @@ def evaluate_pipeline(
     print(f"  Lowest F1 Class : '{worst_class[0]}' ({worst_class[1]['f1_score']*100:.1f}%)")
 
     if rf_metrics:
-        print(f"\n--- Model Comparison on Untouched Test Set ---")
-        print(f"  Metric              | XGBoost     | Random Forest")
-        print(f"  --------------------+-------------+--------------")
+        print("\n--- Model Comparison on Untouched Test Set ---")
+        print("  Metric              | XGBoost     | Random Forest")
+        print("  --------------------+-------------+--------------")
         print(f"  Test Accuracy       | {acc*100:.2f}%       | {rf_metrics['accuracy']*100:.2f}%")
         print(f"  Macro Precision     | {macro_p*100:.2f}%       | {rf_metrics['macro_precision']*100:.2f}%")
         print(f"  Macro Recall        | {macro_r*100:.2f}%       | {rf_metrics['macro_recall']*100:.2f}%")
@@ -161,14 +316,16 @@ def evaluate_pipeline(
         print(f"  Multi Log Loss      | {test_logloss:.4f}      | {rf_metrics['log_loss']:.4f}")
 
     # Console Classification Report
-    print(f"\n--- Detailed Per-Class Breakdown ---")
-    clf_rep_str = classification_report(y_test, y_pred, target_names=classes, digits=4)
+    print("\n--- Detailed Per-Class Breakdown ---")
+    clf_rep_str = classification_report(
+        y_test, y_pred, labels=class_labels, target_names=classes, digits=4, zero_division=0
+    )
     print(clf_rep_str)
 
     os.makedirs(reports_dir, exist_ok=True)
 
     # 1. Confusion Matrix Plot
-    cm = confusion_matrix(y_test, y_pred)
+    cm = confusion_matrix(y_test, y_pred, labels=class_labels)
     plt.figure(figsize=(12, 10))
     sns.heatmap(
         cm, annot=True, fmt="d", cmap="Blues",
@@ -208,7 +365,7 @@ def evaluate_pipeline(
     shap_path = None
     if SHAP_AVAILABLE:
         try:
-            print(f"[+] Calculating SHAP values for explainability...")
+            print("[+] Calculating SHAP values for explainability...")
             explainer = shap.TreeExplainer(xgb_model)
             # Use sample of test set for fast SHAP calculation
             sample_size = min(500, len(X_test))
@@ -236,8 +393,11 @@ def evaluate_pipeline(
             "macro_recall": float(round(macro_r, 4)),
             "macro_f1": float(round(macro_f1, 4)),
             "weighted_f1": float(round(weight_f1, 4)),
-            "log_loss": float(round(test_logloss, 4))
+            "log_loss": float(round(test_logloss, 4)),
+            "top_label_expected_calibration_error": calibration["expected_calibration_error"],
+            "multiclass_brier_score": calibration["multiclass_brier_score"],
         },
+        "calibration": calibration,
         "best_performing_class": {"class": best_class[0], "f1_score": best_class[1]["f1_score"]},
         "worst_performing_class": {"class": worst_class[0], "f1_score": worst_class[1]["f1_score"]},
         "per_class_results": per_class_results,
@@ -249,6 +409,63 @@ def evaluate_pipeline(
         json.dump(report_json, f, indent=4)
     print(f"[OK] Full classification report JSON saved to: {os.path.abspath(report_path)}")
 
+    model_card = {
+        "model_name": metadata.get("model_name", "XGBoost Encrypted Traffic Classifier"),
+        "model_type": "multiclass gradient-boosted decision trees",
+        "target_column": metadata.get("target_column", "traffic_type"),
+        "classes": classes,
+        "features": feature_cols,
+        "training_dataset": metadata.get("dataset", "consolidated_traffic_data.csv"),
+        "dataset_version": metadata.get("dataset_version", "not recorded"),
+        "source_row_count": metadata.get("source_row_count"),
+        "source_group_count": metadata.get("source_group_count"),
+        "row_counts": {
+            "train": metadata.get("training_rows"),
+            "validation": metadata.get("validation_rows"),
+            "test": int(len(y_test)),
+        },
+        "capture_count": metadata.get("source_group_count"),
+        "group_column": metadata.get("group_column"),
+        "group_counts_by_split": metadata.get("group_counts"),
+        "group_hashes_by_split": metadata.get("group_hashes_by_split"),
+        "class_support_by_split": metadata.get("class_support_by_split"),
+        "missing_classes_by_split": metadata.get("missing_classes_by_split"),
+        "split_method": metadata.get(
+            "split_method",
+            "random row-level stratified split; capture/source grouping was not recorded",
+        ),
+        "training_parameters": metadata.get("xgboost_parameters", {}),
+        "test_metrics": report_json["metrics"],
+        "per_class_test_metrics": per_class_results,
+        "calibration": calibration,
+        "known_limitations": [
+            (
+                "Capture/source identifiers and capture count are unavailable; this row-level split does not establish generalization to independent captures or environments."
+                if not metadata.get("group_column")
+                else "Grouping prevents rows from the same recorded source capture crossing splits, but does not establish independence across hosts or environments."
+            ),
+            "Calibration metrics are measurements only; model probabilities have not been calibrated by this evaluation.",
+            "No independently sourced external-capture evaluation is represented by this report.",
+        ],
+    }
+    card_path = os.path.join(reports_dir, "model_card.json")
+    with open(card_path, "w", encoding="utf-8") as card_file:
+        json.dump(model_card, card_file, indent=4)
+    print(f"[OK] Model card saved to: {os.path.abspath(card_path)}")
+    if run_ablations:
+        report_json["feature_ablations"] = evaluate_feature_ablations(
+            data["X_train"],
+            data["y_train"],
+            data["X_val"],
+            data["y_val"],
+            X_test,
+            y_test,
+            feature_cols,
+            metadata,
+            reports_dir,
+            report_json["metrics"],
+        )
+
     return report_json
 
 
@@ -257,10 +474,12 @@ if __name__ == "__main__":
     parser.add_argument("--processed-data", type=str, default="data/processed/processed_data.npz", help="Processed NPZ path")
     parser.add_argument("--models-dir", type=str, default="models", help="Models dir")
     parser.add_argument("--reports-dir", type=str, default="reports", help="Reports dir")
+    parser.add_argument("--ablation", action="store_true", help="Run held-out feature-group ablations")
     args = parser.parse_args()
 
     evaluate_pipeline(
         processed_data_path=args.processed_data,
         models_dir=args.models_dir,
-        reports_dir=args.reports_dir
+        reports_dir=args.reports_dir,
+        run_ablations=args.ablation,
     )

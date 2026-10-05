@@ -469,7 +469,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
     setOrchestrationMode('FALLBACK_SIM');
     const t = new Date().toLocaleTimeString();
     setLiveTimeline(prev => [
-      { time: t, text: `⚠️ [VM Fallback Activated] ${reason ? `(${reason})` : ''} - Engaging automated synthesis to keep live telemetry active`, type: 'ai' },
+      { time: t, text: `⚠️ [Browser demo simulation] ${reason ? `(${reason})` : ''} - Switching to illustrative telemetry; no VM or network capture is running`, type: 'ai' },
       ...prev
     ]);
 
@@ -478,17 +478,16 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
       step++;
       if (step <= 5) {
         setEstablishingStep(step);
-        const hAlgo = selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256';
         const labels = [
           '',
-          'swanctl.conf cryptographic synthesis verified',
-          'Responder VM listener armed (192.168.56.20:500)',
-          'Initiator VM IKE daemon started (192.168.56.10:500)',
-          `[Integrity Layer] ${hAlgo} handshake proposal digest verified`,
-          `IKE_SA & CHILD_SA negotiated: ${selectedScenario.encryption || 'AES-256-GCM'} (${hAlgo} Integrity Check PASS)`
+          'Illustrative configuration stage (not generated or loaded)',
+          'Responder stage simulated; no VM listener is running',
+          'Initiator stage simulated; no IKE daemon was started',
+          'Illustrative proposal stage; no handshake digest was computed',
+          'Negotiation stage simulated; no tunnel or security association exists'
         ];
         setLiveTimeline(prev => [
-          { time: new Date().toLocaleTimeString(), text: `[Step 0${step}] ${labels[step] || 'Negotiating'}`, type: step === 5 ? 'secure' : 'info' },
+          { time: new Date().toLocaleTimeString(), text: `[Step 0${step}] ${labels[step] || 'Demo stage'}`, type: 'info' },
           ...prev
         ]);
       }
@@ -498,15 +497,14 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
         setTunnelState('ESTABLISHED');
         setIsAutoStreaming(true);
         setLiveTimeline(prev => [
-          { time: new Date().toLocaleTimeString(), text: '🚀 Tunnel established! Automated real-time packet stream engaged.', type: 'info' },
+          { time: new Date().toLocaleTimeString(), text: '▶ Demo state complete. Synthetic packets will be generated in this browser; no live tunnel or traffic exists.', type: 'info' },
           ...prev
         ]);
       }
     }, 750);
   };
 
-  // Launch Scenario — Priority 1: Full Physical VM & OS Orchestration Pipeline (/api/testbed/run)
-  // Fallback: Gracefully switches to high-speed simulation if VMs are offline/slow
+  // Try the backend testbed first; use browser-only simulation when unavailable.
   const startEstablishment = async () => {
     if (activePollIntervalRef.current) {
       clearInterval(activePollIntervalRef.current);
@@ -672,17 +670,35 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
             <span className="tag-mono" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Radio size={13} />
-              <span>LIVE TELEMETRY</span>
+              <span>{orchestrationMode === 'FALLBACK_SIM' ? 'DEMO TELEMETRY' : 'LIVE TELEMETRY'}</span>
             </span>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              strongSwan Wire Tap &amp; Dynamic XGBoost Classifier
+              {orchestrationMode === 'FALLBACK_SIM' ? 'Browser-generated illustrative data' : 'strongSwan Wire Tap & Dynamic XGBoost Classifier'}
             </span>
           </div>
+
+          {orchestrationMode === 'FALLBACK_SIM' && (
+            <div role="status" style={{
+              marginTop: '16px',
+              padding: '12px 16px',
+              border: '1px solid rgba(245, 158, 11, 0.55)',
+              borderRadius: '8px',
+              background: 'rgba(245, 158, 11, 0.1)',
+              color: 'var(--text-primary)',
+              fontSize: '0.82rem',
+              lineHeight: 1.5,
+            }}>
+              <strong style={{ color: '#f59e0b' }}>BROWSER-ONLY SIMULATION.</strong> Stage events, packet counts, byte totals, and classifications below are illustrative. This mode does not start VMs or strongSwan, establish a tunnel, capture packets, or run the classifier.
+            </div>
+          )}
+
           <h1 style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
-            Live Scenario Telemetry &amp; Dynamic Packet Stream
+            {orchestrationMode === 'FALLBACK_SIM' ? 'Simulated Scenario Telemetry & Demo Packet Stream' : 'Live Scenario Telemetry & Dynamic Packet Stream'}
           </h1>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '4px 0 0', maxWidth: '780px' }}>
-            Select a scenario and launch. The dashboard stays dormant during the strongSwan key negotiation, and then autonomously streams encrypted ESP packets in real time while recalculating traffic graphs dynamically.
+            {orchestrationMode === 'FALLBACK_SIM'
+              ? 'Browser-generated demo events and packet-like records illustrate the interface; they are not observed network traffic.'
+              : 'Select a scenario and launch. The dashboard stays dormant during strongSwan key negotiation, then displays observer-reported traffic and analysis.'}
           </p>
         </div>
 
@@ -694,6 +710,8 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
                 ? 'STANDBY'
                 : tunnelState === 'ESTABLISHING'
                 ? 'NEGOTIATING (DORMANT)'
+                : orchestrationMode === 'FALLBACK_SIM'
+                ? (isAutoStreaming ? 'SIMULATED STREAM ACTIVE' : 'SIMULATION PAUSED')
                 : isAutoStreaming
                 ? 'AUTO-STREAMING (ACTIVE)'
                 : 'STREAM PAUSED'}
@@ -713,10 +731,10 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: 'var(--accent-cyan)' }}>
-                <Radio size={16} /> TESTBED JOB TELEMETRY
+                <Radio size={16} /> {liveJobId.startsWith('demo-') ? 'TESTBED DEMO STATUS' : 'TESTBED JOB TELEMETRY'}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                Job {liveJobId.slice(0, 8)} · {testbedJob?.state || 'connecting'} · VM events are refreshed every second
+                Job {liveJobId.slice(0, 8)} · {testbedJob?.state || 'connecting'} · {liveJobId.startsWith('demo-') ? 'Browser simulation; no VM events are polled' : 'VM events are refreshed every second'}
               </div>
             </div>
             {testbedPollError && (
@@ -724,13 +742,13 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
             )}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginTop: '14px' }}>
-            <div><strong>{testbedEvents.length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>VM events received</small></div>
-            <div><strong>{packetEvents.length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Packets observed live</small></div>
-            <div><strong>{testbedEvents.filter((event) => event.vm === 'initiator').length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Initiator events</small></div>
-            <div><strong>{testbedEvents.filter((event) => event.vm === 'observer').length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>Observer events</small></div>
+            <div><strong>{testbedEvents.length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>{liveJobId.startsWith('demo-') ? 'VM events (not polled)' : 'VM events received'}</small></div>
+            <div><strong>{packetEvents.length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>{liveJobId.startsWith('demo-') ? 'Simulated packet records' : 'Packets observed live'}</small></div>
+            <div><strong>{testbedEvents.filter((event) => event.vm === 'initiator').length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>{liveJobId.startsWith('demo-') ? 'Initiator demo events' : 'Initiator events'}</small></div>
+            <div><strong>{testbedEvents.filter((event) => event.vm === 'observer').length}</strong><small style={{ display: 'block', color: 'var(--text-muted)' }}>{liveJobId.startsWith('demo-') ? 'Observer demo events' : 'Observer events'}</small></div>
           </div>
           <div style={{ maxHeight: '190px', overflowY: 'auto', marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {testbedEvents.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Waiting for packet transfer telemetry...</span>}
+            {testbedEvents.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{liveJobId.startsWith('demo-') ? 'Browser-generated records are shown in the simulated stream below.' : 'Waiting for packet transfer telemetry...'}</span>}
             {testbedEvents.slice().reverse().map((event) => (
               <div key={`${event.id}-${event.timestamp}`} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
                 <span style={{ color: 'var(--accent-cyan)' }}>[{event.timestamp}]</span>{' '}
@@ -1031,23 +1049,25 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
             }} />
             <div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', fontWeight: 800, color: 'var(--accent-yellow)', letterSpacing: '0.04em' }}>
-                TUNNEL NEGOTIATING... [{orchestrationMode === 'PHYSICAL_VM' ? `PRIORITY: PHYSICAL VM & OS PIPELINE${backendJobId ? ` · JOB ${backendJobId.slice(0, 8)}` : ''}` : 'VM FALLBACK SIMULATION ACTIVE'}]
+                {orchestrationMode === 'PHYSICAL_VM'
+                  ? `TUNNEL NEGOTIATING... [BACKEND TESTBED${backendJobId ? ` · JOB ${backendJobId.slice(0, 8)}` : ''}]`
+                  : 'DEMO STAGES RUNNING — NO TUNNEL NEGOTIATION'}
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 {orchestrationMode === 'PHYSICAL_VM'
-                  ? 'Orchestrating strongSwan VMs (192.168.56.x) via SSH & kernel XFRM. Automated fallback will engage if VMs encounter network delays.'
-                  : 'High-speed automated protocol synthesis engaged so telemetry stream remains active without interruption.'}
+                  ? 'The backend testbed reports its VM orchestration and observer events.'
+                  : 'Browser-only presentation of the stages; no VMs, SSH, kernel XFRM, IKE negotiation, or capture are performed.'}
               </div>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
             {[
-              { step: 1, label: 'Config Synthesis', desc: 'swanctl.conf policies generated' },
-              { step: 2, label: 'Responder Provision', desc: '192.168.56.20 listener armed' },
-              { step: 3, label: 'Initiator Provision', desc: '192.168.56.10 IKE daemon started' },
-              { step: 4, label: 'Observer Tap', desc: 'tcpdump sniffer monitoring eth1' },
-              { step: 5, label: 'SA Established', desc: `Child SA active (${selectedScenario.hash_algorithm || selectedScenario.hashAlgorithm || 'SHA-256'} verified)` }
+              { step: 1, label: orchestrationMode === 'FALLBACK_SIM' ? 'Config Demo' : 'Config Synthesis', desc: orchestrationMode === 'FALLBACK_SIM' ? 'Illustrative stage only; no config loaded' : 'Backend testbed configuration stage' },
+              { step: 2, label: orchestrationMode === 'FALLBACK_SIM' ? 'Responder Demo' : 'Responder Provision', desc: orchestrationMode === 'FALLBACK_SIM' ? 'No VM listener is running' : 'Backend testbed responder stage' },
+              { step: 3, label: orchestrationMode === 'FALLBACK_SIM' ? 'Initiator Demo' : 'Initiator Provision', desc: orchestrationMode === 'FALLBACK_SIM' ? 'No IKE daemon was started' : 'Backend testbed initiator stage' },
+              { step: 4, label: orchestrationMode === 'FALLBACK_SIM' ? 'Observer Demo' : 'Observer Tap', desc: orchestrationMode === 'FALLBACK_SIM' ? 'No packet capture is running' : 'Backend testbed observer stage' },
+              { step: 5, label: orchestrationMode === 'FALLBACK_SIM' ? 'Negotiation Demo' : 'SA Established', desc: orchestrationMode === 'FALLBACK_SIM' ? 'No SA or live tunnel exists' : 'Backend-reported security association status' }
             ].map(s => {
               const isDone = establishingStep > s.step;
               const isCurr = establishingStep === s.step;
@@ -1081,7 +1101,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '14px 16px' }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-tertiary)', letterSpacing: '0.06em' }}>
-                TOTAL PACKETS
+                {orchestrationMode === 'FALLBACK_SIM' ? 'SIMULATED PACKETS' : 'TOTAL PACKETS'}
               </span>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent-cyan)', marginTop: '4px' }}>
                 {packetCount} <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>pkts</span>
@@ -1089,7 +1109,11 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
             {liveJobId
               ? (testbedJob?.state === 'COMPLETED' ? 'Observer capture complete' : '● Observer capture telemetry')
-              : (tunnelState === 'ESTABLISHED' ? (isAutoStreaming ? '● Streaming live (auto)' : 'Stream paused') : 'Tunnel dormant')}
+              : (tunnelState === 'ESTABLISHED'
+                ? (orchestrationMode === 'FALLBACK_SIM'
+                  ? (isAutoStreaming ? '● Generating simulated records' : 'Simulation paused')
+                  : (isAutoStreaming ? '● Streaming live (auto)' : 'Stream paused'))
+                : 'Tunnel dormant')}
               </span>
             </div>
 
@@ -1101,13 +1125,13 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
                 {(bytesTransferred / 1024).toFixed(1)} <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>KB</span>
               </div>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
-                Encrypted wire payload
+                {orchestrationMode === 'FALLBACK_SIM' ? 'Generated demo values; not wire bytes' : 'Encrypted wire payload'}
               </span>
             </div>
 
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '14px 16px' }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-tertiary)', letterSpacing: '0.06em' }}>
-                LIVE THROUGHPUT
+                {orchestrationMode === 'FALLBACK_SIM' ? 'SIMULATED THROUGHPUT' : 'LIVE THROUGHPUT'}
               </span>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent-green)', marginTop: '4px' }}>
                 {currentThroughput} <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Mbps</span>
@@ -1289,7 +1313,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
 
                 <div style={{ background: 'var(--bg-deep)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-xs)', padding: '10px 12px' }}>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-tertiary)', letterSpacing: '0.06em', marginBottom: '6px' }}>
-                    WIRE CAPTURE HEX SNIPPET
+                    {orchestrationMode === 'FALLBACK_SIM' ? 'ILLUSTRATIVE DEMO BYTES (NOT A CAPTURE)' : 'WIRE CAPTURE HEX SNIPPET'}
                   </div>
                   <pre style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-cyan)', margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: '1.5' }}>
                     {latestPacket.hexDump}
@@ -1306,6 +1330,8 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
                       : 'Waiting for the observer VM to report captured packets...')
                     : tunnelState === 'ESTABLISHING'
                     ? 'Tunnel is negotiating keys... Dissector dormant.'
+                    : tunnelState === 'ESTABLISHED' && orchestrationMode === 'FALLBACK_SIM'
+                    ? 'Demo stream active. Browser-generated records are shown here; no network packets were captured.'
                     : tunnelState === 'ESTABLISHED'
                     ? 'Streaming active! Ingested packets will appear automatically.'
                     : 'Select a scenario and click "Launch Scenario & Auto-Stream" above.'}
@@ -1320,7 +1346,7 @@ export default function LiveDashboardTab({ liveJobId, onNavigateToTestbed, onNav
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Activity size={17} color="var(--accent-cyan)" />
                 <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)' }}>
-                  Dynamic Flow Records (Real-Time Ingestion)
+                  {orchestrationMode === 'FALLBACK_SIM' ? 'Simulated Flow Records (Browser Demo)' : 'Dynamic Flow Records (Real-Time Ingestion)'}
                 </span>
               </div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>

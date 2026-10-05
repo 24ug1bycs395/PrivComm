@@ -1,0 +1,60 @@
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "--basetemp=.pytest_temp -ra"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "ignore::pytest.PytestCollectionWarning",
+    "ignore::UserWarning",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+exclude = [
+    ".git",
+    ".pytest_cache",
+    ".pytest_temp",
+    "__pycache__",
+    "frontend",
+    "dist",
+    "build",
+    "node_modules",
+    "results",
+    "captures",
+    "samples",
+    "traffic-classifier/data",
+    "traffic-classifier/notebooks",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I", "C4"]
+ignore = [
+    "E501", # line too long (handled by formatter)
+    "B008", # function call in argument defaults (standard FastAPI Depends/File pattern)
+    "B904", # raise ... from err
+    "E402", # module level import not at top
+    "B006", # mutable default argument
+]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "analyzer",
+    "anomaly",
+    "db",
+    "ml",
+    "models",
+    "probe",
+    "reports",
+    "routers",
+    "seal",
+    "security",
+    "services",
+    "utils",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "frontend", "node_modules", ".pytest_temp", ".git"]
+skips = ["B101"]

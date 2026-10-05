@@ -1,5 +1,7 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from security.findings import SecurityFinding
+
 
 def generate_recommendations(findings: List[SecurityFinding]) -> List[Dict[str, Any]]:
     """

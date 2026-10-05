@@ -1,4 +1,5 @@
-from typing import Dict, Any, Tuple
+from typing import Tuple
+
 from services.testbed.models import ScenarioDefinition, TestbedTopology
 
 
@@ -109,8 +110,6 @@ class StrongSwanConfigGenerator:
 
         # IPv6 addresses must be wrapped in brackets for swanctl.conf
         is_ipv6 = scenario.ip_version.upper() == "IPV6"
-        local_addr = f"[{local_ip}]" if is_ipv6 else local_ip
-        remote_addr = f"[{remote_ip}]" if is_ipv6 else remote_ip
 
         rekey_time = "60s" if "rekey" in scenario.id else "1h"
         mode = scenario.ipsec_mode.lower()  # "tunnel" or "transport"
@@ -208,8 +207,6 @@ secrets {{
 
         # Traffic selectors for legacy ipsec.conf
         if mode == "transport":
-            leftsubnet = ""
-            rightsubnet = ""
             subnet_lines = ""
         elif scenario.ip_version.upper() == "IPV6":
             subnet_lines = f"    leftsubnet={left_ip}/128\n    rightsubnet={right_ip}/128"

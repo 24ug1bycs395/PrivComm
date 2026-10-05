@@ -1,6 +1,7 @@
 import logging
+
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ def parse_esp_scapy(packets: List[Any]) -> Dict[str, Any]:
     spis = set()
     ip_versions_seen = set()
 
-    from scapy.all import IP, IPv6, ESP, AH
+    from scapy.all import AH, ESP, IP, IPv6
 
     for pkt in packets:
         # ── IPv4 ──────────────────────────────────────────────────────────────

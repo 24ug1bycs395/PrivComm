@@ -1,7 +1,9 @@
 """Pydantic schemas for VPN Behavioral Anomaly Detection service."""
 
 from __future__ import annotations
-from typing import List, Dict, Any, Optional
+
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 
