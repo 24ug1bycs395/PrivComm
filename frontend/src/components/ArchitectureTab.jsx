@@ -33,8 +33,14 @@ import {
   ShieldAlert,
   GitBranch,
   Network,
-  Check
+  Check,
+  X,
+  HelpCircle,
+  Info,
+  Compass,
+  MousePointerClick
 } from 'lucide-react';
+import { ARCHITECTURE_EXPLANATIONS } from '../data/architectureExplanations';
 
 const FlowConnector = ({ label }) => (
   <>
@@ -58,8 +64,133 @@ const FlowConnector = ({ label }) => (
   </>
 );
 
+/**
+ * Modal Popup for plain-English explanation
+ */
+const ExplanationModal = ({ item, onClose }) => {
+  if (!item) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="arch-modal-title"
+      className="arch-modal-backdrop"
+      onClick={onClose}
+    >
+      <div
+        className="arch-modal-dialog"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="arch-modal-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="arch-modal-icon-wrap">
+              <BookOpen size={18} />
+            </div>
+            <div>
+              <div className="arch-modal-kicker">
+                <span>{item.category}</span>
+                {item.badge && <span className="arch-modal-badge">{item.badge}</span>}
+              </div>
+              <h2 id="arch-modal-title" className="arch-modal-title">
+                {item.title}
+              </h2>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="arch-modal-close-btn"
+            onClick={onClose}
+            aria-label="Close explanation popup"
+            title="Close (Esc)"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Content Body */}
+        <div className="arch-modal-body">
+          {/* Section 1: In Simple Words */}
+          <div className="arch-modal-card simple">
+            <div className="arch-card-heading">
+              <span className="arch-card-emoji">💡</span>
+              <span>In Simple Words (Zero Jargon)</span>
+            </div>
+            <p className="arch-card-text">{item.simpleExplanation}</p>
+          </div>
+
+          {/* Section 2: Real-World Everyday Analogy */}
+          <div className="arch-modal-card analogy">
+            <div className="arch-card-heading">
+              <span className="arch-card-emoji">🌍</span>
+              <span>Real-World Everyday Analogy</span>
+            </div>
+            <p className="arch-card-text">{item.analogy}</p>
+          </div>
+
+          {/* Section 3: Why It Matters */}
+          <div className="arch-modal-card value">
+            <div className="arch-card-heading">
+              <span className="arch-card-emoji">🛡️</span>
+              <span>Why It Matters &amp; How It Protects You</span>
+            </div>
+            <p className="arch-card-text">{item.whyItMatters}</p>
+          </div>
+
+          {/* Section 4: Under The Hood (Technical Details) */}
+          <div className="arch-modal-card tech">
+            <div className="arch-card-heading">
+              <span className="arch-card-emoji">⚙️</span>
+              <span>Under The Hood (Technical Details &amp; Code)</span>
+            </div>
+            <p className="arch-card-text mono">{item.technicalDetails}</p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="arch-modal-footer">
+          <span className="arch-modal-hint">Tip: Click anywhere outside or press [Esc] to close</span>
+          <button
+            type="button"
+            className="arch-modal-done-btn"
+            onClick={onClose}
+          >
+            <Check size={14} />
+            <span>Got it, thanks!</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function ArchitectureTab() {
   const [activeSection, setActiveSection] = useState('hla');
+  const [selectedExplainKey, setSelectedExplainKey] = useState(null);
+
+  const activeItem = selectedExplainKey ? ARCHITECTURE_EXPLANATIONS[selectedExplainKey] : null;
+
+  const openExplain = (key) => {
+    if (ARCHITECTURE_EXPLANATIONS[key]) {
+      setSelectedExplainKey(key);
+    }
+  };
+
+  const closeExplain = () => {
+    setSelectedExplainKey(null);
+  };
+
+  // Keyboard shortcut: Esc closes modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeExplain();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const sections = [
     {
@@ -113,8 +244,261 @@ export default function ArchitectureTab() {
     }
   };
 
+  // Helper Clickable Box component
+  const ClickBox = ({ explainKey, className = '', style = {}, children, title }) => (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => openExplain(explainKey)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openExplain(explainKey);
+        }
+      }}
+      className={`arch-interactive-box ${className}`}
+      style={style}
+      title={title || "Click to view a simple plain-English explanation"}
+    >
+      {children}
+    </div>
+  );
+
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '60px' }}>
+      
+      {/* Component Styles */}
+      <style>{`
+        .arch-interactive-box {
+          cursor: pointer;
+          position: relative;
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+        .arch-interactive-box:hover {
+          transform: translateY(-2px);
+          border-color: var(--accent-cyan) !important;
+          box-shadow: 0 8px 24px rgba(56, 189, 248, 0.16);
+        }
+        .arch-interactive-box:focus-visible {
+          outline: 2px solid var(--accent-cyan);
+          outline-offset: 2px;
+        }
+        .arch-click-cue {
+          font-size: 0.62rem;
+          color: var(--accent-cyan);
+          font-family: var(--font-mono);
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          opacity: 0.75;
+          letter-spacing: 0.02em;
+          transition: opacity 0.15s ease, color 0.15s ease;
+        }
+        .arch-interactive-box:hover .arch-click-cue {
+          opacity: 1;
+        }
+        .arch-card-click-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 2px 8px;
+          border-radius: 6px;
+          background: var(--bg-tertiary);
+          border: 1px solid var(--border-subtle);
+          color: var(--text-secondary);
+          font-size: 0.64rem;
+          font-family: var(--font-mono);
+          font-weight: 600;
+          transition: all 0.15s ease;
+        }
+        .arch-interactive-box:hover .arch-card-click-pill {
+          background: var(--accent-cyan-dim);
+          border-color: var(--border-blueprint);
+          color: var(--accent-cyan);
+        }
+        .arch-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 99999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(3, 7, 18, 0.82);
+          backdrop-filter: blur(10px);
+          padding: 20px;
+          animation: arch-fade-in 0.18s ease-out;
+        }
+        .arch-modal-dialog {
+          background: var(--bg-card);
+          border: 1px solid var(--border-blueprint);
+          border-radius: 20px;
+          max-width: 620px;
+          width: 100%;
+          max-height: 88vh;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(56, 189, 248, 0.25);
+          animation: arch-scale-up 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .arch-modal-header {
+          padding: 20px 24px;
+          border-bottom: 1px solid var(--border-subtle);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+        }
+        .arch-modal-icon-wrap {
+          width: 38px;
+          height: 38px;
+          border-radius: 10px;
+          background: var(--accent-cyan-dim);
+          color: var(--accent-cyan);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid var(--border-blueprint);
+          flex-shrink: 0;
+        }
+        .arch-modal-kicker {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.68rem;
+          font-family: var(--font-mono);
+          color: var(--accent-cyan);
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          margin-bottom: 2px;
+        }
+        .arch-modal-badge {
+          padding: 1px 6px;
+          border-radius: 4px;
+          background: var(--bg-tertiary);
+          color: var(--text-secondary);
+          border: 1px solid var(--border-subtle);
+        }
+        .arch-modal-title {
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: var(--text-primary);
+          margin: 0;
+          line-height: 1.3;
+        }
+        .arch-modal-close-btn {
+          width: 34px;
+          height: 34px;
+          border-radius: 8px;
+          background: var(--bg-tertiary);
+          border: 1px solid var(--border-subtle);
+          color: var(--text-secondary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .arch-modal-close-btn:hover {
+          background: var(--bg-secondary);
+          color: var(--text-primary);
+          border-color: var(--accent-cyan);
+        }
+        .arch-modal-body {
+          padding: 20px 24px;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+        .arch-modal-card {
+          padding: 14px 16px;
+          border-radius: 12px;
+          border: 1px solid var(--border-subtle);
+          background: var(--bg-secondary);
+        }
+        .arch-modal-card.simple {
+          border-color: rgba(56, 189, 248, 0.35);
+          background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, var(--bg-secondary) 100%);
+        }
+        .arch-modal-card.analogy {
+          border-color: rgba(129, 140, 248, 0.35);
+          background: linear-gradient(135deg, rgba(129, 140, 248, 0.08) 0%, var(--bg-secondary) 100%);
+        }
+        .arch-modal-card.value {
+          border-color: rgba(34, 197, 94, 0.35);
+          background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, var(--bg-secondary) 100%);
+        }
+        .arch-modal-card.tech {
+          border-color: var(--border-subtle);
+          background: var(--bg-tertiary);
+        }
+        .arch-card-heading {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.74rem;
+          font-family: var(--font-mono);
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: var(--text-primary);
+          margin-bottom: 6px;
+        }
+        .arch-card-emoji {
+          font-size: 0.9rem;
+        }
+        .arch-card-text {
+          font-size: 0.88rem;
+          line-height: 1.55;
+          color: var(--text-secondary);
+          margin: 0;
+        }
+        .arch-card-text.mono {
+          font-family: var(--font-mono);
+          font-size: 0.76rem;
+          color: var(--text-muted);
+        }
+        .arch-modal-footer {
+          padding: 14px 24px;
+          border-top: 1px solid var(--border-subtle);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: var(--bg-secondary);
+        }
+        .arch-modal-hint {
+          font-size: 0.72rem;
+          color: var(--text-muted);
+          font-family: var(--font-mono);
+        }
+        .arch-modal-done-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 16px;
+          border-radius: 8px;
+          background: var(--accent-cyan);
+          color: #030712;
+          font-weight: 700;
+          font-size: 0.8rem;
+          border: none;
+          cursor: pointer;
+          transition: opacity 0.15s ease;
+        }
+        .arch-modal-done-btn:hover {
+          opacity: 0.9;
+        }
+        @keyframes arch-fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes arch-scale-up {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
       
       {/* Hero Header */}
       <header
@@ -287,7 +671,7 @@ export default function ArchitectureTab() {
               </nav>
             </div>
 
-            {/* Quick Tech Architecture Card */}
+            {/* Quick Tech Architecture Card (Interactive Clickable Badges) */}
             <div
               style={{
                 background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-tertiary) 100%)',
@@ -300,41 +684,121 @@ export default function ArchitectureTab() {
                 boxShadow: 'var(--shadow-sm)'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-cyan)', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                <Cpu size={14} />
-                <span>PrivComm Technology Stack</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-cyan)', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  <Cpu size={14} />
+                  <span>PrivComm Tech Stack</span>
+                </div>
+                <span className="arch-click-cue">Inspect ↗</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.72rem', fontFamily: 'var(--font-mono)' }}>
-                <div style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <ClickBox explainKey="stack-frontend" style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '2px' }}>FRONTEND</div>
                   <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>React 19 + Vite</div>
-                </div>
-                <div style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                </ClickBox>
+                <ClickBox explainKey="stack-backend" style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '2px' }}>BACKEND</div>
                   <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>FastAPI ASGI</div>
-                </div>
-                <div style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                </ClickBox>
+                <ClickBox explainKey="stack-ml" style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '2px' }}>ML ENGINE</div>
                   <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>XGBoost + IForest</div>
-                </div>
-                <div style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                </ClickBox>
+                <ClickBox explainKey="stack-testbed" style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '2px' }}>TESTBED</div>
                   <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>strongSwan 4-Node</div>
-                </div>
-                <div style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                </ClickBox>
+                <ClickBox explainKey="stack-persistence" style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '2px' }}>PERSISTENCE</div>
                   <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Supabase / SQLite</div>
-                </div>
-                <div style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                </ClickBox>
+                <ClickBox explainKey="stack-attestation" style={{ padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '2px' }}>ATTESTATION</div>
                   <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Ed25519 + Merkle</div>
-                </div>
+                </ClickBox>
               </div>
             </div>
           </aside>
 
           {/* Right Main Content */}
           <main style={{ display: 'flex', flexDirection: 'column', gap: '56px' }}>
+
+            {/* Interactive Architecture Walkthrough Guide */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%)',
+                border: '1px solid var(--border-default)',
+                borderRadius: '16px',
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '16px',
+                flexWrap: 'wrap',
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: '260px' }}>
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '10px',
+                    background: 'var(--accent-cyan-dim)',
+                    border: '1px solid var(--border-blueprint)',
+                    color: 'var(--accent-cyan)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}
+                >
+                  <Compass size={18} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <h2 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.01em' }}>
+                      Interactive System Architecture Walkthrough
+                    </h2>
+                    <span
+                      style={{
+                        fontSize: '0.64rem',
+                        padding: '2px 7px',
+                        borderRadius: '6px',
+                        background: 'var(--bg-tertiary)',
+                        border: '1px solid var(--border-subtle)',
+                        color: 'var(--accent-cyan)',
+                        fontFamily: 'var(--font-mono)',
+                        fontWeight: 600
+                      }}
+                    >
+                      Click-to-Inspect
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '4px 0 0 0', lineHeight: 1.45 }}>
+                    Every component, data pipeline stage, and code module across this blueprint is interactive. Click on any box to view clear explanations, real-world analogies, and technical details.
+                  </p>
+                </div>
+              </div>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-subtle)',
+                  fontSize: '0.72rem',
+                  color: 'var(--text-secondary)',
+                  fontFamily: 'var(--font-mono)',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <MousePointerClick size={14} style={{ color: 'var(--accent-cyan)' }} />
+                <span>Click any box to inspect</span>
+              </div>
+            </div>
 
             {/* ========================================================================= */}
             {/* SECTION 1: HIGH-LEVEL ARCHITECTURE (HLA) */}
@@ -399,8 +863,8 @@ export default function ArchitectureTab() {
                     <Network size={16} style={{ color: 'var(--accent-cyan)' }} />
                     <span>PrivComm System Topology &amp; Microservice Conduit Flow</span>
                   </div>
-                  <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                    FIPS 140-3 / NIST SP 800-77 Compliant
+                  <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>
+                    Click any box to inspect architecture details
                   </span>
                 </div>
 
@@ -413,15 +877,18 @@ export default function ArchitectureTab() {
                     <span style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-tertiary)', color: 'var(--text-tertiary)' }}>Role-Based Access</span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
-                    <div style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      🛡️ Security Analyst
-                    </div>
-                    <div style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      ⚙️ Security Engineer
-                    </div>
-                    <div style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      📋 SOC / Compliance Reviewer
-                    </div>
+                    <ClickBox explainKey="tier1-analyst" style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>🛡️ Security Analyst</div>
+                      <div className="arch-click-cue" style={{ marginTop: '4px' }}>Inspect ↗</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier1-engineer" style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>⚙️ Security Engineer</div>
+                      <div className="arch-click-cue" style={{ marginTop: '4px' }}>Inspect ↗</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier1-soc" style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>📋 SOC / Compliance Reviewer</div>
+                      <div className="arch-click-cue" style={{ marginTop: '4px' }}>Inspect ↗</div>
+                    </ClickBox>
                   </div>
                 </div>
 
@@ -436,27 +903,34 @@ export default function ArchitectureTab() {
                     <span style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: '4px', background: 'var(--accent-cyan-dim)', color: 'var(--accent-cyan)' }}>Single Page App</span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
-                    <div style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      📊 Telemetry
-                    </div>
-                    <div style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      🔍 PCAP Analyzer
-                    </div>
-                    <div style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      🖥️ 4-Node Testbed
-                    </div>
-                    <div style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      🗄️ History Vault
-                    </div>
-                    <div style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      ⚖️ Compliance Matrix
-                    </div>
-                    <div style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      🏛️ Architecture
-                    </div>
-                    <div style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      🤖 AI Sentinel
-                    </div>
+                    <ClickBox explainKey="tier2-telemetry" style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>📊 Telemetry</div>
+                      <div className="arch-click-cue" style={{ marginTop: '2px' }}>Inspect ↗</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier2-pcap" style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>🔍 PCAP Analyzer</div>
+                      <div className="arch-click-cue" style={{ marginTop: '2px' }}>Inspect ↗</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier2-testbed" style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>🖥️ 4-Node Testbed</div>
+                      <div className="arch-click-cue" style={{ marginTop: '2px' }}>Inspect ↗</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier2-history" style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>🗄️ History Vault</div>
+                      <div className="arch-click-cue" style={{ marginTop: '2px' }}>Inspect ↗</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier2-compliance" style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>⚖️ Compliance Matrix</div>
+                      <div className="arch-click-cue" style={{ marginTop: '2px' }}>Inspect ↗</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier2-architecture" style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>🏛️ Architecture</div>
+                      <div className="arch-click-cue" style={{ marginTop: '2px' }}>Inspect ↗</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier2-sentinel" style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>🤖 AI Sentinel</div>
+                      <div className="arch-click-cue" style={{ marginTop: '2px' }}>Inspect ↗</div>
+                    </ClickBox>
                   </div>
                 </div>
 
@@ -471,26 +945,41 @@ export default function ArchitectureTab() {
                     <span style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-tertiary)', color: 'var(--text-tertiary)' }}>Uvicorn Worker Pool</span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
-                    <div style={{ padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.75rem' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Protocol API</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>/analyze/protocol</div>
-                    </div>
-                    <div style={{ padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.75rem' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Vendor Config API</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>/analyze/vendor-config</div>
-                    </div>
-                    <div style={{ padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.75rem' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Anomaly &amp; ML API</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>/api/anomaly/*</div>
-                    </div>
-                    <div style={{ padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.75rem' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Testbed &amp; Attack API</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>/api/testbed/*</div>
-                    </div>
-                    <div style={{ padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.75rem' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Attestation Seal API</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>/api/seal/*</div>
-                    </div>
+                    <ClickBox explainKey="tier3-protocol" style={{ padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Protocol API</span>
+                        <span className="arch-click-cue">Inspect ↗</span>
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>/analyze/protocol</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier3-vendor" style={{ padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Vendor Config API</span>
+                        <span className="arch-click-cue">Inspect ↗</span>
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>/analyze/vendor-config</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier3-anomaly" style={{ padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Anomaly &amp; ML API</span>
+                        <span className="arch-click-cue">Inspect ↗</span>
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>/api/anomaly/*</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier3-testbed" style={{ padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Testbed &amp; Attack API</span>
+                        <span className="arch-click-cue">Inspect ↗</span>
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>/api/testbed/*</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier3-seal" style={{ padding: '8px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Attestation Seal API</span>
+                        <span className="arch-click-cue">Inspect ↗</span>
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>/api/seal/*</div>
+                    </ClickBox>
                   </div>
                 </div>
 
@@ -507,27 +996,30 @@ export default function ArchitectureTab() {
                       </span>
                       <span style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-tertiary)', color: 'var(--text-tertiary)' }}>Isolated Emulation</span>
                     </div>
-                    <div style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.75rem' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Testbed Orchestrator</div>
+                    <ClickBox explainKey="tier4-orchestrator" style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Testbed Orchestrator</span>
+                        <span className="arch-click-cue">Inspect ↗</span>
+                      </div>
                       <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>Automated scenario generation &amp; PCAP retrieval</div>
-                    </div>
+                    </ClickBox>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                      <div style={{ padding: '6px 8px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '6px', fontSize: '0.7rem', textAlign: 'center' }}>
+                      <ClickBox explainKey="tier4-vm1" style={{ padding: '6px 8px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '6px', fontSize: '0.7rem', textAlign: 'center' }}>
                         VM 1 (Initiator)
-                      </div>
-                      <div style={{ padding: '6px 8px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '6px', fontSize: '0.7rem', textAlign: 'center' }}>
+                      </ClickBox>
+                      <ClickBox explainKey="tier4-vm2" style={{ padding: '6px 8px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '6px', fontSize: '0.7rem', textAlign: 'center' }}>
                         VM 2 (Responder)
-                      </div>
-                      <div style={{ padding: '6px 8px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '6px', fontSize: '0.7rem', textAlign: 'center' }}>
+                      </ClickBox>
+                      <ClickBox explainKey="tier4-vm3" style={{ padding: '6px 8px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '6px', fontSize: '0.7rem', textAlign: 'center' }}>
                         VM 3 (Observer)
-                      </div>
-                      <div style={{ padding: '6px 8px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '6px', fontSize: '0.7rem', textAlign: 'center' }}>
+                      </ClickBox>
+                      <ClickBox explainKey="tier4-vm4" style={{ padding: '6px 8px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '6px', fontSize: '0.7rem', textAlign: 'center' }}>
                         VM 4 (Attacker)
-                      </div>
+                      </ClickBox>
                     </div>
-                    <div style={{ padding: '6px 10px', background: 'var(--bg-card)', border: '1px dashed var(--border-blueprint)', borderRadius: '6px', fontSize: '0.7rem', color: 'var(--accent-cyan)', textAlign: 'center' }}>
-                      Live Attack Injection: PSK Harvest • IKE Flood • Replay • SNDL
-                    </div>
+                    <ClickBox explainKey="tier4-attacks" style={{ padding: '6px 10px', background: 'var(--bg-card)', border: '1px dashed var(--border-blueprint)', borderRadius: '6px', fontSize: '0.7rem', color: 'var(--accent-cyan)', textAlign: 'center' }}>
+                      Live Attack Injection: PSK Harvest • IKE Flood • Replay • SNDL (Inspect ↗)
+                    </ClickBox>
                   </div>
 
                   {/* TIER 5: DATA / PERSISTENCE */}
@@ -539,23 +1031,35 @@ export default function ArchitectureTab() {
                       <span style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-tertiary)', color: 'var(--text-tertiary)' }}>Dual Storage</span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                      <div style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.72rem' }}>
-                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Repository Layer</div>
+                      <ClickBox explainKey="tier5-repo" style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.72rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Repository Layer</span>
+                          <span className="arch-click-cue">Inspect ↗</span>
+                        </div>
                         <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>AnalysisJobRepository</div>
-                      </div>
-                      <div style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.72rem' }}>
-                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Storage Service</div>
+                      </ClickBox>
+                      <ClickBox explainKey="tier5-storage" style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.72rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Storage Service</span>
+                          <span className="arch-click-cue">Inspect ↗</span>
+                        </div>
                         <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>PCAP &amp; Report Blob</div>
+                      </ClickBox>
+                    </div>
+                    <ClickBox explainKey="tier5-supabase" style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.72rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Supabase PostgreSQL (Cloud)</span>
+                        <span className="arch-click-cue">Inspect ↗</span>
                       </div>
-                    </div>
-                    <div style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', fontSize: '0.72rem' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Supabase PostgreSQL (Cloud)</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Row-Level Security (RLS) &amp; Relational Queries</div>
-                    </div>
-                    <div style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px dashed var(--border-subtle)', borderRadius: '8px', fontSize: '0.72rem' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Local File &amp; SQLite Fallback</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Offline Air-Gapped Operation</div>
-                    </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px' }}>Row-Level Security (RLS) &amp; Relational Queries</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier5-sqlite" style={{ padding: '8px 10px', background: 'var(--bg-card)', border: '1px dashed var(--border-subtle)', borderRadius: '8px', fontSize: '0.72rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Local File &amp; SQLite Fallback</span>
+                        <span className="arch-click-cue">Inspect ↗</span>
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px' }}>Offline Air-Gapped Operation</div>
+                    </ClickBox>
                   </div>
 
                 </div>
@@ -576,52 +1080,67 @@ export default function ArchitectureTab() {
 
                   {/* Flow Stages */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px' }}>
-                    <div style={{ padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>01. INGESTION</div>
+                    <ClickBox explainKey="tier6-ingestion" style={{ padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>01. INGESTION</span>
+                        <span className="arch-click-cue">Inspect ↗</span>
+                      </div>
                       <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>PCAP / Config Input</div>
                       <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px' }}>TShark / Scapy + Multi-Vendor Lexer</div>
-                    </div>
-                    <div style={{ padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>02. PROTOCOL ENGINE</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier6-protocol-engine" style={{ padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>02. PROTOCOL ENGINE</span>
+                        <span className="arch-click-cue">Inspect ↗</span>
+                      </div>
                       <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>IKE / ESP Dissection</div>
                       <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px' }}>RFC 4303 Arithmetic Elimination</div>
-                    </div>
-                    <div style={{ padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>03. ML &amp; ANOMALY</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier6-ml-anomaly" style={{ padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>03. ML &amp; ANOMALY</span>
+                        <span className="arch-click-cue">Inspect ↗</span>
+                      </div>
                       <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>28-Feature XGBoost</div>
                       <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px' }}>IsolationForest Anomaly Detector</div>
-                    </div>
-                    <div style={{ padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>04. PROVENANCE &amp; POLICY</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier6-provenance" style={{ padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.65rem', color: 'var(--accent-cyan)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>04. PROVENANCE &amp; POLICY</span>
+                        <span className="arch-click-cue">Inspect ↗</span>
+                      </div>
                       <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>Context Policy Engine</div>
                       <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px' }}>4-Tier Provenance Tagging</div>
-                    </div>
+                    </ClickBox>
                   </div>
 
                   {/* Backend Security Assessment Submodules */}
                   <div style={{ padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '10px' }}>
-                    <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '8px' }}>
-                      SECURITY ASSESSMENT SUBMODULES
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontWeight: 700 }}>
+                        SECURITY ASSESSMENT SUBMODULES
+                      </span>
+                      <span className="arch-click-cue">Click any badge to inspect ↗</span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', fontSize: '0.72rem' }}>
-                      <div style={{ padding: '6px 8px', background: 'var(--bg-tertiary)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
+                      <ClickBox explainKey="tier6-risk" style={{ padding: '6px 8px', background: 'var(--bg-tertiary)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
                         📈 Risk Calculator
-                      </div>
-                      <div style={{ padding: '6px 8px', background: 'var(--bg-tertiary)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
+                      </ClickBox>
+                      <ClickBox explainKey="tier6-recommendations" style={{ padding: '6px 8px', background: 'var(--bg-tertiary)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
                         💡 Recommendation Engine
-                      </div>
-                      <div style={{ padding: '6px 8px', background: 'var(--bg-tertiary)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
+                      </ClickBox>
+                      <ClickBox explainKey="tier6-drift" style={{ padding: '6px 8px', background: 'var(--bg-tertiary)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
                         📉 Drift &amp; Downgrade
-                      </div>
-                      <div style={{ padding: '6px 8px', background: 'var(--bg-tertiary)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
+                      </ClickBox>
+                      <ClickBox explainKey="tier6-pqc" style={{ padding: '6px 8px', background: 'var(--bg-tertiary)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
                         ⚛️ Post-Quantum (PQC)
-                      </div>
-                      <div style={{ padding: '6px 8px', background: 'var(--bg-tertiary)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
+                      </ClickBox>
+                      <ClickBox explainKey="tier6-metadata" style={{ padding: '6px 8px', background: 'var(--bg-tertiary)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
                         👁️ Metadata Exposure
-                      </div>
-                      <div style={{ padding: '6px 8px', background: 'var(--bg-tertiary)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
+                      </ClickBox>
+                      <ClickBox explainKey="tier6-seal" style={{ padding: '6px 8px', background: 'var(--bg-tertiary)', borderRadius: '6px', color: 'var(--text-secondary)' }}>
                         🔏 Ed25519 Merkle Seal
-                      </div>
+                      </ClickBox>
                     </div>
                   </div>
                 </div>
@@ -635,18 +1154,22 @@ export default function ArchitectureTab() {
                     <span style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-tertiary)', color: 'var(--text-tertiary)' }}>Returned to Frontend</span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
-                    <div style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      📑 Analysis Results &amp; Findings
-                    </div>
-                    <div style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      🎯 100-Point Security Scorecard
-                    </div>
-                    <div style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      🔧 Hardened Remediation Diffs
-                    </div>
-                    <div style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      📄 Executive PDF &amp; HTML Reports
-                    </div>
+                    <ClickBox explainKey="tier7-results" style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>📑 Analysis Results &amp; Findings</div>
+                      <div className="arch-click-cue" style={{ marginTop: '4px' }}>Inspect ↗</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier7-scorecard" style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>🎯 100-Point Security Scorecard</div>
+                      <div className="arch-click-cue" style={{ marginTop: '4px' }}>Inspect ↗</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier7-diffs" style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>🔧 Hardened Remediation Diffs</div>
+                      <div className="arch-click-cue" style={{ marginTop: '4px' }}>Inspect ↗</div>
+                    </ClickBox>
+                    <ClickBox explainKey="tier7-reports" style={{ padding: '10px 14px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', textAlign: 'center', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div>📄 Executive PDF &amp; HTML Reports</div>
+                      <div className="arch-click-cue" style={{ marginTop: '4px' }}>Inspect ↗</div>
+                    </ClickBox>
                   </div>
                 </div>
 
@@ -685,20 +1208,20 @@ export default function ArchitectureTab() {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
                   <span style={{ padding: '4px 10px', borderRadius: '6px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)', fontWeight: 600 }}>
-                    12 Core Codebase Modules
+                    12 Core Codebase Modules • Click Any Card
                   </span>
                 </div>
               </div>
 
               <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-                The Low-Level Architecture (LLA) documents the concrete source modules, key exported functions, mathematical formulations, computational complexities, and the sequential function call graph executing across the PrivComm repository.
+                The Low-Level Architecture (LLA) documents the concrete source modules, key exported functions, mathematical formulations, computational complexities, and the sequential function call graph executing across the PrivComm repository. <strong>Click any module or step below for a simple, zero-jargon explanation!</strong>
               </p>
 
-              {/* Grid of LLA Module Cards */}
+              {/* Grid of LLA Module Cards (All Clickable with Plain-English Popups) */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '16px' }}>
                 
                 {/* 1. pcap_decoder.py */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="lla-pcap-decoder" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', borderRadius: '8px', background: 'var(--accent-cyan-dim)', color: 'var(--accent-cyan)' }}>
@@ -709,7 +1232,7 @@ export default function ArchitectureTab() {
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>analyzer/pcap_decoder.py</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)' }}>Python 3.11</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div>
@@ -724,10 +1247,10 @@ export default function ArchitectureTab() {
                       <div>• Memory Footprint: <span style={{ color: 'var(--text-primary)' }}>Bounded generator with buffer recycling</span></div>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 2. rfc4303.py */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="lla-rfc4303" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', borderRadius: '8px', background: 'var(--accent-blue-dim)', color: 'var(--accent-blue)' }}>
@@ -738,12 +1261,12 @@ export default function ArchitectureTab() {
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>analyzer/rfc4303.py</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)' }}>Python 3.11</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div>
                       <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Main Function: </span>
-                      <code style={{ padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-secondary)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-blue)' }}>eliminate_ciphers_by_padding()</code>
+                      <code style={{ padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-secondary)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-blue)' }}>eliminate_impossible_ciphers(packets)</code>
                     </div>
                     <p style={{ margin: 0, fontSize: '0.75rem', lineHeight: 1.5 }}>
                       Arithmetic block alignment cipher candidate elimination without decryption by computing ESP payload modulo alignments against known block sizes.
@@ -753,10 +1276,10 @@ export default function ArchitectureTab() {
                       <div>• Output: <span style={{ color: 'var(--text-primary)' }}>Pruned cipher compatibility candidate matrix</span></div>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 3. vendor_config_parser.py */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="lla-vendor-config" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', borderRadius: '8px', background: 'var(--accent-cyan-dim)', color: 'var(--accent-cyan)' }}>
@@ -767,7 +1290,7 @@ export default function ArchitectureTab() {
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>analyzer/vendor_config_parser.py</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)' }}>Python 3.11</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div>
@@ -782,10 +1305,10 @@ export default function ArchitectureTab() {
                       <div>• Synthesis: <span style={{ color: 'var(--text-primary)' }}>Generates 1-click hardened compliant diff playbooks</span></div>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 4. flow_extractor.py */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="lla-flow-extractor" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', borderRadius: '8px', background: 'var(--accent-blue-dim)', color: 'var(--accent-blue)' }}>
@@ -796,7 +1319,7 @@ export default function ArchitectureTab() {
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>analyzer/flow_extractor.py</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)' }}>Python 3.11</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div>
@@ -811,10 +1334,10 @@ export default function ArchitectureTab() {
                       <div>• Normalization: <span style={{ color: 'var(--text-primary)' }}>Zero-payload privacy preserving computation</span></div>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 5. xgboost_adapter.py */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="lla-xgboost" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', borderRadius: '8px', background: 'var(--accent-cyan-dim)', color: 'var(--accent-cyan)' }}>
@@ -825,7 +1348,7 @@ export default function ArchitectureTab() {
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>ml/xgboost_adapter.py</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)' }}>Python 3.11</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div>
@@ -840,10 +1363,10 @@ export default function ArchitectureTab() {
                       <div>• Output: <span style={{ color: 'var(--text-primary)' }}>Predicted class, confidence &amp; softmax vector</span></div>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 6. anomaly/service.py */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="lla-anomaly-service" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', borderRadius: '8px', background: 'var(--accent-blue-dim)', color: 'var(--accent-blue)' }}>
@@ -854,12 +1377,12 @@ export default function ArchitectureTab() {
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>anomaly/service.py</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)' }}>Python 3.11</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div>
                       <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Main Function: </span>
-                      <code style={{ padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-secondary)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-blue)' }}>detect_anomalies(features, baseline)</code>
+                      <code style={{ padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-secondary)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-blue)' }}>predict_sample() / analyze_pcap_windows()</code>
                     </div>
                     <p style={{ margin: 0, fontSize: '0.75rem', lineHeight: 1.5 }}>
                       Unsupervised IsolationForest isolation trees combined with rolling Z-score detectors to identify packet replay attacks, high-entropy exfiltration, and tunnel jitter.
@@ -869,10 +1392,10 @@ export default function ArchitectureTab() {
                       <div>• Output: <span style={{ color: 'var(--text-primary)' }}>Anomaly score [-1.0 to 1.0] + severity rating</span></div>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 7. metadata_exposure.py */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="lla-metadata" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', borderRadius: '8px', background: 'var(--accent-cyan-dim)', color: 'var(--accent-cyan)' }}>
@@ -883,7 +1406,7 @@ export default function ArchitectureTab() {
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>analyzer/metadata_exposure.py</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)' }}>Python 3.11</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div>
@@ -898,10 +1421,10 @@ export default function ArchitectureTab() {
                       <div>• Score Output: <span style={{ color: 'var(--text-primary)' }}>Exposure Index (0-100) + privacy leakage report</span></div>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 8. policy_engine.py & pqc_assessor.py */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="lla-policy-pqc" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', borderRadius: '8px', background: 'var(--accent-blue-dim)', color: 'var(--accent-blue)' }}>
@@ -912,12 +1435,12 @@ export default function ArchitectureTab() {
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>security/policy_engine.py</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)' }}>Python 3.11</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div>
                       <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Main Function: </span>
-                      <code style={{ padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-secondary)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-blue)' }}>evaluate_compliance_and_pqc()</code>
+                      <code style={{ padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-secondary)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-blue)' }}>evaluate_ipsec_security() / assess_pqc_readiness()</code>
                     </div>
                     <p style={{ margin: 0, fontSize: '0.75rem', lineHeight: 1.5 }}>
                       Deterministic rule engine evaluating NIST SP 800-77 Rev 1, FIPS 140-3, and Mosca theorem inequality (X + Y &gt; Z) against Harvest Now Decrypt Later (HNDL) quantum threats.
@@ -927,10 +1450,10 @@ export default function ArchitectureTab() {
                       <div>• Hybrid Checks: <span style={{ color: 'var(--text-primary)' }}>RFC 9370 Multiple KE &amp; RFC 8784 PPK support</span></div>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 9. seal/signer.py & seal/merkle.py */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="lla-signer-merkle" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', borderRadius: '8px', background: 'var(--accent-cyan-dim)', color: 'var(--accent-cyan)' }}>
@@ -941,12 +1464,12 @@ export default function ArchitectureTab() {
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>seal/signer.py &amp; seal/merkle.py</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)' }}>Python 3.11</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div>
                       <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Main Function: </span>
-                      <code style={{ padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-secondary)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-cyan)' }}>generate_merkle_audit_seal()</code>
+                      <code style={{ padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-secondary)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-cyan)' }}>create_audit_seal() / Ed25519Signer.sign()</code>
                     </div>
                     <p style={{ margin: 0, fontSize: '0.75rem', lineHeight: 1.5 }}>
                       Pure-Python RFC 8032 Ed25519 digital signature engine over twisted Edwards curve -x^2 + y^2 = 1 - (121665/121666)x^2y^2 (mod 2^255 - 19) coupled with a binary Merkle audit tree.
@@ -956,10 +1479,10 @@ export default function ArchitectureTab() {
                       <div>• Verification: <span style={{ color: 'var(--text-primary)' }}>O(log N) membership proof generation</span></div>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 10. testbed/orchestrator.py */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="lla-testbed" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', borderRadius: '8px', background: 'var(--accent-blue-dim)', color: 'var(--accent-blue)' }}>
@@ -970,7 +1493,7 @@ export default function ArchitectureTab() {
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>services/testbed/orchestrator.py</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)' }}>Python 3.11</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div>
@@ -985,10 +1508,10 @@ export default function ArchitectureTab() {
                       <div>• Scenarios: <span style={{ color: 'var(--text-primary)' }}>NIST Compliant, Aggressive PSK, Weak 3DES, IKE Flooding</span></div>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 11. crypto_bom.py */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="lla-crypto-bom" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', borderRadius: '8px', background: 'var(--accent-cyan-dim)', color: 'var(--accent-cyan)' }}>
@@ -999,7 +1522,7 @@ export default function ArchitectureTab() {
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>reports/crypto_bom.py</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)' }}>Python 3.11</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div>
@@ -1014,10 +1537,10 @@ export default function ArchitectureTab() {
                       <div>• Output: <span style={{ color: 'var(--text-primary)' }}>Cryptographic asset inventory JSON &amp; verification hash</span></div>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 12. db/repository.py & supabase_client.py */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="lla-db-repo" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ padding: '6px', borderRadius: '8px', background: 'var(--accent-blue-dim)', color: 'var(--accent-blue)' }}>
@@ -1028,12 +1551,12 @@ export default function ArchitectureTab() {
                         <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>db/repository.py</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--accent-cyan)' }}>Python 3.11</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div>
                       <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Main Function: </span>
-                      <code style={{ padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-secondary)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-blue)' }}>AnalysisJobRepository.save_job()</code>
+                      <code style={{ padding: '2px 6px', borderRadius: '4px', background: 'var(--bg-secondary)', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent-blue)' }}>AnalysisJobRepository.save_analysis()</code>
                     </div>
                     <p style={{ margin: 0, fontSize: '0.75rem', lineHeight: 1.5 }}>
                       Abstraction layer orchestrating dual-mode persistence with Supabase PostgreSQL cloud syncing, SQLite local transactions, and signed audit history.
@@ -1043,7 +1566,7 @@ export default function ArchitectureTab() {
                       <div>• Security: <span style={{ color: 'var(--text-primary)' }}>Postgres Row-Level Security (RLS) policies</span></div>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
               </div>
 
@@ -1060,133 +1583,157 @@ export default function ArchitectureTab() {
                   boxShadow: 'var(--shadow-sm)'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ padding: '8px', borderRadius: '8px', background: 'var(--accent-cyan-dim)', color: 'var(--accent-cyan)' }}>
-                    <Workflow size={18} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ padding: '8px', borderRadius: '8px', background: 'var(--accent-cyan-dim)', color: 'var(--accent-cyan)' }}>
+                      <Workflow size={18} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                        Runtime Execution Pipeline &amp; Function Call Graph
+                      </h3>
+                      <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', margin: 0 }}>
+                        Sequential control flow: Client Upload ➔ Feature Extraction ➔ Cryptographic Verification ➔ Signed Output
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                      Runtime Execution Pipeline &amp; Function Call Graph
-                    </h3>
-                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', margin: 0 }}>
-                      Sequential control flow: Client Upload ➔ Feature Extraction ➔ Cryptographic Verification ➔ Signed Output
-                    </p>
-                  </div>
+                  <span className="arch-click-cue">Click any step to inspect ↗</span>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '6px' }}>
                   
                   {/* Step 1 */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <ClickBox explainKey="step-1" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ width: '26px', height: '26px', borderRadius: '6px', background: 'var(--accent-cyan)', color: '#030712', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       1
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-primary)' }}>Ingestion &amp; Binary Frame Decoding</span>
-                        <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>pcap_decoder.py / vendor_config_parser.py</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>pcap_decoder.py / vendor_config_parser.py</span>
+                          <span className="arch-click-cue">Inspect ↗</span>
+                        </div>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                         <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>decode_pcap_in_memory()</code> streams Ethernet frames, decodes IPv4/IPv6 packet headers, and isolates UDP ports 500/4500 and ESP packets.
                       </div>
                     </div>
-                  </div>
+                  </ClickBox>
 
                   {/* Step 2 */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <ClickBox explainKey="step-2" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ width: '26px', height: '26px', borderRadius: '6px', background: 'var(--accent-blue)', color: '#ffffff', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       2
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-primary)' }}>IKE/ESP Protocol Dissection &amp; RFC 4303 Alignment</span>
-                        <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-blue)' }}>ike_parser.py + rfc4303.py</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-blue)' }}>ike_parser.py + rfc4303.py</span>
+                          <span className="arch-click-cue">Inspect ↗</span>
+                        </div>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                        <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-blue)' }}>parse_ike_payloads()</code> parses Security Association transforms; <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-blue)' }}>eliminate_ciphers_by_padding()</code> eliminates cipher candidates via block alignment math.
+                        <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-blue)' }}>parse_ike_payloads()</code> parses Security Association transforms; <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-blue)' }}>eliminate_impossible_ciphers()</code> eliminates cipher candidates via block alignment math.
                       </div>
                     </div>
-                  </div>
+                  </ClickBox>
 
                   {/* Step 3 */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <ClickBox explainKey="step-3" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ width: '26px', height: '26px', borderRadius: '6px', background: 'var(--status-success)', color: '#030712', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       3
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-primary)' }}>Statistical Feature Extraction (28 Dimensions)</span>
-                        <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--status-success)' }}>flow_extractor.py</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--status-success)' }}>flow_extractor.py</span>
+                          <span className="arch-click-cue">Inspect ↗</span>
+                        </div>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                         <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--status-success)' }}>extract_flow_features()</code> calculates forward/backward inter-arrival times, burst rates, packet lengths, and flow durations without decrypting data.
                       </div>
                     </div>
-                  </div>
+                  </ClickBox>
 
                   {/* Step 4 */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <ClickBox explainKey="step-4" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ width: '26px', height: '26px', borderRadius: '6px', background: 'var(--status-warning)', color: '#030712', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       4
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-primary)' }}>ML Classification &amp; Behavioral Anomaly Detection</span>
-                        <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--status-warning)' }}>xgboost_adapter.py + service.py</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--status-warning)' }}>xgboost_adapter.py + service.py</span>
+                          <span className="arch-click-cue">Inspect ↗</span>
+                        </div>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                        <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--status-warning)' }}>XGBoostAdapter.predict()</code> outputs 14-class probability distribution; <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--status-warning)' }}>AnomalyService.predict()</code> detects behavioral outliers.
+                        <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--status-warning)' }}>predict_traffic_class()</code> outputs 14-class probability distribution; <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--status-warning)' }}>predict_sample() / analyze_pcap_windows()</code> detects behavioral outliers.
                       </div>
                     </div>
-                  </div>
+                  </ClickBox>
 
                   {/* Step 5 */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <ClickBox explainKey="step-5" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ width: '26px', height: '26px', borderRadius: '6px', background: '#818cf8', color: '#ffffff', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       5
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-primary)' }}>Security Policy, Drift &amp; Post-Quantum Assessment</span>
-                        <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#818cf8' }}>policy_engine.py + pqc_assessor.py</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#818cf8' }}>policy_engine.py + pqc_assessor.py</span>
+                          <span className="arch-click-cue">Inspect ↗</span>
+                        </div>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                        <code style={{ fontFamily: 'var(--font-mono)', color: '#818cf8' }}>SecurityPolicyEngine.evaluate()</code> audits NIST SP 800-77 rules, configuration drift, and Mosca theorem quantum shelf-life risks.
+                        <code style={{ fontFamily: 'var(--font-mono)', color: '#818cf8' }}>evaluate_ipsec_security()</code> audits NIST SP 800-77 rules, configuration drift, and <code style={{ fontFamily: 'var(--font-mono)', color: '#818cf8' }}>assess_pqc_readiness()</code> assesses Mosca theorem quantum shelf-life risks.
                       </div>
                     </div>
-                  </div>
+                  </ClickBox>
 
                   {/* Step 6 */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <ClickBox explainKey="step-6" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ width: '26px', height: '26px', borderRadius: '6px', background: '#f43f5e', color: '#ffffff', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       6
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-primary)' }}>RFC 8032 Ed25519 Signature &amp; Merkle Seal</span>
-                        <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#f43f5e' }}>signer.py + merkle.py</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#f43f5e' }}>signer.py + merkle.py</span>
+                          <span className="arch-click-cue">Inspect ↗</span>
+                        </div>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                        <code style={{ fontFamily: 'var(--font-mono)', color: '#f43f5e' }}>generate_merkle_audit_seal()</code> generates a SHA-256 Merkle root over analysis claims and signs it with an Ed25519 private key.
+                        <code style={{ fontFamily: 'var(--font-mono)', color: '#f43f5e' }}>create_audit_seal()</code> generates a SHA-256 Merkle root over analysis claims and signs it with an Ed25519 private key.
                       </div>
                     </div>
-                  </div>
+                  </ClickBox>
 
                   {/* Step 7 */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                  <ClickBox explainKey="step-7" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ width: '26px', height: '26px', borderRadius: '6px', background: 'var(--accent-cyan)', color: '#030712', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       7
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-primary)' }}>Persistence, Remediation Diff &amp; Report Synthesis</span>
-                        <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>repository.py + report_generator.py</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>repository.py + report_generator.py</span>
+                          <span className="arch-click-cue">Inspect ↗</span>
+                        </div>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                        <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>AnalysisJobRepository.save_job()</code> writes records to PostgreSQL/SQLite; outputs executive HTML/PDF reports and CBOM inventory.
+                        <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>AnalysisJobRepository.save_analysis()</code> writes records to PostgreSQL/SQLite; outputs executive HTML/PDF reports and CBOM inventory.
                       </div>
                     </div>
-                  </div>
+                  </ClickBox>
 
                 </div>
               </div>
@@ -1224,26 +1771,26 @@ export default function ArchitectureTab() {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
                   <span style={{ padding: '4px 10px', borderRadius: '6px', background: 'var(--status-success-dim)', border: '1px solid var(--status-success-border)', color: 'var(--status-success)', fontWeight: 600 }}>
-                    PostgreSQL 16 / SQLite Hybrid
+                    PostgreSQL 16 / SQLite Hybrid • Click Any Table
                   </span>
                 </div>
               </div>
 
               <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-                PrivComm persistence is designed with <strong>defense-in-depth isolation</strong>. All analysis records, flow features, security assessments, audit seals, and CBOM inventories are stored with strict UUID primary keys, cryptographic verification hashes, and Row-Level Security (RLS) policies.
+                PrivComm persistence is designed with <strong>defense-in-depth isolation</strong>. All analysis records, flow features, security assessments, audit seals, and CBOM inventories are stored with strict UUID primary keys, cryptographic verification hashes, and Row-Level Security (RLS) policies. <strong>Click any table card to understand its purpose in simple words!</strong>
               </p>
 
-              {/* Grid of Database Tables */}
+              {/* Grid of Database Tables (All Clickable with Plain-English Popups) */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
                 
                 {/* 1. analysis_jobs table */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="db-analysis-jobs" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Table size={16} style={{ color: 'var(--accent-cyan)' }} />
                       <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)' }}>analysis_jobs</span>
                     </div>
-                    <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>AnalysisJobModel</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -1267,16 +1814,16 @@ export default function ArchitectureTab() {
                       <span style={{ color: 'var(--text-muted)' }}>TIMESTAMPTZ</span>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 2. security_assessments table */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="db-security-assessments" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Table size={16} style={{ color: 'var(--accent-blue)' }} />
                       <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)' }}>security_assessments</span>
                     </div>
-                    <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>SecurityAssessmentModel</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -1300,16 +1847,16 @@ export default function ArchitectureTab() {
                       <span style={{ color: 'var(--text-muted)' }}>JSONB</span>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 3. audit_seals table */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="db-audit-seals" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Table size={16} style={{ color: '#f43f5e' }} />
                       <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)' }}>audit_seals</span>
                     </div>
-                    <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>AuditSealModel</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -1333,16 +1880,16 @@ export default function ArchitectureTab() {
                       <span style={{ color: 'var(--text-muted)' }}>CHAR(64)</span>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
                 {/* 4. cbom_inventory table */}
-                <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ClickBox explainKey="db-cbom" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Table size={16} style={{ color: 'var(--status-success)' }} />
                       <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)' }}>cbom_inventory</span>
                     </div>
-                    <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>CBOMRecordModel</span>
+                    <span className="arch-card-click-pill">Inspect ↗</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -1366,7 +1913,7 @@ export default function ArchitectureTab() {
                       <span style={{ color: 'var(--text-muted)' }}>BOOLEAN</span>
                     </div>
                   </div>
-                </div>
+                </ClickBox>
 
               </div>
             </section>
@@ -1374,6 +1921,13 @@ export default function ArchitectureTab() {
           </main>
         </div>
       </div>
+
+      {/* Interactive Plain-English Popup Modal */}
+      <ExplanationModal
+        item={activeItem}
+        onClose={closeExplain}
+      />
+
     </div>
   );
 }

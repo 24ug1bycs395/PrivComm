@@ -75,47 +75,83 @@ The framework produces comprehensive assessment outputs:
 
 ## System Architecture
 
-The application accepts PCAP/PCAPNG network traces (captured via Wireshark, TCP-dump, or custom capture utilities) through FastAPI, extracts observable IKE, ESP, AH, IP, and flow information, classifies encrypted traffic with the trained XGBoost AI classification engine, evaluates the result against the editable security policy, and exposes JSON and HTML reports to the React frontend.
+The application accepts PCAP/PCAPNG network traces (captured via Wireshark, TCP-dump, or custom capture utilities), live network streams, or static firewall configurations (Cisco, Fortinet, pfSense, Libreswan, strongSwan) through FastAPI, extracts observable IKE, ESP, AH, IP, and flow information without payload decryption, evaluates RFC 4303 arithmetic block cipher elimination, classifies encrypted traffic with the trained XGBoost AI classification engine, checks behavioral anomalies using IsolationForest rolling windows, evaluates security posture against NIST SP 800-77 / FIPS 140-3 policies and Mosca post-quantum readiness, creates RFC 8032 Ed25519 Merkle tree audit proofs, generates CycloneDX CBOMs, and exposes JSON, HTML, PDF, and interactive React telemetry to engineers and security reviewers.
 
 ```text
-Wireshark / TCP-dump PCAP or Live Network Stream
-                      |
-                      v
-        TShark / Scapy Packet Ingestion
-                      |
-                      v
-  IKE / ESP Parser & Flow Feature Extraction
-                      |
-        +-------------+-------------+
-        |                           |
-        v                           v
-AI Classification Engine     Security Policy Engine
-(Predicts ESP Traffic)      (Cryptographic Strength & Compliance)
-        |                           |
-        +-------------+-------------+
-                      v
-             Report Generator
-                      |
-       Executive & Technical Reports
-  (Security Score, Risk Score, Threat Matrix, AI Confidence)
-                      |
-                      v
-          React Interactive Dashboard
+               +-----------------------------------------------------------+
+               |        Network Capture (PCAP/PCAPNG) / Live Stream        |
+               |        or Firewall Configurations (Cisco/Fortinet/pfSense)|
+               +-----------------------------+-----------------------------+
+                                             |
+                                             v
+               +-----------------------------------------------------------+
+               |                 Packet Ingestion & Parsing                |
+               |    - TShark Dissector / Scapy Engine / Binary Decoder     |
+               |    - Vendor Config AST Lexer (Cisco, Fortinet, pfSense)   |
+               |    - SHA-256 Capture Integrity Digest                     |
+               +-----------------------------+-----------------------------+
+                                             |
+                                             v
+               +-----------------------------------------------------------+
+               |              Zero-Payload Protocol Dissection             |
+               |    - IKEv1 / IKEv2 Handshake & Transform Extraction       |
+               |    - Operational Mode Inference (Tunnel vs Transport)     |
+               |    - RFC 4303 Block Alignment Cipher Elimination          |
+               |    - Observable Metadata Exposure & Leakage Scoring       |
+               +-----------------------------+-----------------------------+
+                                             |
+                      +----------------------+----------------------+
+                      |                                             |
+                      v                                             v
+        +---------------------------+                 +---------------------------+
+        |   AI & Anomaly Analysis   |                 |    Security Evaluation    |
+        | • Flow Extractor (28 dims)|                 | • NIST SP 800-77 Rev 1    |
+        | • XGBoost Flow Classifier |                 | • FIPS 140-3 Cryptography |
+        |   (14 application classes)|                 | • Mosca PQC (X + Y > Z)   |
+        | • IsolationForest Anomaly |                 | • Baseline Drift Tracking |
+        |   (rolling window scores) |                 | • 3x3 Threat Risk Matrix  |
+        +-------------+-------------+                 +-------------+-------------+
+                      |                                             |
+                      +----------------------+----------------------+
+                                             |
+                                             v
+               +-----------------------------------------------------------+
+               |                 Report & Attestation Engine               |
+               |    - 100-Point Security Scorecard & Risk Findings         |
+               |    - CycloneDX Cryptographic Bill of Materials (CBOM)     |
+               |    - RFC 8032 Ed25519 Merkle Tree Audit Proofs            |
+               |    - Automated 1-Click Hardened Remediation CLI Diffs     |
+               |    - Executive HTML & High-Fidelity PDF Generation        |
+               +-----------------------------+-----------------------------+
+                                             |
+                      +----------------------+----------------------+
+                      |                                             |
+                      v                                             v
+        +---------------------------+                 +---------------------------+
+        |  Persistence & History    |                 |   Analyst Presentation   |
+        | • Supabase PostgreSQL     |                 | • React 19 / Vite UI      |
+        |   (RLS & Cloud Vault)     |                 | • REST API Endpoints      |
+        | • Local SQLite / JSON     |                 | • AI Sentinel Assistant   |
+        | • Blob / Storage Service  |                 | • Testbed Remote Control  |
+        +---------------------------+                 +---------------------------+
 ```
 
-TShark is preferred for structured dissection when available, while Scapy provides packet-level fallback and protocol inspection. Encrypted IKE_AUTH and ESP contents remain explicitly protected under the zero-payload inspection model.
+TShark is preferred for structured dissection when available, while Scapy and `analyzer.pcap_decoder` provide packet-level fallback and protocol inspection. Encrypted IKE_AUTH and ESP contents remain explicitly protected under the zero-payload inspection model: no payloads are decrypted, and cipher properties are inferred through negotiation proposals, RFC 4303 block length modulo arithmetic, and statistical flow dynamics.
 
 ---
 
 ## Module Reference
 
-- `analyzer/`: Ingests Wireshark/TCP-dump captures and normalizes IKE, ESP, AH, IP, endpoint, mode (Tunnel vs Transport), and flow observations. Primary input is a PCAP path and output is a structured ingest result containing `ipsec` configuration and flow features.
-- `security/`: Evaluates policy compliance, finding definitions, risk scoring, recommendations, explainability, replay protection, and post-quantum readiness checks. Consumes normalized IPsec configurations and ML predictions to emit findings, recommendations, comprehensive security scores, and 3x3 threat matrices.
-- `ml/`: Loads the trained XGBoost AI classification model and aligns extracted flow features with the 28-column schema. Accepts flow feature dictionaries and returns predicted traffic classes (VoIP, WhatsApp, E-mail, Web-browsing, Video streaming, etc.), AI Confidence Scores, and class probabilities.
-- `reports/`: Combines protocol, AI inference, and security outputs into unified JSON Technical Reports and standalone Executive HTML Reports.
-- `services/testbed/`: Manages VPN Testbed Generation, scenario definitions, strongSwan configuration generation, VM orchestration, multi-configuration traffic injection (Tunnel/Transport mode, AES-128/256/GCM, DH groups, PFS, IPv4/IPv6), packet capture retrieval, and asynchronous job execution.
-- `routers/`: Defines the FastAPI HTTP boundary. `protocol.py` handles PCAP uploads, sample analysis, report generation, history, and AI assistant queries. `testbed.py` exposes scenario execution, capture retrieval, and live job status.
-- `db/`: Persistence abstraction for analysis jobs, testbed sessions, and stored PCAP/report artifacts.
+- `analyzer/`: Ingests Wireshark/TCP-dump captures, parses raw frames with pure-binary decoders, evaluates RFC 4303 arithmetic cipher elimination, extracts 28 statistical flow features, quantifies metadata exposure, and parses vendor configs (Cisco, Fortinet, pfSense, Libreswan, strongSwan) with automated remediation diff generation.
+- `anomaly/`: Executes behavioral anomaly detection on encrypted flows via IsolationForest and rolling time-window scoring against learned baseline metrics (median, IQR) for 32 features.
+- `security/`: Evaluates policy compliance against NIST SP 800-77 and FIPS 140-3, risk scoring, recommendations, explainability, baseline drift tracking, Mosca theorem post-quantum readiness checks, and LLM-assisted explanations.
+- `ml/`: Loads the trained XGBoost AI classification model and aligns extracted flow features with the 28-column schema to predict 14 application traffic classes with calibrated AI Confidence Scores.
+- `seal/`: Implements cryptographic audit seals via RFC 8032 Ed25519 digital signatures and SHA-256 Merkle tree verification proofs.
+- `probe/`: Active IKE handshake scanner with strict operator consent validation and CIDR/IP allowlist filtering.
+- `reports/`: Combines protocol, AI inference, and security outputs into unified JSON Technical Reports, standalone Executive HTML Reports, PDF downloads, and CycloneDX CBOMs (`privcomm.cbom.v1`).
+- `services/testbed/`: Manages automated strongSwan testbeds across a 4-node topology (Initiator, Responder, Observer, Attacker), scenario generation, traffic injection, live PCAP retrieval, and safe control-plane attack simulations.
+- `routers/`: FastAPI HTTP boundary: protocol analysis (`protocol.py`), strongSwan testbed operations (`testbed.py`), and audit attestation seals (`seal.py`).
+- `db/`: Dual-mode persistence abstraction supporting Supabase PostgreSQL with Row-Level Security (RLS) and local SQLite/JSON databases.
 
 ---
 
@@ -175,21 +211,50 @@ Findings are weighted (`HIGH=30`, `MEDIUM=15`, `LOW=5`), contributing to the Ris
 
 ## REST API Reference
 
-Protocol routes in `routers/protocol.py`:
+### Protocol & Ingestion Routes (`routers/protocol.py`)
 | Method | Path | Description & PS Output | Request / Response Shape |
 |---|---|---|---|
-| POST | `/analyze/protocol` | Analyze uploaded Wireshark/TCP-dump PCAP. | Multipart `pcap_file`; `ProtocolAnalysisResult`. |
+| POST | `/analyze/protocol` | Analyze uploaded Wireshark/TCP-dump PCAP with optional baseline tracking. | Multipart `pcap_file`, queries `tunnel_id`, `record_baseline`; `ProtocolAnalysisResult`. |
 | GET | `/analyze/sample` | Analyze bundled compliant IPsec capture. | No body; `ProtocolAnalysisResult`. |
 | GET | `/analyze/sample-weak` | Analyze simulated legacy weak IPsec capture. | No body; `ProtocolAnalysisResult`. |
+| POST | `/analyze/vendor-config` | Parse raw firewall configuration text (Cisco, Fortinet, pfSense, strongSwan). | JSON `{config_text, filename, vendor}`; `ProtocolAnalysisResult`. |
+| POST | `/analyze/vendor-config/upload` | Upload a configuration file for parsing and remediation. | Multipart `config_file`, form `vendor`; `ProtocolAnalysisResult`. |
+| GET | `/analyze/vendor-config/samples` | List bundled sample configuration templates. | No body; JSON dictionary of sample configs. |
 | GET | `/api/report-data` | Read report data for a capture filename. | Query `filename`; JSON report object. |
 | GET | `/api/history` | Return analysis history vault. | No body; JSON list. |
 | GET | `/reports/download-html` | Download Executive Report (HTML). | Query `filename`; HTML file response. |
+| GET | `/reports/download-pdf` | Download Executive Report (PDF). | Query `filename`; PDF file response. |
 | GET | `/reports/download-json` | Download Technical Report (JSON). | Query `filename`; JSON file response. |
+| GET | `/reports/download-cbom` | Download CycloneDX Cryptographic Bill of Materials. | Query `filename`; JSON file response (`privcomm.cbom.v1`). |
 | GET | `/api/jobs` | List recent persisted analysis jobs. | Query `limit` 1-100; JSON list. |
 | GET | `/api/jobs/{job_id}` | Get one persisted analysis job. | Path `job_id`; JSON job record. |
 | POST | `/api/chat` | AI-assisted protocol & risk query assistant. | `ChatRequest`; JSON assistant response. |
 
-Testbed routes in `routers/testbed.py`:
+### Active IKE Probing Routes (`routers/protocol.py` + `probe/`)
+| Method | Path | Description | Request / Response Shape |
+|---|---|---|---|
+| POST | `/probe/ike` | Run a consent-gated active IKE handshake probe. | `IkeProbeRequest` with consent token; `IkeProbeResult`. |
+| GET | `/probe/allowlist` | List active authorized probe targets. | No body; JSON list of allowed CIDR/IP targets. |
+| POST | `/probe/allowlist/add` | Add an exact IP to the authorized probe allowlist. | JSON `{ip: string}`; JSON success response. |
+| DELETE | `/probe/allowlist/remove/{ip}` | Remove an IP from the probe allowlist. | Path `ip`; JSON success response. |
+
+### Behavioral Anomaly Routes (`anomaly/routes.py`)
+| Method | Path | Description | Request / Response Shape |
+|---|---|---|---|
+| GET | `/api/anomaly/status` | Get IsolationForest model status, threshold, and feature schema. | No body; `AnomalyModelStatus`. |
+| GET | `/api/anomaly/baseline` | Get learned normal baseline metrics (median, IQR) for 32 features. | No body; list of `AnomalyBaselineMetric`. |
+| POST | `/api/anomaly/predict` | Run anomaly detection on a single flow feature dictionary. | JSON feature vector; `AnomalyPredictionResult`. |
+| POST | `/api/anomaly/analyze-pcap` | Analyze rolling time windows across an entire PCAP capture. | Multipart `pcap_file`, query `window_sec`; `AnomalyPcapAnalysisResponse`. |
+
+### Cryptographic Audit Seal Routes (`routers/seal.py`)
+| Method | Path | Description | Request / Response Shape |
+|---|---|---|---|
+| POST | `/api/seal/create` | Generate an RFC 8032 Ed25519-signed Merkle tree audit seal. | JSON `SealRequest` (findings/report claims); `AuditSeal`. |
+| POST | `/api/seal/verify` | Verify a signed Merkle audit seal against claim data. | JSON `VerifySealRequest`; `VerifySealResponse`. |
+| POST | `/api/seal/attest` | Generate a compliance attestation certificate from a seal. | JSON `{seal: AuditSeal}`; JSON compliance certificate. |
+| GET | `/api/seal/public-key` | Retrieve the active Ed25519 verification public key. | No body; JSON `{public_key: string}`. |
+
+### Multi-Node Testbed Routes (`routers/testbed.py`)
 | Method | Path | Description & PS Output | Request / Response Shape |
 |---|---|---|---|
 | GET | `/api/testbed/scenarios` | List built-in VPN testbed scenarios. | No body; list of `ScenarioDefinition`. |
@@ -197,6 +262,10 @@ Testbed routes in `routers/testbed.py`:
 | GET | `/api/testbed/jobs` | List testbed execution jobs. | Query `limit` 1-100; JSON list. |
 | GET | `/api/testbed/jobs/{job_id}` | Read testbed state, logs, and completed results. | Path `job_id`; `TestbedJobStatus`-shaped JSON. |
 | GET | `/api/testbed/jobs/{job_id}/pcap`| Download captured testbed PCAP network trace. | Path `job_id`; PCAP file response. |
+| GET / POST | `/api/testbed/check-nodes` | Test SSH and reachability across testbed nodes. | Optional topology JSON; node reachability status. |
+| GET | `/api/testbed/attack-simulations` | List supported attack telemetry simulations and active sessions. | No body; JSON attack options and sessions. |
+| POST | `/api/testbed/attack-simulations` | Launch a safe control-plane attack simulation (MITM, replay, downgrade). | `AttackSimulationRequest`; `AttackSimulation` state. |
+| POST | `/api/testbed/attack-simulations/{session_id}/stop` | Terminate an active attack telemetry simulation. | Path `session_id`; JSON stopped status. |
 
 ---
 

@@ -33,87 +33,142 @@ PrivComm is an analysis and decision-support tool, not a VPN gateway, packet dec
 ## Architecture
 
 ~~~text
-                         +----------------------+
-                         | Vite / React frontend|
-                         | or static web assets |
-                         +----------+-----------+
-                                    |
-                                    | HTTP / JSON / upload
-                                    v
-                         +----------------------+
-                         | FastAPI application  |
-                         | main.py              |
-                         +----------+-----------+
-                                    |
-       +----------------------------+-----------------------------+
-       |                            |                             |
-       v                            v                             v
-  Protocol API                Anomaly API                    Testbed API
-  routers/protocol.py         anomaly/routes.py              routers/testbed.py
-       |                            |                             |
-       v                            v                             v
-  Protocol engine             Feature adapter                 Orchestrator
-  services/                    ml/anomaly/                     services/testbed/
-       |                            |                             |
-       +--------------+-------------+-----------------------------+
-                      v
-             PCAP and configuration analysis
-             analyzer/ + vendor parsers
-                      |
-                      v
-        +-------------+----------------------+
-        |                                    |
-        v                                    v
-  XGBoost flow classifier              Security assessment
-  ml/ + models/                        security/ + config/
-        |                                    |
-        +----------------+-------------------+
-                         v
-                    Report builder
-                    reports/
-                         |
-        +----------------+-------------------+
-        |                                    |
-        v                                    v
-  JSON / HTML / PDF / CSV              Crypto BOM / seal
-  results/                              seal/ + routers/seal.py
+                               +-------------------------------------+
+                               |   Vite / React 19 Frontend (SPA)    |
+                               |    or Static HTML Web Assets        |
+                               +------------------+------------------+
+                                                  |
+                                                  | HTTP / JSON / Multipart
+                                                  v
+                               +-------------------------------------+
+                               |      FastAPI ASGI Application       |
+                               |             (main.py)               |
+                               +------------------+------------------+
+                                                  |
+         +-----------------------+----------------+-----------------------+----------------------+
+         |                       |                |                       |                      |
+         v                       v                v                       v                      v
+    Protocol API            Vendor Config    Anomaly API             Testbed API             Seal API
+  routers/protocol.py       & Probe APIs   anomaly/routes.py    routers/testbed.py      routers/seal.py
+         |                  routers/protocol.py   |                       |                      |
+         |                  probe/scanner.py      |                       |                      |
+         v                       v                v                       v                      v
+  Protocol Engine          Static Lexer/    Behavioral Engine       4-Node Orchestrator    Ed25519 & Merkle
+services/protocol_engine   AST Parsers     anomaly/service.py      services/testbed/      seal/engine.py
+         |                       |                |                       |                      |
+         +-----------------------+----------------+-----------------------+----------------------+
+                                                  |
+                                                  v
+         +---------------------------------------------------------------------------------------+
+         |                              Ingestion & Dissection Core                              |
+         |  - PCAP Ingestion: TShark dissection + Scapy fallback + Pure-Python binary decoder    |
+         |  - RFC 4303: Zero-payload arithmetic block cipher candidate elimination               |
+         |  - Vendor Config Parsers: Cisco IOS/ASA, Fortinet, pfSense XML, Libreswan, strongSwan |
+         |  - Metadata Exposure: IP leak analysis, transport mode exposure, SPI correlation     |
+         +----------------------------------------+----------------------------------------------+
+                                                  |
+                         +------------------------+------------------------+
+                         |                                                 |
+                         v                                                 v
+           +---------------------------+                     +---------------------------+
+           |     AI / ML Pipelines     |                     |    Security Assessment    |
+           | • Flow Extractor (28 dims)|                     | • NIST SP 800-77 & FIPS   |
+           | • XGBoost Flow Classifier |                     | • Mosca Theorem PQC Check |
+           |   (14 application classes)|                     | • Drift & Downgrade Track |
+           | • IsolationForest Anomaly |                     | • Context Policy Engine   |
+           |   (rolling window scoring)|                     | • CVSS / Risk Calculator  |
+           | ml/ + anomaly/            |                     | security/ + config/       |
+           +-------------+-------------+                     +-------------+-------------+
+                         |                                                 |
+                         +------------------------+------------------------+
+                                                  |
+                                                  v
+                               +-------------------------------------+
+                               |           Report Builder            |
+                               |        reports/report_generator     |
+                               +------------------+------------------+
+                                                  |
+         +-----------------------+----------------+-----------------------+----------------------+
+         |                       |                                        |                      |
+         v                       v                                        v                      v
+  Unified Analysis JSON    Executive Reports                       CycloneDX CBOM         RFC 8032 Audit Seal
+  results/*.json           HTML & PDF Downloads                  privcomm.cbom.v1        Ed25519 Signed Merkle
+  results/result.json      reports/html_report_generator.py      reports/crypto_bom.py   seal/signer.py
+                           reports/pdf_report_generator.py
+                                 |
+                                 v
+         +---------------------------------------------------------------------------------------+
+         |                               Data & Persistence Layer                                |
+         |   - Supabase PostgreSQL (Cloud RLS, job history, security assessments, audit seals)   |
+         |   - Local SQLite / JSON fallback (Offline air-gapped operation in results/*.json)     |
+         |   - Storage Service (PCAP and executive report blob synchronization)                  |
+         +---------------------------------------------------------------------------------------+
 ~~~
 
-### Main request flow
+### End-to-end processing workflows
 
-1. The client uploads a PCAP, PCAPNG or CAP file, or the CLI receives a local capture path.
-2. analyzer.pcap_ingestion reads the capture and computes capture metadata, including a SHA-256 hash.
-3. The decoder and protocol parsers extract IKE, ESP, flow and packet-evidence data. TShark is used when available for richer protocol decoding; built-in Scapy/decoder logic remains the fallback.
-4. ml.xgboost_adapter turns flow features into a traffic-classification result using the bundled model artifacts.
-5. security.policy_engine, security.risk and security.recommendations evaluate the IPsec posture.
-6. The report layer adds plain-language explanations, drift checks, policy-as-code results, post-quantum readiness, metadata-exposure findings, evidence references, limitations and the crypto BOM.
-7. The result is returned through the API or saved as JSON and/or HTML. PDF generation is available through the report generator and download route when a PDF has been produced.
+PrivComm supports five primary operational workflows:
+
+1. **PCAP / PCAPNG network trace analysis (`/analyze/protocol`):**
+   - The client uploads a capture file (`.pcap`, `.pcapng`, `.cap`) or the CLI targets a local file.
+   - `analyzer.pcap_ingestion` validates capture headers, extracts packet evidence, and computes SHA-256 integrity digests.
+   - TShark executes structured protocol dissection, falling back to Scapy and `analyzer.pcap_decoder` (zero-dependency pure-binary decoder).
+   - `analyzer.rfc4303` applies modulo block alignment arithmetic to eliminate incompatible cipher candidates without payload decryption.
+   - `analyzer.flow_extractor` generates a 28-dimensional statistical flow feature vector from bidirectional packet cadence.
+   - `ml.xgboost_adapter` evaluates the 400-tree gradient boosted model, emitting a 14-class probability distribution and traffic classification.
+   - `anomaly.service` computes behavioral anomaly scores and top contributing feature deviations across rolling time windows.
+   - `security.policy_engine` audits observed proposals against NIST SP 800-77 Rev 1, FIPS 140-3, and `config/security_policy.yaml`.
+   - `security.pqc_assessor` applies Mosca's theorem ($X + Y > Z$) and checks RFC 9370 hybrid key exchange readiness.
+   - `security.downgrade_baseline` evaluates cryptographic drift against stored tunnel baselines when `tunnel_id` is specified.
+   - `reports.report_generator` synthesizes the findings into a 100-point Security Scorecard, 3x3 Threat Matrix, plain-language explanations, executive HTML/PDF documents, and a CycloneDX CBOM (`privcomm.cbom.v1`).
+   - Results are committed to Supabase PostgreSQL or local JSON repositories (`results/`).
+
+2. **Vendor firewall configuration auditing (`/analyze/vendor-config`):**
+   - Ingests raw configuration text or uploaded files from Cisco IOS/ASA, Fortinet FortiOS, pfSense/OPNsense XML, Libreswan, or strongSwan.
+   - `analyzer.vendor_config_parser` constructs an Abstract Syntax Tree (AST), identifies configured IKE/ESP crypto proposals, and detects obsolete algorithms.
+   - Generates automated, vendor-specific 1-click remediation hardening CLI playbooks with before/after syntax diffs.
+
+3. **Multi-node strongSwan testbed & attack simulation (`/api/testbed/*`):**
+   - Orchestrates an isolated network topology across 4 nodes (VM1 Initiator, VM2 Responder, VM3 Observer, and VM4 Attacker).
+   - Generates strongSwan `swanctl.conf` configurations, activates remote `tcpdump` sniffing, triggers live traffic, and pulls resulting PCAPs into the analysis pipeline.
+   - `services.testbed.attack_simulator` provides safe, isolated control-plane attack telemetry simulations (MITM identity mismatch, IKE/ESP replay, weak proposal downgrade, and tunnel disruption).
+
+4. **Consent-gated active IKE probing (`/probe/ike`):**
+   - Verifies target authorization against an explicit CIDR/IP allowlist (`probe.allowlist`) and requires cryptographic operator consent tokens (`probe.consent`).
+   - Dispatches non-destructive IKEv1/IKEv2 Security Association initiation probes to fingerprint responder vendor implementations and supported transform proposals.
+
+5. **Cryptographic audit sealing & attestation (`/api/seal/*`):**
+   - Constructs a SHA-256 Merkle tree over canonical analysis findings (`seal.merkle`).
+   - Signs the Merkle root using RFC 8032 Ed25519 twisted Edwards curve cryptography (`seal.signer`).
+   - Emits tamper-evident verifiable audit certificates proving findings have not drifted or been altered post-inspection.
 
 ## Repository layout
 
 | Path | Purpose |
 | --- | --- |
-| main.py | FastAPI application, static-file serving, CLI entry point and end-to-end PCAP orchestration. |
-| analyzer/ | PCAP ingestion, Scapy/built-in decoding, IKE/ESP/IPsec parsing, flow extraction, metadata exposure and vendor configuration parsing. |
-| routers/ | FastAPI routes for protocol analysis, testbed operations and audit seals. |
-| services/ | Protocol-engine coordination and the controlled strongSwan/testbed orchestration stack. |
-| security/ | Policy-as-code checks, risk scoring, recommendations, explainability, drift detection, PQC assessment and provenance. |
-| ml/ | Runtime model adapters plus the independent behavioural anomaly pipeline. |
-| models/ | Runtime protocol-analysis schema and bundled XGBoost model artifacts. |
-| traffic-classifier/ | Reproducible dataset inspection, preprocessing, training, evaluation and prediction tooling for the flow classifier. |
-| probe/ | Consent, allowlist, IKE probing and vendor fingerprinting helpers. |
-| seal/ | Merkle tree, signing, attestation and verification logic for audit seals. |
-| reports/ | Unified report, HTML, PDF and crypto-BOM generation. |
-| db/ | Local JSON repositories and optional Supabase persistence. |
-| config/ | Security policy baseline. |
-| services/testbed/ | Scenario definitions, SSH control, capture management, event storage, attack telemetry and orchestration. |
-| frontend/ | Vite/React frontend source and build configuration. |
-| index.html, dashboard.html, report.html, style.css, script.js | Root-level static UI/report assets used as fallbacks or compatibility pages. |
-| samples/ | Sample captures used by sample-analysis routes and tests. |
-| results/ | Generated reports, job history and testbed outputs. Treat this as runtime data. |
-| tests/ | Unit and integration coverage for parsing, security, ML adapters, probing, reporting, seals and testbed behaviour. |
-| docker/ | Testbed-node image and entrypoint assets used by docker-compose.testbed.yml. |
-| docs/ | Technical, deployment, security-policy and implementation documentation. |
+| main.py | FastAPI ASGI application, static SPA serving, CLI entry point and top-level lifecycle orchestration. |
+| analyzer/ | PCAP ingestion, pure binary decoding, TShark/Scapy wrappers, RFC 4303 cipher arithmetic, flow feature extraction, metadata leakage analysis, and vendor AST parsers. |
+| anomaly/ | Behavioral anomaly detection engine, feature adapter, rolling window analyzer, learned baseline metrics, and anomaly REST routes. |
+| routers/ | FastAPI HTTP routing: protocol analysis (`protocol.py`), strongSwan testbed operations (`testbed.py`), and audit attestation seals (`seal.py`). |
+| services/ | Protocol engine coordination (`services/protocol_engine.py`) and strongSwan multi-node testbed orchestrator (`services/testbed/`). |
+| security/ | NIST/FIPS policy engine, risk scoring, recommendations, explainability, baseline drift tracking, Mosca PQC assessment, and LLM assistant. |
+| ml/ | Runtime XGBoost model loaders and 28-feature classification adapters. |
+| models/ | Pydantic data schemas (`protocol_analysis.py`), XGBoost models (`xgboost_model.json`), and model metadata. |
+| traffic-classifier/ | Training pipeline, synthetic data generation, hyperparameter tuning, and evaluation scripts for the 14-class XGBoost model. |
+| probe/ | Active IKE handshake scanner, consent token validation, IP allowlist management, and vendor fingerprinting. |
+| seal/ | RFC 8032 Ed25519 digital signature generator, Merkle tree builder, and cryptographic compliance attestation engine. |
+| reports/ | Unified JSON report compiler, standalone executive HTML generator, PDF generator, and CycloneDX CBOM serializer. |
+| db/ | Dual-mode persistence: Supabase PostgreSQL cloud client with RLS, local JSON/SQLite repositories, and object storage synchronization. |
+| config/ | Security policy baseline rules (`security_policy.yaml`). |
+| services/testbed/ | 4-node scenario definitions, SSH remote automation, live packet capture management, event stream bus, and safe attack simulator. |
+| frontend/ | React 19 + Vite dashboard source, Tailwind-free vanilla CSS design system, and telemetry visualization components. |
+| index.html, dashboard.html, report.html, style.css, script.js | Root-level static web assets and standalone viewer pages. |
+| samples/ | Reference compliant and weak sample PCAP captures for offline testing. |
+| results/ | Runtime storage for generated JSON reports, executive HTML/PDF files, CBOMs, and local job databases. |
+| tests/ | Comprehensive pytest test suite covering parsers, security engines, ML classifiers, anomaly detection, seals, and testbed. |
+| docker/ | Dockerfiles and entrypoint configurations for application containers and testbed nodes. |
+| docs/ | Architectural specifications, technical documentation, deployment guides, and policy baselines. |
+| utils/ | Cross-cutting helper routines and formatting utilities. |
 
 ## Requirements
 
