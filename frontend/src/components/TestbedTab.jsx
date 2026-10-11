@@ -1302,7 +1302,7 @@ export default function TestbedTab({ onNavigateToAnalysis, onNavigateToLive, onL
           <Info size={16} color="var(--accent-cyan)" style={{ flexShrink: 0, marginTop: "2px" }} />
           <div>
             <strong style={{ color: "var(--accent-cyan)", marginRight: "6px" }}>Note:</strong>
-            <span>The browser demo can simulate testbed stages when the backend or virtual machines are unavailable. These animations are illustrative only; they do not represent a completed multi-node deployment or a real packet capture.</span>
+            <span>The current environment simulates the web UI for demonstration purposes. The production roadmap includes deploying containerized Docker images using Kubernetes across cloud platforms such as AWS, GCP, and Azure. The live testbed execution shown in our demo video demonstrates the actual, operational multi-node deployment.</span>
           </div>
         </div>
       )}
